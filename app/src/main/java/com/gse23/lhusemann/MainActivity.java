@@ -40,9 +40,10 @@ public class MainActivity extends AppCompatActivity {
         for (String file : files) {
             if (file.contains(".jpeg") || file.contains(".jpg") || file.contains(".png")) {
                 Log.i("Foto-Pfad", "Im Ordner " + folder + " liegt das Foto: " + file);
-                Log.i("Foto-Laengengrad", "Laengengrad: " + this.getLaengengrad("albums/" + folder + "/" + file));
-                Log.i("Foto-Breitengrad", "Breitengrad: " + this.getBreitengrad("albums/" + folder + "/" + file));
-                Log.i("Beschreibung", "Beschreibung: " + this.getBeschreibung("albums/" + folder + "/" + file));
+                String album = "albums/";
+                Log.i("Foto-Laengengrad", "Laengengrad: " + this.getLaengengrad(album + folder + "/" + file));
+                Log.i("Foto-Breitengrad", "Breitengrad: " + this.getBreitengrad(album + folder + "/" + file));
+                Log.i("Beschreibung", "Beschreibung: " + this.getBeschreibung(album + folder + "/" + file));
             }
         }
     }
