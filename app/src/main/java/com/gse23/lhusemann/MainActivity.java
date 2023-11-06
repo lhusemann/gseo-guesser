@@ -38,7 +38,7 @@ public class MainActivity extends AppCompatActivity {
     }
     private void showAllImagesInFolder(String[] files, String folder) {
         for (String file : files) {
-            if (file.contains(".jpeg") || file.contains(".jpg") || file.contains(".png")) {
+            if (this.isImage(file)) {
                 Log.i("Foto-Pfad", "Im Ordner " + folder + " liegt das Foto: " + file);
                 String album = "albums/";
                 Log.i("Foto-Laengengrad", "Laengengrad: " + this.getLaengengrad(album + folder + "/" + file));
@@ -46,6 +46,35 @@ public class MainActivity extends AppCompatActivity {
                 Log.i("Beschreibung", "Beschreibung: " + this.getBeschreibung(album + folder + "/" + file));
             }
         }
+    }
+    private boolean isImage(String name) {
+        int laenge = name.length();
+        if (name.charAt(laenge-1) == 'g') {
+            if (name.charAt(laenge-2)=='n') {
+                if (name.charAt(laenge-3) == 'p') {
+                    if (name.charAt(laenge-4) == '.') {
+                        return true;
+                    }
+                }
+            }
+            if (name.charAt(laenge-2)=='p') {
+                if (name.charAt(laenge-3) == 'j') {
+                    if (name.charAt(laenge-4) == '.') {
+                        return true;
+                    }
+                }
+            }
+            if (name.charAt(laenge-2)=='e') {
+                if (name.charAt(laenge-3) == 'p') {
+                    if (name.charAt(laenge-4) == 'j') {
+                        if (name.charAt(laenge-5) == '.') {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        return false;
     }
     private void showAllImagesInAlbums(String album) throws IOException {
         String[] alben = this.getFolderInhalt(album);
