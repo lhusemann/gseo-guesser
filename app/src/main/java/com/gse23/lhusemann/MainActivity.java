@@ -49,25 +49,28 @@ public class MainActivity extends AppCompatActivity {
     }
     private boolean isImage(String name) {
         int laenge = name.length();
-        if (name.charAt(laenge-1) == 'g') {
-            if (name.charAt(laenge-2)=='n') {
-                if (name.charAt(laenge-3) == 'p') {
-                    if (name.charAt(laenge-4) == '.') {
+        final int three = 3;
+        final int four = 4;
+        final int five = 5;
+        if (name.charAt(laenge - 1) == 'g') {
+            if (name.charAt(laenge - 2) == 'n') {
+                if (name.charAt(laenge - three) == 'p') {
+                    if (name.charAt(laenge - four) == '.') {
                         return true;
                     }
                 }
             }
-            if (name.charAt(laenge-2)=='p') {
-                if (name.charAt(laenge-3) == 'j') {
-                    if (name.charAt(laenge-4) == '.') {
+            if (name.charAt(laenge - 2) =='p') {
+                if (name.charAt(laenge - three) == 'j') {
+                    if (name.charAt(laenge - four) == '.') {
                         return true;
                     }
                 }
             }
-            if (name.charAt(laenge-2)=='e') {
-                if (name.charAt(laenge-3) == 'p') {
-                    if (name.charAt(laenge-4) == 'j') {
-                        if (name.charAt(laenge-5) == '.') {
+            if (name.charAt(laenge - 2) == 'e') {
+                if (name.charAt(laenge - three) == 'p') {
+                    if (name.charAt(laenge - four) == 'j') {
+                        if (name.charAt(laenge - five) == '.') {
                             return true;
                         }
                     }
