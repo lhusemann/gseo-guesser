@@ -60,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
             }
-            if (name.charAt(laenge - 2) =='p') {
+            if (name.charAt(laenge - 2) == 'p') {
                 if (name.charAt(laenge - three) == 'j') {
                     if (name.charAt(laenge - four) == '.') {
                         return true;
