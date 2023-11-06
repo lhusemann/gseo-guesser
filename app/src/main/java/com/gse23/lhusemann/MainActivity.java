@@ -88,7 +88,11 @@ public class MainActivity extends AppCompatActivity {
     private String getLaengengrad(String filepath) {
         try (InputStream in =  getAssets().open(filepath)) {
             ExifInterface exifInterface = new ExifInterface(in);
-            return exifInterface.getAttribute(ExifInterface.TAG_GPS_LATITUDE);
+            if (exifInterface.getAttribute(ExifInterface.TAG_GPS_LATITUDE) == null) {
+                return "nicht vorhanden";
+            } else {
+                return exifInterface.getAttribute(ExifInterface.TAG_GPS_LATITUDE);
+            }
         } catch (IOException e) {
             return null;
         }
@@ -96,7 +100,11 @@ public class MainActivity extends AppCompatActivity {
     private String getBreitengrad(String filepath) {
         try (InputStream in =  getAssets().open(filepath)) {
             ExifInterface exifInterface = new ExifInterface(in);
-            return exifInterface.getAttribute(ExifInterface.TAG_GPS_LONGITUDE);
+            if (exifInterface.getAttribute(ExifInterface.TAG_GPS_LONGITUDE) == null) {
+                return "nicht vorhanden";
+            } else {
+                return exifInterface.getAttribute(ExifInterface.TAG_GPS_LONGITUDE);
+            }
         } catch (IOException e) {
             return null;
         }
@@ -104,7 +112,11 @@ public class MainActivity extends AppCompatActivity {
     private String getBeschreibung(String filepath) {
         try (InputStream in =  getAssets().open(filepath)) {
             ExifInterface exifInterface = new ExifInterface(in);
-            return exifInterface.getAttribute(ExifInterface.TAG_IMAGE_DESCRIPTION);
+            if (exifInterface.getAttribute(ExifInterface.TAG_IMAGE_DESCRIPTION) == null) {
+                return "nicht vorhanden";
+            } else {
+                return exifInterface.getAttribute(ExifInterface.TAG_IMAGE_DESCRIPTION);
+            }
         } catch (IOException e) {
             return null;
         }
