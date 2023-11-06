@@ -16,6 +16,7 @@ import androidx.exifinterface.media.ExifInterface;
  * Das ist die MainActivity, die zuerst ausgeführt wird, wenn die App gestartet wird.
  */
 public class MainActivity extends AppCompatActivity {
+    String nichtVorhanden = "nicht vorhanden";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -89,7 +90,7 @@ public class MainActivity extends AppCompatActivity {
         try (InputStream in =  getAssets().open(filepath)) {
             ExifInterface exifInterface = new ExifInterface(in);
             if (exifInterface.getAttribute(ExifInterface.TAG_GPS_LATITUDE) == null) {
-                return "nicht vorhanden";
+                return nichtVorhanden;
             } else {
                 return exifInterface.getAttribute(ExifInterface.TAG_GPS_LATITUDE);
             }
@@ -101,7 +102,7 @@ public class MainActivity extends AppCompatActivity {
         try (InputStream in =  getAssets().open(filepath)) {
             ExifInterface exifInterface = new ExifInterface(in);
             if (exifInterface.getAttribute(ExifInterface.TAG_GPS_LONGITUDE) == null) {
-                return "nicht vorhanden";
+                return nichtVorhanden;
             } else {
                 return exifInterface.getAttribute(ExifInterface.TAG_GPS_LONGITUDE);
             }
@@ -113,7 +114,7 @@ public class MainActivity extends AppCompatActivity {
         try (InputStream in =  getAssets().open(filepath)) {
             ExifInterface exifInterface = new ExifInterface(in);
             if (exifInterface.getAttribute(ExifInterface.TAG_IMAGE_DESCRIPTION) == null) {
-                return "nicht vorhanden";
+                return nichtVorhanden;
             } else {
                 return exifInterface.getAttribute(ExifInterface.TAG_IMAGE_DESCRIPTION);
             }
