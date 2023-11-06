@@ -1,4 +1,4 @@
-package com.gse23.template;
+package com.gse23.lhusemann;
 
 import android.content.Context;
 
