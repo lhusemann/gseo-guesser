@@ -1,7 +1,9 @@
 package com.gse23.lhusemann;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Intent;
 import android.os.Bundle;
 
 import android.util.Log;
@@ -10,6 +12,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Spinner;
+import android.widget.TextView;
 
 import java.io.IOException;
 
@@ -64,8 +67,17 @@ public class MainActivity extends AppCompatActivity {
         startButton.setOnClickListener(new View.OnClickListener()  {
             @Override
             public void onClick(View v) {
-                if (!keineAuswahl) {
-                    //switch andere Activity
+                if (keineAuswahl) {
+                    AlertDialog.Builder error = new AlertDialog.Builder(MainActivity.this);
+                    error.setMessage("Du hast keinen Ordner ausgewählt!")
+                            .setPositiveButton("Ok", (dialog, id) -> {})
+                            .setTitle("Error");
+                    AlertDialog alert = error.create();
+                    alert.show();
+                } else {
+                    Intent intent = new Intent(MainActivity.this, SpielansichtActivity.class);
+                    intent.putExtra("album", (spinner.getSelectedItem().toString()));
+                    startActivity(intent);
                 }
             }
         });
