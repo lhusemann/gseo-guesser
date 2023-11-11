@@ -5,6 +5,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 
 import android.util.Log;
+import android.widget.ArrayAdapter;
+import android.widget.Spinner;
 
 import java.io.IOException;
 
@@ -22,12 +24,20 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        Spinner spinner = findViewById(R.id.spinner);
         try {
             String album = "albums";
             if (getAssets().list(album).length < 1) {
                 Log.i("Fehler", "Keine Dateien in albums vorhanden");
+                String[] empty = new String[1];
+                empty[0]="keine Ordner enthalten";
+                ArrayAdapter adapter = new ArrayAdapter(this, androidx.appcompat.R.layout.support_simple_spinner_dropdown_item,empty);
+                spinner.setAdapter(adapter);
+
             } else {
                 this.showAllImagesInAlbums(album);
+                ArrayAdapter adapter = new ArrayAdapter(this, androidx.appcompat.R.layout.support_simple_spinner_dropdown_item,getAssets().list(album));
+                spinner.setAdapter(adapter);
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
