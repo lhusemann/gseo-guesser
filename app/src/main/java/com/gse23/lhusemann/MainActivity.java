@@ -2,29 +2,20 @@ package com.gse23.lhusemann;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-
 import android.content.Intent;
 import android.os.Bundle;
-
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Spinner;
-
 import java.io.IOException;
-
 import java.io.InputStream;
 
 import androidx.exifinterface.media.ExifInterface;
 
-/**
- * Das ist die MainActivity, die zuerst ausgeführt wird, wenn die App gestartet wird.
- */
 public class MainActivity extends AppCompatActivity {
-    //wenn ich die nicht verwende, meckert der StyleGuide
-    String nichtVorhanden = "nicht vorhanden";
     boolean keineAuswahl = true;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,21 +28,20 @@ public class MainActivity extends AppCompatActivity {
             String album = "albums";
             String[] empty = new String[1];
             empty[0] =  error;
-            if (getAssets().list(album).length < 1) {
+            if (getAssets().list(album) == null || getFolderInhalt(album).length < 1) {
                 Log.i("Fehler", "Keine Dateien in albums vorhanden");
                 ArrayAdapter adapter = new ArrayAdapter(this, androidx.appcompat.R.layout.support_simple_spinner_dropdown_item, empty);
                 spinner.setAdapter(adapter);
-
             } else {
                 this.showAllImagesInAlbums(album);
-                String[] auswahlmoeglichkeiten = this.mergeArray(empty, getAssets().list(album));
+                String[] auswahlmoeglichkeiten = this.mergeArray(empty, getFolderInhalt(album));
                 ArrayAdapter adapter = new ArrayAdapter(this, androidx.appcompat.R.layout.support_simple_spinner_dropdown_item, auswahlmoeglichkeiten);
                 spinner.setAdapter(adapter);
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        //prüft ob etwas Aufgewaehlt ist
+        //prüft ob etwas Ausgewaehlt ist
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -84,20 +74,12 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
-    //gibt Inhalt eines Ordner wieder
-    private String[] getFolderInhalt(String folder) throws IOException {
-        return getAssets().list(folder);
-    }
-    //gibt alle Bilder mit Exif-Daten im Log aus
-    private void showAllImagesInFolder(String[] files, String folder) {
-        for (String file : files) {
-            if (this.isImage(file)) {
-                Log.i("Foto-Pfad", "Im Ordner " + folder + " liegt das Foto: " + file);
-                String album = "albums/";
-                Log.i("Foto-Laengengrad", "Laengengrad: " + this.getLaengengrad(album + folder + "/" + file));
-                Log.i("Foto-Breitengrad", "Breitengrad: " + this.getBreitengrad(album + folder + "/" + file));
-                Log.i("Beschreibung", "Beschreibung: " + this.getBeschreibung(album + folder + "/" + file));
-            }
+    //gibt Inhalt eines Ordner wieder ohne Fehlermeldung
+    private String[] getFolderInhalt(String folder) {
+        try {
+            return getAssets().list(folder);
+        } catch (IOException e) {
+            return new String[0];
         }
     }
     //prüft ob es sich um eine Bild-Datei handelt
@@ -133,50 +115,31 @@ public class MainActivity extends AppCompatActivity {
         }
         return false;
     }
-    //Hilfsfunktion um von allen Ordnern den Inhalt anzeigen zu lassen
+    //gibt alle Bilder mit Exif-Daten im Log aus
     private void showAllImagesInAlbums(String album) throws IOException {
-        String[] alben = this.getFolderInhalt(album);
-        for (String folder : alben) {
-            this.showAllImagesInFolder(getFolderInhalt(album + "/" + folder), folder);
+        for (String folder : this.getFolderInhalt(album)) {
+            for (String file : getFolderInhalt(album + "/" + folder)) {
+                if (this.isImage(file)) {
+                    String path = album + "/" + folder + "/" + file;
+                    Log.i("Foto-Pfad", "Im Ordner " + folder + " liegt das Foto: " + file);
+                    Log.i("Laengengrad", this.getExifdata(path, ExifInterface.TAG_GPS_LONGITUDE));
+                    Log.i("Breitengrad", this.getExifdata(path, ExifInterface.TAG_GPS_LATITUDE));
+                    Log.i("Beschreibung", this.getExifdata(path, ExifInterface.TAG_IMAGE_DESCRIPTION));
+                }
+            }
         }
     }
-    //gibt Längengrad aus
-    private String getLaengengrad(String filepath) {
+    //gibt Exifdaten aus
+    private String getExifdata(String filepath, String exifTag) {
         try (InputStream in =  getAssets().open(filepath)) {
             ExifInterface exifInterface = new ExifInterface(in);
-            if (exifInterface.getAttribute(ExifInterface.TAG_GPS_LATITUDE) == null) {
-                return nichtVorhanden;
+            if (exifInterface.getAttribute(exifTag) == null) {
+                return "nicht vorhanden";
             } else {
-                return exifInterface.getAttribute(ExifInterface.TAG_GPS_LATITUDE);
+                return exifInterface.getAttribute(exifTag);
             }
         } catch (IOException e) {
-            return null;
-        }
-    }
-    //gibt Breitengrad aus
-    private String getBreitengrad(String filepath) {
-        try (InputStream in =  getAssets().open(filepath)) {
-            ExifInterface exifInterface = new ExifInterface(in);
-            if (exifInterface.getAttribute(ExifInterface.TAG_GPS_LONGITUDE) == null) {
-                return nichtVorhanden;
-            } else {
-                return exifInterface.getAttribute(ExifInterface.TAG_GPS_LONGITUDE);
-            }
-        } catch (IOException e) {
-            return null;
-        }
-    }
-    //gibt Beschreibung aus
-    private String getBeschreibung(String filepath) {
-        try (InputStream in =  getAssets().open(filepath)) {
-            ExifInterface exifInterface = new ExifInterface(in);
-            if (exifInterface.getAttribute(ExifInterface.TAG_IMAGE_DESCRIPTION) == null) {
-                return nichtVorhanden;
-            } else {
-                return exifInterface.getAttribute(ExifInterface.TAG_IMAGE_DESCRIPTION);
-            }
-        } catch (IOException e) {
-            return null;
+            return "nicht vorhanden";
         }
     }
     //https://www.javatpoint.com/how-to-merge-two-arrays-in-java#:~:text=Java%20arraycopy()%20method&text=It%20copies%20an%20array%20from,equal%20to%20the%20length%20argument
