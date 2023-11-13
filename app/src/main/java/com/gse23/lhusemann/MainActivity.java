@@ -13,6 +13,7 @@ import android.widget.Spinner;
 import java.io.IOException;
 import java.io.InputStream;
 import androidx.exifinterface.media.ExifInterface;
+
 /**
  * Das ist die MainActivity, die zuerst ausgeführt wird, wenn die App gestartet wird.
  */
@@ -68,7 +69,7 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     Log.i("Ausgewaehltes Album", spinner.getSelectedItem().toString());
                     Intent intent = new Intent(MainActivity.this, SpielansichtActivity.class);
-                    intent.putExtra("album", (spinner.getSelectedItem().toString()));
+                        intent.putExtra("namen", (getNames("albums", spinner.getSelectedItem().toString())));
                     startActivity(intent);
                 }
             }
@@ -114,7 +115,7 @@ public class MainActivity extends AppCompatActivity {
         return false;
     }
     //gibt alle Bilder mit Exif-Daten im Log aus
-    private void showAllImagesInAlbums(String album) throws IOException {
+    private void showAllImagesInAlbums(String album) {
         for (String folder : this.getFolderInhalt(album)) {
             for (String file : getFolderInhalt(album + "/" + folder)) {
                 if (this.isImage(file)) {
@@ -148,5 +149,30 @@ public class MainActivity extends AppCompatActivity {
         System.arraycopy(firstArray, 0, result, 0, firstLength);
         System.arraycopy(secondArray, 0, result, firstLength, secondLength);
         return result;
+    }
+    //gibt anzahl der Bilder in einem Ordner wieder
+    private int getImagesCount(String album, String folder){
+        int i = 0;
+        if (album == null || folder == null) {
+            return 0;
+        }
+        for (String file : getFolderInhalt(album + "/" + folder)) {
+            if (this.isImage(file)) {
+                i++;
+            }
+        }
+        return i;
+    }
+    //gibt Namen aller Bilder in einem Array wieder
+    private String[] getNames(String album, String folder) {
+        String[] bilder = new String[getImagesCount(album, folder)];
+        int i = 0;
+        for (String file : getFolderInhalt(album + "/" + folder)) {
+            if (this.isImage(file)) {
+                bilder[i]=file;
+                i++;
+            }
+        }
+        return bilder;
     }
 }
