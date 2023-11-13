@@ -12,9 +12,10 @@ import android.widget.Button;
 import android.widget.Spinner;
 import java.io.IOException;
 import java.io.InputStream;
-
 import androidx.exifinterface.media.ExifInterface;
-
+/**
+ * Das ist die MainActivity, die zuerst ausgeführt wird, wenn die App gestartet wird.
+ */
 public class MainActivity extends AppCompatActivity {
     boolean keineAuswahl = true;
     @Override
@@ -24,6 +25,7 @@ public class MainActivity extends AppCompatActivity {
         Spinner spinner = findViewById(R.id.spinner);
         Button startButton = findViewById(R.id.startButton);
         String error = "Kein Ordner ausgewaehlt";
+        //füllt spinner und gibt alle Bilder in den Albumordnern aus
         try {
             String album = "albums";
             String[] empty = new String[1];
@@ -45,17 +47,14 @@ public class MainActivity extends AppCompatActivity {
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                if (spinner.getSelectedItem().toString().equals(error)) {
-                    keineAuswahl = true;
-                } else {
-                    keineAuswahl = false;
-                }
+                keineAuswahl = spinner.getSelectedItem().toString().equals(error);
             }
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
                 keineAuswahl = true;
             }
         });
+        //Wenn der Button gedrückt wird wird entweder eine Fehlernachricht ausgegeben oder das Spiel gestartet
         startButton.setOnClickListener(new View.OnClickListener()  {
             @Override
             public void onClick(View button) {
@@ -67,6 +66,7 @@ public class MainActivity extends AppCompatActivity {
                     AlertDialog alert = error.create();
                     alert.show();
                 } else {
+                    Log.i("Ausgewaehltes Album", spinner.getSelectedItem().toString());
                     Intent intent = new Intent(MainActivity.this, SpielansichtActivity.class);
                     intent.putExtra("album", (spinner.getSelectedItem().toString()));
                     startActivity(intent);
@@ -106,9 +106,7 @@ public class MainActivity extends AppCompatActivity {
             if (name.charAt(laenge - 2) == 'e') {
                 if (name.charAt(laenge - three) == 'p') {
                     if (name.charAt(laenge - four) == 'j') {
-                        if (name.charAt(laenge - five) == '.') {
-                            return true;
-                        }
+                        return name.charAt(laenge - five) == '.';
                     }
                 }
             }
@@ -139,7 +137,7 @@ public class MainActivity extends AppCompatActivity {
                 return exifInterface.getAttribute(exifTag);
             }
         } catch (IOException e) {
-            return "nicht vorhanden";
+            return "liegt nicht vor";
         }
     }
     //https://www.javatpoint.com/how-to-merge-two-arrays-in-java#:~:text=Java%20arraycopy()%20method&text=It%20copies%20an%20array%20from,equal%20to%20the%20length%20argument
