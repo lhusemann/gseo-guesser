@@ -18,6 +18,7 @@ import androidx.exifinterface.media.ExifInterface;
  * Das ist die MainActivity, die zuerst ausgeführt wird, wenn die App gestartet wird.
  */
 public class MainActivity extends AppCompatActivity {
+    String album = "albums";
     boolean keineAuswahl = true;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,17 +29,18 @@ public class MainActivity extends AppCompatActivity {
         String error = "Kein Ordner ausgewaehlt";
         //füllt spinner und gibt alle Bilder in den Albumordnern aus
         try {
-            String album = "albums";
             String[] empty = new String[1];
             empty[0] =  error;
             if (getAssets().list(album) == null || getFolderInhalt(album).length < 1) {
-                Log.i("Fehler", "Keine Dateien in albums vorhanden");
-                ArrayAdapter adapter = new ArrayAdapter(this, androidx.appcompat.R.layout.support_simple_spinner_dropdown_item, empty);
+                Log.i("Fehler", "Keine Dateien in albums vorhanden");//maybe hier die exception einbauen
+                ArrayAdapter adapter = new ArrayAdapter
+                        (this, androidx.appcompat.R.layout.support_simple_spinner_dropdown_item, empty);
                 spinner.setAdapter(adapter);
             } else {
-                this.showAllImagesInAlbums(album);
+                this.showAllImagesInAlbums();
                 String[] auswahlmoeglichkeiten = this.mergeArray(empty, getFolderInhalt(album));
-                ArrayAdapter adapter = new ArrayAdapter(this, androidx.appcompat.R.layout.support_simple_spinner_dropdown_item, auswahlmoeglichkeiten);
+                ArrayAdapter adapter = new ArrayAdapter(this,
+                        androidx.appcompat.R.layout.support_simple_spinner_dropdown_item, auswahlmoeglichkeiten);
                 spinner.setAdapter(adapter);
             }
         } catch (IOException e) {
@@ -69,7 +71,8 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     Log.i("Ausgewaehltes Album", spinner.getSelectedItem().toString());
                     Intent intent = new Intent(MainActivity.this, SpielansichtActivity.class);
-                        intent.putExtra("namen", (getNames("albums", spinner.getSelectedItem().toString())));
+                    intent.putExtra("ausgewaehltesAlbum", spinner.getSelectedItem().toString());
+                    intent.putExtra("anzahlBilder", getImagesCount(spinner.getSelectedItem().toString()));
                     startActivity(intent);
                 }
             }
@@ -115,7 +118,7 @@ public class MainActivity extends AppCompatActivity {
         return false;
     }
     //gibt alle Bilder mit Exif-Daten im Log aus
-    private void showAllImagesInAlbums(String album) {
+    private void showAllImagesInAlbums() {
         for (String folder : this.getFolderInhalt(album)) {
             for (String file : getFolderInhalt(album + "/" + folder)) {
                 if (this.isImage(file)) {
@@ -141,7 +144,10 @@ public class MainActivity extends AppCompatActivity {
             return "liegt nicht vor";
         }
     }
-    //https://www.javatpoint.com/how-to-merge-two-arrays-in-java#:~:text=Java%20arraycopy()%20method&text=It%20copies%20an%20array%20from,equal%20to%20the%20length%20argument
+    /**
+     * habe arraycopy auf dieser Website gefunden und das Beispiel so umgeschrieben,
+     * dass es meinen Zweck erfüllt (https://www.javatpoint.com/)
+     */
     String[] mergeArray(String[] firstArray, String[] secondArray) {
         int firstLength = firstArray.length;
         int secondLength = secondArray.length;
@@ -151,28 +157,16 @@ public class MainActivity extends AppCompatActivity {
         return result;
     }
     //gibt anzahl der Bilder in einem Ordner wieder
-    private int getImagesCount(String album, String folder){
-        int i = 0;
+    private int getImagesCount(String folder) {
+        int counter = 0;
         if (album == null || folder == null) {
             return 0;
         }
         for (String file : getFolderInhalt(album + "/" + folder)) {
             if (this.isImage(file)) {
-                i++;
+                counter++;
             }
         }
-        return i;
-    }
-    //gibt Namen aller Bilder in einem Array wieder
-    private String[] getNames(String album, String folder) {
-        String[] bilder = new String[getImagesCount(album, folder)];
-        int i = 0;
-        for (String file : getFolderInhalt(album + "/" + folder)) {
-            if (this.isImage(file)) {
-                bilder[i]=file;
-                i++;
-            }
-        }
-        return bilder;
+        return counter;
     }
 }
