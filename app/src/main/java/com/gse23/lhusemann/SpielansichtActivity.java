@@ -34,15 +34,15 @@ public class SpielansichtActivity extends AppCompatActivity {
         String[] paths = this.getPath();
         for (int i = 0; i<anzahlBilder;i++) {
             Bild aktuellesBild = new Bild(getNames()[i], getExifdata(paths[i], ExifInterface.TAG_IMAGE_DESCRIPTION),
-                    makeValue(getExifdata(paths[i], ExifInterface.TAG_GPS_LONGITUDE), paths[i]),
-                    makeValue(getExifdata(paths[i], ExifInterface.TAG_GPS_LATITUDE), paths[i]));
+                    makeValue(getExifdata(paths[i], ExifInterface.TAG_GPS_LONGITUDE)),
+                    makeValue(getExifdata(paths[i], ExifInterface.TAG_GPS_LATITUDE)));
             bilderArray[i] = aktuellesBild;
         }
         return bilderArray;
     }
     //macht die String-Exifdaten zu verwendbaren Double
-    private double makeValue (String tag, String path) {
-        StringBuilder valueAsString = new StringBuilder("");
+    private double makeValue (String tag) {
+        StringBuilder valueAsString = new StringBuilder();
         for (int i = 0; Character.isDigit(tag.charAt(i)); i++) {
             valueAsString.append(tag.charAt(i));
         }
@@ -132,9 +132,9 @@ public class SpielansichtActivity extends AppCompatActivity {
     //gibt alle Namen von allen Bildern aus
     private void bilderAusgabe() throws NoImagesInAlbumException {
         try {
-            //for (Bild bild : bilder) {
-            //    Log.i("Bildnamen", bild.getName());
-            //}
+            for (Bild bild : bilder) {
+                Log.i("Bildnamen", bild.getName());
+            }
             if(bilder.length==0) {
                 throw new NoImagesInAlbumException();
             }
