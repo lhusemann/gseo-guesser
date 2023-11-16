@@ -37,15 +37,19 @@ public class SpielansichtActivity extends AppCompatActivity {
         }
         mischen();
         bild.setImageDrawable(makeDrawable(album + "/" + folder+"/"+bilder[0].getName()));
+        Log.i("Name des angezeigten Bildes", folder+"/"+bilder[imageCount].getName());
+        Log.i("Laengengrad des angezeigten Bildes", "" + folder+"/"+bilder[imageCount].getLongtitude());
+        Log.i("Breitengrad des angezeigten Bildes", "" + folder+"/"+bilder[imageCount].getLatitude());
         imageCount = 1;
         nextButton = findViewById(R.id.nextButton);
         nextButton.setOnClickListener(new View.OnClickListener()  {
             @Override
             public void onClick(View button) {
-                Log.i("test",""+imageCount);
-                Log.i("test",""+anzahlBilder);
                 if(imageCount<anzahlBilder) {
                     bild.setImageDrawable(makeDrawable(album + "/" + folder+"/"+bilder[imageCount].getName()));
+                    Log.i("Name des angezeigten Bildes", folder+"/"+bilder[imageCount].getName());
+                    Log.i("Laengengrad des angezeigten Bildes", "" + folder+"/"+bilder[imageCount].getLongtitude());
+                    Log.i("Breitengrad des angezeigten Bildes", "" + folder+"/"+bilder[imageCount].getLatitude());
                     imageCount++;
                 } else {
                     AlertDialog.Builder error = new AlertDialog.Builder(SpielansichtActivity.this);
