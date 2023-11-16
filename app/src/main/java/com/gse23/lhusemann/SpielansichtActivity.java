@@ -4,8 +4,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.exifinterface.media.ExifInterface;
 import java.io.IOException;
 import java.io.InputStream;
+
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.ImageView;
 
 /**
  * Das ist die SpielansichtActivity, die zuerst ausgeführt wird, wenn diese Activity gestartet wird.
@@ -19,6 +22,7 @@ public class SpielansichtActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_spielansicht);
+        ImageView bild = findViewById(R.id.bild);
         folder = getIntent().getStringExtra("ausgewaehltesAlbum");
         anzahlBilder = getIntent().getIntExtra("anzahlBilder", 0);
         try {
@@ -27,6 +31,8 @@ public class SpielansichtActivity extends AppCompatActivity {
         } catch (CorruptedExifDataException | NoImagesInAlbumException e) {
             throw new RuntimeException(e);
         }
+        mischen();
+        bild.setImageDrawable(makeDrawable(album + "/" + folder+"/"+bilder[0].getName()));
     }
     //erstellt ein Array aus allen Bilder des Ordners
     private Bild[] makeImageArray() throws CorruptedExifDataException {
@@ -132,23 +138,7 @@ public class SpielansichtActivity extends AppCompatActivity {
             return "";
         }
     }
-    //gibt alle Namen von allen Bildern aus
-    /*
-    private void bilderAusgabe() throws NoImagesInAlbumException {
-        try {
-            for (Bild bild : bilder) {
-                Log.i("Bildnamen", bild.getName());
-            }
-            if(bilder.length==0) {
-                throw new NoImagesInAlbumException();
-            }
-        }catch (NoImagesInAlbumException e){
-            Log.i("NoImagesInAlbumException",folder + " hat keine Bilddateien enthalten. Du wirst auf die " +
-                    "Startansicht zurück geworfen");
-            finish();
-        }
-    }
-     */
+    //gibt alle Werte von allen Bildern aus
     private void bilderAusgabe() throws NoImagesInAlbumException {
         try {
             for (Bild bild : bilder) {
@@ -165,6 +155,25 @@ public class SpielansichtActivity extends AppCompatActivity {
                     "Startansicht zurück geworfen");
             finish();
         }
+    }
+    //mischt das Bilder-Array
+    private void mischen() {
+        for (int i = 0; i < 100; i++){
+            int erstesBild = (int) (Math.random()*anzahlBilder-1);
+            int zweitesBild = (int) (Math.random()*anzahlBilder-1);
+            Bild platzhalter = bilder[erstesBild];
+            bilder[erstesBild] = bilder[zweitesBild];
+            bilder[zweitesBild] = platzhalter;
+        }
+    }
+    private Drawable makeDrawable(String filepath) {
+        Drawable erschaffen;
+        try (InputStream in =  getAssets().open(filepath)) {
+            erschaffen = Drawable.createFromStream(in,"src");
+        } catch (IOException e) {
+            return null;
+        }
+        return erschaffen;
     }
 }
 

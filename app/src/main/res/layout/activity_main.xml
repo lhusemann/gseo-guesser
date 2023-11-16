@@ -8,6 +8,13 @@
     android:orientation="vertical"
     tools:context=".MainActivity">
 
+    <TextView
+        android:id="@+id/welcomeMessage"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:text="Welcome to GSEoGuessr!" />
+
     <Spinner
         android:id="@+id/spinner"
         android:layout_width="match_parent"
@@ -20,4 +27,5 @@
         android:background="@android:color/holo_blue_light"
         android:textColor="@android:color/white"
         android:text="Start" />
+
 </LinearLayout>
