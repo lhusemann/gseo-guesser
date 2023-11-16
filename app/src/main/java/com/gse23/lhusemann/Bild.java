@@ -11,4 +11,7 @@ public class Bild {
         longtitude = pLongtitude;
         latitude = pLatitude;
     }
+    public String getName() {
+        return name;
+    }
 }

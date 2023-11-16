@@ -2,9 +2,8 @@ package com.gse23.lhusemann;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.exifinterface.media.ExifInterface;
-
+import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import android.os.Bundle;
 import android.util.Log;
 
@@ -12,26 +11,36 @@ import android.util.Log;
  * Das ist die SpielansichtActivity, die zuerst ausgeführt wird, wenn diese Activity gestartet wird.
  */
 public class SpielansichtActivity extends AppCompatActivity {
-    String folder = getIntent().getStringExtra("ausgewaehltesAlbum");
-    int anzahlBilder = getIntent().getIntExtra("anzahlBilder", 0);
+    String folder;
+    int anzahlBilder;
     String album = "albums";
+    Bild[] bilder;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_spielansicht);
-        Log.i("test", folder);
-        //finish();
+        folder = getIntent().getStringExtra("ausgewaehltesAlbum");
+        anzahlBilder = getIntent().getIntExtra("anzahlBilder", 0);
+        bilder = makeImageArray();
+        try {
+            bilderAusgabe();
+        } catch (NoImagesInAlbumException e) {
+            throw new RuntimeException(e);
+        }
     }
-    private Bild[] makeImageArray(String folder) {
+    //erstellt ein Array aus allen Bilder des Ordners
+    private Bild[] makeImageArray() {
         Bild[] bilderArray = new Bild[anzahlBilder];
-        String[] paths = this.getPath(folder);
-        for (int i = 0; i<bilderArray.length;i++) {
-            Bild aktuellesBild = new Bild("name", getExifdata(paths[i], ExifInterface.TAG_IMAGE_DESCRIPTION),
+        String[] paths = this.getPath();
+        for (int i = 0; i<anzahlBilder;i++) {
+            Bild aktuellesBild = new Bild(getNames()[i], getExifdata(paths[i], ExifInterface.TAG_IMAGE_DESCRIPTION),
                     makeValue(getExifdata(paths[i], ExifInterface.TAG_GPS_LONGITUDE), paths[i]),
                     makeValue(getExifdata(paths[i], ExifInterface.TAG_GPS_LATITUDE), paths[i]));
+            bilderArray[i] = aktuellesBild;
         }
         return bilderArray;
     }
+    //macht die String-Exifdaten zu verwendbaren Double
     private double makeValue (String tag, String path) {
         StringBuilder valueAsString = new StringBuilder("");
         for (int i = 0; Character.isDigit(tag.charAt(i)); i++) {
@@ -45,7 +54,7 @@ public class SpielansichtActivity extends AppCompatActivity {
         return Integer.parseInt(valueAsString.toString());
     }
     //gibt Path aller Bilder in einem Array wieder
-    private String[] getPath(String folder) {
+    private String[] getPath() {
         String[] paths = new String[anzahlBilder];
         int counter = 0;
         String vorPath = album + "/" + folder;
@@ -57,11 +66,23 @@ public class SpielansichtActivity extends AppCompatActivity {
         }
         return paths;
     }
+    //gibt Namen aller Bilder in einem Array wieder
+    private String[] getNames() {
+        String[] paths = new String[anzahlBilder];
+        int counter = 0;
+        for (String file : getFolderInhalt(album + "/" + folder)) {
+            if (this.isImage(file)) {
+                paths[counter] = file;
+                counter++;
+            }
+        }
+        return paths;
+    }
     //gibt Inhalt eines Ordner wieder ohne Fehlermeldung
     private String[] getFolderInhalt(String folder) {
         try {
             return getAssets().list(folder);
-        } catch (IOException e) {   //NoImagesInAlbumException
+        } catch (IOException e) {
             return new String[0];
         }
     }
@@ -106,6 +127,21 @@ public class SpielansichtActivity extends AppCompatActivity {
             }
         } catch (IOException e) { //CorruptedExifDataException
             return "liegt nicht vor";
+        }
+    }
+    //gibt alle Namen von allen Bildern aus
+    private void bilderAusgabe() throws NoImagesInAlbumException {
+        try {
+            //for (Bild bild : bilder) {
+            //    Log.i("Bildnamen", bild.getName());
+            //}
+            if(bilder.length==0) {
+                throw new NoImagesInAlbumException();
+            }
+        }catch (NoImagesInAlbumException e){
+            Log.i("NoImagesInAlbumException",folder + " hat keine Bilddateien enthalten. Du wirst auf die " +
+                    "Startansicht zurück geworfen");
+            finish();
         }
     }
 }
