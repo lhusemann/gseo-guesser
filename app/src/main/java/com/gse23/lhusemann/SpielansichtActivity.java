@@ -133,10 +133,29 @@ public class SpielansichtActivity extends AppCompatActivity {
         }
     }
     //gibt alle Namen von allen Bildern aus
+    /*
     private void bilderAusgabe() throws NoImagesInAlbumException {
         try {
             for (Bild bild : bilder) {
                 Log.i("Bildnamen", bild.getName());
+            }
+            if(bilder.length==0) {
+                throw new NoImagesInAlbumException();
+            }
+        }catch (NoImagesInAlbumException e){
+            Log.i("NoImagesInAlbumException",folder + " hat keine Bilddateien enthalten. Du wirst auf die " +
+                    "Startansicht zurück geworfen");
+            finish();
+        }
+    }
+     */
+    private void bilderAusgabe() throws NoImagesInAlbumException {
+        try {
+            for (Bild bild : bilder) {
+                Log.i("Bildname", bild.getName());
+                Log.i("Beschreibung", bild.getDescription());
+                Log.i("Laengengrad", "" + bild.getLongtitude());
+                Log.i("Breitengrad", "" + bild.getLatitude());
             }
             if(bilder.length==0) {
                 throw new NoImagesInAlbumException();

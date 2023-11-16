@@ -14,4 +14,13 @@ public class Bild {
     public String getName() {
         return name;
     }
+    public String getDescription() {
+        return description;
+    }
+    public Double getLongtitude() {
+        return longtitude;
+    }
+    public Double getLatitude() {
+        return latitude;
+    }
 }
