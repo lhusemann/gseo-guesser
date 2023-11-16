@@ -12,4 +12,10 @@
         android:layout_width="match_parent"
         android:layout_height="405dp"
         tools:srcCompat="@tools:sample/avatars" />
+
+    <Button
+        android:id="@+id/nextButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Next" />
 </LinearLayout>

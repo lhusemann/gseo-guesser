@@ -1,13 +1,15 @@
 package com.gse23.lhusemann;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.exifinterface.media.ExifInterface;
 import java.io.IOException;
 import java.io.InputStream;
-
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 
 /**
@@ -18,6 +20,8 @@ public class SpielansichtActivity extends AppCompatActivity {
     int anzahlBilder;
     String album = "albums";
     Bild[] bilder;
+    Button nextButton;
+    int imageCount;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -33,6 +37,28 @@ public class SpielansichtActivity extends AppCompatActivity {
         }
         mischen();
         bild.setImageDrawable(makeDrawable(album + "/" + folder+"/"+bilder[0].getName()));
+        imageCount = 1;
+        nextButton = findViewById(R.id.nextButton);
+        nextButton.setOnClickListener(new View.OnClickListener()  {
+            @Override
+            public void onClick(View button) {
+                Log.i("test",""+imageCount);
+                Log.i("test",""+anzahlBilder);
+                if(imageCount<anzahlBilder) {
+                    bild.setImageDrawable(makeDrawable(album + "/" + folder+"/"+bilder[imageCount].getName()));
+                    imageCount++;
+                } else {
+                    AlertDialog.Builder error = new AlertDialog.Builder(SpielansichtActivity.this);
+                    error.setMessage("Das waren alle Bilder im Album " + folder +
+                                    ". Möchtest du zur Startansicht zurueckkehren?")
+                            .setPositiveButton("Startansicht", (dialog, id) -> {finish();})
+                            .setNeutralButton("Abbruch", (dialog, id) -> {})
+                            .setTitle("Hinweis");
+                    AlertDialog alert = error.create();
+                    alert.show();
+                }
+            }
+        });
     }
     //erstellt ein Array aus allen Bilder des Ordners
     private Bild[] makeImageArray() throws CorruptedExifDataException {
