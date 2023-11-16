@@ -21,15 +21,15 @@ public class SpielansichtActivity extends AppCompatActivity {
         setContentView(R.layout.activity_spielansicht);
         folder = getIntent().getStringExtra("ausgewaehltesAlbum");
         anzahlBilder = getIntent().getIntExtra("anzahlBilder", 0);
-        bilder = makeImageArray();
         try {
+            bilder = makeImageArray();
             bilderAusgabe();
-        } catch (NoImagesInAlbumException e) {
+        } catch (CorruptedExifDataException | NoImagesInAlbumException e) {
             throw new RuntimeException(e);
         }
     }
     //erstellt ein Array aus allen Bilder des Ordners
-    private Bild[] makeImageArray() {
+    private Bild[] makeImageArray() throws CorruptedExifDataException {
         Bild[] bilderArray = new Bild[anzahlBilder];
         String[] paths = this.getPath();
         for (int i = 0; i<anzahlBilder;i++) {
@@ -117,16 +117,19 @@ public class SpielansichtActivity extends AppCompatActivity {
         }
         return false;
     }
-    private String getExifdata(String filepath, String exifTag) {
+    private String getExifdata(String filepath, String exifTag) throws CorruptedExifDataException {
         try (InputStream in =  getAssets().open(filepath)) {
             ExifInterface exifInterface = new ExifInterface(in);
-            if (exifInterface.getAttribute(exifTag) == null) {
-                return "nicht vorhanden";
+            if (exifInterface.getAttribute(exifTag) == null || exifInterface.getAttribute(exifTag).equals("")) {
+                throw new CorruptedExifDataException();
             } else {
                 return exifInterface.getAttribute(exifTag);
             }
-        } catch (IOException e) { //CorruptedExifDataException
-            return "liegt nicht vor";
+        } catch (CorruptedExifDataException | IOException e) {
+            Log.i("CorruptedExifDataException",exifTag + " konnte in " + filepath +
+                    " nicht gefunden werden");
+            finish();
+            return "";
         }
     }
     //gibt alle Namen von allen Bildern aus
