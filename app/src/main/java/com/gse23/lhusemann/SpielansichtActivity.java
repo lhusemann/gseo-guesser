@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 
 /**
@@ -21,31 +22,35 @@ public class SpielansichtActivity extends AppCompatActivity {
     String album = "albums";
     Bild[] bilder;
     Button nextButton;
+    ImageView bild;
+    EditText longitudeEditText;
+    EditText latitudeEditText;
     int imageCount;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_spielansicht);
-        ImageView bild = findViewById(R.id.bild);
+        bild = findViewById(R.id.bild);
+        nextButton = findViewById(R.id.nextButton);
+        longitudeEditText = findViewById(R.id.longitudeEditText);
+        latitudeEditText = findViewById(R.id.latitudeEditText);
         folder = getIntent().getStringExtra("ausgewaehltesAlbum");
         anzahlBilder = getIntent().getIntExtra("anzahlBilder", 0);
         try {
             bilder = makeImageArray();
             bilderAusgabe();
+            mischenErstesBild();
         } catch (CorruptedExifDataException | NoImagesInAlbumException e) {
             throw new RuntimeException(e);
         }
-        mischen();
-        bild.setImageDrawable(makeDrawable(album + "/" + folder+"/"+bilder[0].getName()));
-        Log.i("Name des angezeigten Bildes", folder+"/"+bilder[imageCount].getName());
-        Log.i("Laengengrad des angezeigten Bildes", "" + folder+"/"+bilder[imageCount].getLongtitude());
-        Log.i("Breitengrad des angezeigten Bildes", "" + folder+"/"+bilder[imageCount].getLatitude());
         imageCount = 1;
-        nextButton = findViewById(R.id.nextButton);
+        //NextButton
         nextButton.setOnClickListener(new View.OnClickListener()  {
             @Override
             public void onClick(View button) {
                 if(imageCount<anzahlBilder) {
+                    longitudeEditText.setText(null);
+                    latitudeEditText.setText(null);
                     bild.setImageDrawable(makeDrawable(album + "/" + folder+"/"+bilder[imageCount].getName()));
                     Log.i("Name des angezeigten Bildes", folder+"/"+bilder[imageCount].getName());
                     Log.i("Laengengrad des angezeigten Bildes", "" + folder+"/"+bilder[imageCount].getLongtitude());
@@ -83,8 +88,6 @@ public class SpielansichtActivity extends AppCompatActivity {
             valueAsString.append(tag.charAt(i));
         }
         if (valueAsString.equals("")) {
-            //Log.i("CorruptedExifDataException", "Die Datei im Verzeichnes" + path + " hat unvollständige Daten.");
-            //finish();
             return 0;
         }
         return Integer.parseInt(valueAsString.toString());
@@ -153,17 +156,16 @@ public class SpielansichtActivity extends AppCompatActivity {
         }
         return false;
     }
+    //gibt Exifdaten zurück
     private String getExifdata(String filepath, String exifTag) throws CorruptedExifDataException {
         try (InputStream in =  getAssets().open(filepath)) {
             ExifInterface exifInterface = new ExifInterface(in);
-            if (exifInterface.getAttribute(exifTag) == null || exifInterface.getAttribute(exifTag).equals("")) {
-                throw new CorruptedExifDataException();
+            if (exifInterface.getAttribute(exifTag) == null) {
+                throw new CorruptedExifDataException(exifTag, filepath);
             } else {
                 return exifInterface.getAttribute(exifTag);
             }
         } catch (CorruptedExifDataException | IOException e) {
-            Log.i("CorruptedExifDataException",exifTag + " konnte in " + filepath +
-                    " nicht gefunden werden");
             finish();
             return "";
         }
@@ -171,31 +173,37 @@ public class SpielansichtActivity extends AppCompatActivity {
     //gibt alle Werte von allen Bildern aus
     private void bilderAusgabe() throws NoImagesInAlbumException {
         try {
-            for (Bild bild : bilder) {
-                Log.i("Bildname", bild.getName());
-                Log.i("Beschreibung", bild.getDescription());
-                Log.i("Laengengrad", "" + bild.getLongtitude());
-                Log.i("Breitengrad", "" + bild.getLatitude());
-            }
-            if(bilder.length==0) {
-                throw new NoImagesInAlbumException();
+            if(anzahlBilder<1) {
+                throw new NoImagesInAlbumException(album);
+            } else {
+                for (Bild bild : bilder) {
+                    Log.i("Bildname", bild.getName());
+                    Log.i("Beschreibung", bild.getDescription());
+                    Log.i("Laengengrad", "" + bild.getLongtitude());
+                    Log.i("Breitengrad", "" + bild.getLatitude());
+                }
             }
         }catch (NoImagesInAlbumException e){
-            Log.i("NoImagesInAlbumException",folder + " hat keine Bilddateien enthalten. Du wirst auf die " +
-                    "Startansicht zurück geworfen");
-            finish();
+            this.finish();
         }
     }
     //mischt das Bilder-Array
-    private void mischen() {
-        for (int i = 0; i < 100; i++){
-            int erstesBild = (int) (Math.random()*anzahlBilder-1);
-            int zweitesBild = (int) (Math.random()*anzahlBilder-1);
-            Bild platzhalter = bilder[erstesBild];
-            bilder[erstesBild] = bilder[zweitesBild];
-            bilder[zweitesBild] = platzhalter;
+    private void mischenErstesBild() {
+        if (anzahlBilder>0) {
+            bild.setImageDrawable(makeDrawable(album + "/" + folder+"/"+bilder[0].getName()));
+            Log.i("Name des angezeigten Bildes", folder+"/"+bilder[imageCount].getName());
+            Log.i("Laengengrad des angezeigten Bildes", "" + folder+"/"+bilder[imageCount].getLongtitude());
+            Log.i("Breitengrad des angezeigten Bildes", "" + folder+"/"+bilder[imageCount].getLatitude());
+            for (int i = 0; i < 100; i++) {
+                int erstesBild = (int) (Math.random() * anzahlBilder - 1);
+                int zweitesBild = (int) (Math.random() * anzahlBilder - 1);
+                Bild platzhalter = bilder[erstesBild];
+                bilder[erstesBild] = bilder[zweitesBild];
+                bilder[zweitesBild] = platzhalter;
+            }
         }
     }
+    //macht ein File zu Drawable
     private Drawable makeDrawable(String filepath) {
         Drawable erschaffen;
         try (InputStream in =  getAssets().open(filepath)) {

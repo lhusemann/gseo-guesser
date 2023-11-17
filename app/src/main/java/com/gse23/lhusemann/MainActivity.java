@@ -33,15 +33,13 @@ public class MainActivity extends AppCompatActivity {
             empty[0] =  error;
             if (getAssets().list(album) == null || getFolderInhalt(album).length < 1) {
                 Log.i("Fehler", "Keine Dateien in albums vorhanden");//maybe hier die exception einbauen
-                ArrayAdapter adapter = new ArrayAdapter
-                        (this, androidx.appcompat.R.layout.support_simple_spinner_dropdown_item, empty);
-                spinner.setAdapter(adapter);
+                spinner.setAdapter(new ArrayAdapter
+                        (this, androidx.appcompat.R.layout.support_simple_spinner_dropdown_item, empty));
             } else {
                 this.showAllImagesInAlbums();
                 String[] auswahlmoeglichkeiten = this.mergeArray(empty, getFolderInhalt(album));
-                ArrayAdapter adapter = new ArrayAdapter(this,
-                        androidx.appcompat.R.layout.support_simple_spinner_dropdown_item, auswahlmoeglichkeiten);
-                spinner.setAdapter(adapter);
+                spinner.setAdapter(new ArrayAdapter(this,
+                        androidx.appcompat.R.layout.support_simple_spinner_dropdown_item, auswahlmoeglichkeiten));
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -69,7 +67,7 @@ public class MainActivity extends AppCompatActivity {
                     AlertDialog alert = error.create();
                     alert.show();
                 } else {
-                    Log.i("Ausgewahl", "Das Album " + spinner.getSelectedItem().toString() + " wurde ausgewaehlt:");
+                    Log.i("Ausgewahl", "Das Album " + spinner.getSelectedItem().toString() + " wurde ausgewaehlt.");
                     Intent intent = new Intent(MainActivity.this, SpielansichtActivity.class);
                     intent.putExtra("ausgewaehltesAlbum", spinner.getSelectedItem().toString());
                     intent.putExtra("anzahlBilder", getImagesCount(spinner.getSelectedItem().toString()));
@@ -135,7 +133,7 @@ public class MainActivity extends AppCompatActivity {
     private String getExifdata(String filepath, String exifTag) {
         try (InputStream in =  getAssets().open(filepath)) {
             ExifInterface exifInterface = new ExifInterface(in);
-            if (exifInterface.getAttribute(exifTag) == null || exifInterface.getAttribute(exifTag).equals("")) {
+            if (exifInterface.getAttribute(exifTag) == null) {
                 return "nicht vorhanden";
             } else {
                 return exifInterface.getAttribute(exifTag);
