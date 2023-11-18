@@ -48,18 +48,18 @@ public class SpielansichtActivity extends AppCompatActivity {
         } catch (CorruptedExifDataException | NoImagesInAlbumException e) {
             throw new RuntimeException(e);
         }
-        imageCount = 1;
+        imageCount = 0;
         //NextButton
         nextButton.setOnClickListener(new View.OnClickListener()  {
             @Override
             public void onClick(View button) {
-                if (imageCount < anzahlBilder) {
+                if (imageCount+1 < anzahlBilder) {
                     longitudeEditText.setText(null);
                     latitudeEditText.setText(null);
-                    bild.setImageDrawable(makeDrawable(album + "/" + folder + "/" + bilder[imageCount].getName()));
-                    Log.i("Name des angezeigten Bildes", bilder[imageCount].getName());
-                    Log.i("Laengengrad des angezeigten Bildes", "" + bilder[imageCount].getLongtitude());
-                    Log.i("Breitengrad des angezeigten Bildes", "" + bilder[imageCount].getLatitude());
+                    bild.setImageDrawable(makeDrawable(album + "/" + folder + "/" + bilder[imageCount+1].getName()));
+                    Log.i("Name des angezeigten Bildes", bilder[imageCount+1].getName());
+                    Log.i("Laengengrad des angezeigten Bildes", "" + bilder[imageCount+1].getLongtitude());
+                    Log.i("Breitengrad des angezeigten Bildes", "" + bilder[imageCount+1].getLatitude());
                     imageCount++;
                 } else {
                     AlertDialog.Builder error = new AlertDialog.Builder(SpielansichtActivity.this);
@@ -81,7 +81,13 @@ public class SpielansichtActivity extends AppCompatActivity {
             public void onClick(View button) {
                 if (isValidLongitude(longitudeEditText.getText().toString()) &&
                         isValidLatitude(latitudeEditText.getText().toString())) {
-                    //ja
+                    String Lat1 = latitudeEditText.getText().toString();
+                    String Lon1 = longitudeEditText.getText().toString();
+                    String Lat2 = bilder[imageCount].getLatitude().toString();
+                    String Lon2 = bilder[imageCount].getLongtitude().toString();
+                    Log.i("OpenStreetMaps-Link zur Schätzung",
+                            "https://www.openstreetmap.org/directions?engine=fossgis_valhalla_foot&route=&lt;" +
+                                    Lat1 + "&gt;,&lt;" + Lon1 + "&gt;;&lt;" + Lat2 + "&gt;,&lt;" + Lon2 + "&gt;");
                 } else {
                     AlertDialog.Builder error = new AlertDialog.Builder(SpielansichtActivity.this);
                     error.setMessage("Die eingegebenen Werte sind nicht Valide! Es dürfen nur Zahlen verwendet " +
@@ -251,7 +257,7 @@ public class SpielansichtActivity extends AppCompatActivity {
     //prüft ob valider Laengengrad
     private boolean isValidLongitude(String longitude) {
         try {
-            return -180.0 < Double.parseDouble(longitude) && Double.parseDouble(longitude) < 180.0;
+            return -180.0 <= Double.parseDouble(longitude) && Double.parseDouble(longitude) <= 180.0;
         } catch (NumberFormatException nfe) {
             return false;
         }
@@ -259,7 +265,7 @@ public class SpielansichtActivity extends AppCompatActivity {
     //prüft ob valider Breitengrad
     private boolean isValidLatitude(String latitude) {
         try {
-            return -90.0 < Double.parseDouble(latitude) && Double.parseDouble(latitude) < 90.0;
+            return -90.0 <= Double.parseDouble(latitude) && Double.parseDouble(latitude) <= 90.0;
         } catch (NumberFormatException nfe) {
             return false;
         }
