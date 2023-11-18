@@ -94,6 +94,7 @@ public class SpielansichtActivity extends AppCompatActivity {
         });
         //validButton
         validButton.setOnClickListener(new View.OnClickListener()  {
+            @SuppressLint("SetTextI18n")
             @Override
             public void onClick(View button) {
                 if (isValidLongitude(longitudeEditText.getText().toString()) &&
@@ -110,7 +111,7 @@ public class SpielansichtActivity extends AppCompatActivity {
                     Log.i("OpenStreetMaps-Link zur Schätzung", link);
                     linkText.setText(link);
                     distanzText.setText(getUnit(distance));
-                    aktuellerScore.setText("100");
+                    aktuellerScore.setText("" + getPunkte(distance));
                 } else {
                     AlertDialog.Builder error = new AlertDialog.Builder(SpielansichtActivity.this);
                     error.setMessage("Die eingegebenen Werte sind nicht Valide! Es dürfen nur Zahlen verwendet " +
@@ -350,6 +351,16 @@ public class SpielansichtActivity extends AppCompatActivity {
     //entfernt komma aus String
     private String removeKomma(String number) {
         return number.replaceAll(",","");
+    }
+    //berechner Punktzahl
+    private double getPunkte(double distanz) {
+        if (distanz<10.0) {
+            return 5000.0;
+        }
+        if (distanz>10000.0) {
+            return 0.0;
+        }
+        return (5000.0/Math.log(10000.0/10.0)) * Math.log(10000.0/distanz);
     }
 }
 
