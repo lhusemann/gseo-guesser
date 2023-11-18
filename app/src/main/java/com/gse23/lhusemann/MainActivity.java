@@ -32,9 +32,9 @@ public class MainActivity extends AppCompatActivity {
             String[] empty = new String[1];
             empty[0] =  error;
             if (getAssets().list(album) == null || getFolderInhalt(album).length < 1) {
-                Log.i("Fehler", "Keine Dateien in albums vorhanden");//maybe hier die exception einbauen
-                spinner.setAdapter(new ArrayAdapter
-                        (this, androidx.appcompat.R.layout.support_simple_spinner_dropdown_item, empty));
+                Log.i("Fehler", "Keine Dateien in albums vorhanden");
+                spinner.setAdapter(new ArrayAdapter(this,
+                        androidx.appcompat.R.layout.support_simple_spinner_dropdown_item, empty));
             } else {
                 this.showAllImagesInAlbums();
                 String[] auswahlmoeglichkeiten = this.mergeArray(empty, getFolderInhalt(album));
@@ -143,7 +143,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
     /**
-     * habe arraycopy auf dieser Website gefunden und das Beispiel so umgeschrieben,
+     * habe arraycopy auf dieser Website gefunden und das Beispiel so umgeschrieben
      * dass es meinen Zweck erfüllt (https://www.javatpoint.com/)
      */
     String[] mergeArray(String[] firstArray, String[] secondArray) {

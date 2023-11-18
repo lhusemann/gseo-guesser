@@ -38,6 +38,7 @@ public class SpielansichtActivity extends AppCompatActivity {
     int imageCount;
     String noGuess;
     String noDistance;
+    String komma = ",";
     @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,21 +68,21 @@ public class SpielansichtActivity extends AppCompatActivity {
         nextButton.setOnClickListener(new View.OnClickListener()  {
             @Override
             public void onClick(View button) {
-                if (imageCount+1 < anzahlBilder) {
+                if (imageCount + 1 < anzahlBilder) {
                     longitudeEditText.setText(null);
                     latitudeEditText.setText(null);
-                    bild.setImageDrawable(makeDrawable(album + "/" + folder + "/" + bilder[imageCount+1].getName()));
-                    Log.i("Name des angezeigten Bildes", bilder[imageCount+1].getName());
-                    Log.i("Laengengrad des angezeigten Bildes", "" + bilder[imageCount+1].getLongtitude());
-                    Log.i("Breitengrad des angezeigten Bildes", "" + bilder[imageCount+1].getLatitude());
+                    bild.setImageDrawable(makeDrawable(album + "/" + folder + "/" + bilder[imageCount + 1].getName()));
+                    Log.i("Name des angezeigten Bildes", bilder[imageCount + 1].getName());
+                    Log.i("Laengengrad des angezeigten Bildes", "" + bilder[imageCount + 1].getLongtitude());
+                    Log.i("Breitengrad des angezeigten Bildes", "" + bilder[imageCount + 1].getLatitude());
                     imageCount++;
                     linkText.setText(noGuess);
                     distanzText.setText(noDistance);
                     aktuellerScore.setText("0");
                 } else {
                     AlertDialog.Builder error = new AlertDialog.Builder(SpielansichtActivity.this);
-                    error.setMessage("Das waren alle Bilder im Album " + folder +
-                                    ". Möchtest du zur Startansicht zurueckkehren?")
+                    error.setMessage("Das waren alle Bilder im Album " + folder
+                                    + ". Möchtest du zur Startansicht zurueckkehren?")
                             .setPositiveButton("Startansicht", (dialog, id) -> {
                                     finish();
                             })
@@ -97,26 +98,27 @@ public class SpielansichtActivity extends AppCompatActivity {
             @SuppressLint("SetTextI18n")
             @Override
             public void onClick(View button) {
-                if (isValidLongitude(longitudeEditText.getText().toString()) &&
-                        isValidLatitude(latitudeEditText.getText().toString())) {
-                    String Lat1 = latitudeEditText.getText().toString();
-                    String Lon1 = longitudeEditText.getText().toString();
-                    String Lat2 = bilder[imageCount].getLatitude().toString();
-                    String Lon2 = bilder[imageCount].getLongtitude().toString();
-                    double distance = getDistance(Double.parseDouble(Lat1) , bilder[imageCount].getLatitude(),
-                            Double.parseDouble(Lon1), bilder[imageCount].getLongtitude());
+                if (isValidLongitude(longitudeEditText.getText().toString())
+                        && isValidLatitude(latitudeEditText.getText().toString())) {
+                    String LatOne = latitudeEditText.getText().toString();
+                    String LonOne = longitudeEditText.getText().toString();
+                    String LatTwo = bilder[imageCount].getLatitude().toString();
+                    String LonTwo = bilder[imageCount].getLongtitude().toString();
+                    double distance = getDistance(Double.parseDouble(LatOne), bilder[imageCount].getLatitude(),
+                            Double.parseDouble(LonOne), bilder[imageCount].getLongtitude());
                     Log.i("Distanz der Schaetzung", getUnit(distance));
-                    String link = "https://www.openstreetmap.org/directions?engine=fossgis_valhalla_foot&route=&lt;" +
-                            Lat1 + "&gt;,&lt;" + Lon1 + "&gt;;&lt;" + Lat2 + "&gt;,&lt;" + Lon2 + "&gt;";
+                    String gtlt = "&gt;,&lt;";
+                    String link = "https://www.openstreetmap.org/directions?engine=fossgis_valhalla_foot&route=&lt;"
+                            + LatOne + gtlt + LonOne + "&gt;;&lt;" + LatTwo + gtlt + LonTwo + "&gt;";
                     Log.i("OpenStreetMaps-Link zur Schätzung", link);
                     linkText.setText(link);
                     distanzText.setText(getUnit(distance));
                     aktuellerScore.setText("" + getPunkte(distance));
                 } else {
                     AlertDialog.Builder error = new AlertDialog.Builder(SpielansichtActivity.this);
-                    error.setMessage("Die eingegebenen Werte sind nicht Valide! Es dürfen nur Zahlen verwendet " +
-                                    "werden! Zudem darf der Längengrad nur zwischen -180 und +180 und der " +
-                                    "Breitengrad zwischen -90 und +90 liegen!")
+                    error.setMessage("Die eingegebenen Werte sind nicht Valide! Es dürfen nur Zahlen verwendet "
+                                    + "werden! Zudem darf der Längengrad nur zwischen -180 und +180 und der "
+                                    + "Breitengrad zwischen -90 und +90 liegen!")
                             .setPositiveButton("Ok", (dialog, id) -> {})
                             .setTitle("Error");
                     AlertDialog alert = error.create();
@@ -138,7 +140,9 @@ public class SpielansichtActivity extends AppCompatActivity {
     public void onBackPressed() {
         AlertDialog.Builder back = new AlertDialog.Builder(SpielansichtActivity.this);
         back.setMessage("Möchtest du das aktuelle Spiel wirklich beeenden?")
-                .setPositiveButton("Ja", (dialog, id) -> {finish();})
+                .setPositiveButton("Ja", (dialog, id) -> {
+                    finish();
+                })
                 .setNegativeButton("Nein", (dialog, id) -> {})
                 .setTitle("Zurück");
         AlertDialog alert = back.create();
@@ -148,7 +152,7 @@ public class SpielansichtActivity extends AppCompatActivity {
     private Bild[] makeImageArray() throws CorruptedExifDataException {
         Bild[] bilderArray = new Bild[anzahlBilder];
         String[] paths = this.getPath();
-        for (int i = 0; i<anzahlBilder;i++) {
+        for (int i = 0; i < anzahlBilder; i++) {
             Bild aktuellesBild = new Bild(getNames()[i], getExifdata(paths[i], ExifInterface.TAG_IMAGE_DESCRIPTION),
                     makeValue(getExifdata(paths[i], ExifInterface.TAG_GPS_LONGITUDE)),
                     makeValue(getExifdata(paths[i], ExifInterface.TAG_GPS_LATITUDE)));
@@ -157,9 +161,9 @@ public class SpielansichtActivity extends AppCompatActivity {
         return bilderArray;
     }
     //macht die String zu verwendbaren Double
-    private double helperMakeValue (String tag) {
+    private double helperMakeValue(String tag) {
         StringBuilder valueAsString = new StringBuilder();
-        for (int i = 0; i<tag.length() && Character.isDigit(tag.charAt(i)); i++) {
+        for (int i = 0; i < tag.length() && Character.isDigit(tag.charAt(i)); i++) {
             valueAsString.append(tag.charAt(i));
         }
         if (valueAsString.equals("")) {
@@ -168,12 +172,14 @@ public class SpielansichtActivity extends AppCompatActivity {
         return Integer.parseInt(valueAsString.toString());
     }
     //macht die String-Exifdaten zu dezimalen Graden
-    private double makeValue (String tag) {
-        String[] dms = tag.split(",");
+    private double makeValue(String tag) {
+        String[] dms = tag.split(komma);
+        double sechsig = 60.0;
+        double sechsigDurchSechsig = 3600.0;
         double degreeNumber = helperMakeValue(dms[0]);
-        double minuteNumber = helperMakeValue(dms[1])/60;
+        double minuteNumber = helperMakeValue(dms[1]) / sechsig;
         String[] sec = dms[2].split("/");
-        double secondNumber = helperMakeValue(sec[0])/helperMakeValue(sec[1])/3600;
+        double secondNumber = helperMakeValue(sec[0])/helperMakeValue(sec[1]) / sechsigDurchSechsig;
         return degreeNumber + minuteNumber + secondNumber;
     }
     //gibt Path aller Bilder in einem Array wieder
@@ -257,7 +263,7 @@ public class SpielansichtActivity extends AppCompatActivity {
     //gibt alle Werte von allen Bildern aus
     private void bilderAusgabe() throws NoImagesInAlbumException {
         try {
-            if(anzahlBilder<1) {
+            if (anzahlBilder < 1) {
                 throw new NoImagesInAlbumException(album);
             } else {
                 for (Bild bild : bilder) {
@@ -267,18 +273,19 @@ public class SpielansichtActivity extends AppCompatActivity {
                     Log.i("Breitengrad", "" + bild.getLatitude());
                 }
             }
-        }catch (NoImagesInAlbumException e){
+        } catch (NoImagesInAlbumException e) {
             this.finish();
         }
     }
     //mischt das Bilder-Array
     private void mischenErstesBild() {
-        if (anzahlBilder>0) {
-            bild.setImageDrawable(makeDrawable(album + "/" + folder+"/"+bilder[0].getName()));
-            Log.i("Name des angezeigten Bildes", bilder[imageCount].getName());
-            Log.i("Laengengrad des angezeigten Bildes", "" + bilder[imageCount].getLongtitude());
-            Log.i("Breitengrad des angezeigten Bildes", "" + bilder[imageCount].getLatitude());
-            for (int i = 0; i < 100; i++) {
+        if (anzahlBilder > 0) {
+            bild.setImageDrawable(makeDrawable(album + "/" + folder + "/" + bilder[0].getName()));
+            Log.i("Name des aktuellen Bildes", bilder[imageCount].getName());
+            Log.i("Laengengrad des aktuellen Bildes", "" + bilder[imageCount].getLongtitude());
+            Log.i("Breitengrad des aktuellen Bildes", "" + bilder[imageCount].getLatitude());
+            int mischungen = 100;
+            for (int i = 0; i < mischungen; i++) {
                 int erstesBild = (int) (Math.random() * anzahlBilder - 1);
                 int zweitesBild = (int) (Math.random() * anzahlBilder - 1);
                 Bild platzhalter = bilder[erstesBild];
@@ -291,7 +298,7 @@ public class SpielansichtActivity extends AppCompatActivity {
     private Drawable makeDrawable(String filepath) {
         Drawable erschaffen;
         try (InputStream in =  getAssets().open(filepath)) {
-            erschaffen = Drawable.createFromStream(in,"src");
+            erschaffen = Drawable.createFromStream(in, "src");
         } catch (IOException e) {
             return null;
         }
@@ -299,68 +306,75 @@ public class SpielansichtActivity extends AppCompatActivity {
     }
     //prüft ob valider Laengengrad
     private boolean isValidLongitude(String longitude) {
+        double min = -180.0;
+        double max = 180.0;
         try {
-            return -180.0 <= Double.parseDouble(longitude) && Double.parseDouble(longitude) <= 180.0;
+            return min <= Double.parseDouble(longitude) && Double.parseDouble(longitude) <= max;
         } catch (NumberFormatException nfe) {
             return false;
         }
     }
     //prüft ob valider Breitengrad
     private boolean isValidLatitude(String latitude) {
+        double min = -90;
+        double max = 90;
         try {
-            return -90.0 <= Double.parseDouble(latitude) && Double.parseDouble(latitude) <= 90.0;
+            return min <= Double.parseDouble(latitude) && Double.parseDouble(latitude) <= max;
         } catch (NumberFormatException nfe) {
             return false;
         }
     }
     //rechnet von degree in radians um
     private Double getRadians(Double degree) {
-        return degree*Math.PI/180;
+        double hundertAchtzig = 180.0;
+        return degree * Math.PI / hundertAchtzig;
     }
     //berechnet Distanz
-    private Double getDistance(Double Lat1, Double Lat2, Double Lon1, Double Lon2) {
-        double deltaLat = getRadians(Lat2-Lat1);
-        double deltaLon = getRadians(Lon2-Lon1);
-        double haversine = havHelper(deltaLat) + Math.cos(getRadians(Lat1)) * Math.cos(getRadians(Lat2)) *
-                havHelper(deltaLon);
-        return 2.0 * 6371008.7 * Math.asin(Math.sqrt(haversine));
+    private Double getDistance(Double LatOne, Double LatTwo, Double LonOne, Double LonTwo) {
+        double deltaLat = getRadians(LatTwo - LatOne);
+        double deltaLon = getRadians(LonTwo - LonOne);
+        double haversine = havHelper(deltaLat) + Math.cos(getRadians(LatOne)) * Math.cos(getRadians(LatTwo))
+                * havHelper(deltaLon);
+        double radErde = 6371008.7;
+        return 2.0 * radErde * Math.asin(Math.sqrt(haversine));
     }
     private Double havHelper(Double theta) {
-        return Math.sin(theta/2)*Math.sin(theta/2);
+        return Math.sin(theta / 2) * Math.sin(theta / 2);
     }
     //startet URL, ich habe dies Methode aus dem Internet gefunden im Youtube Video von "With Sam"
     private void openLink(String link) {
         Uri uri = Uri.parse(link);
-        startActivity(new Intent(Intent.ACTION_VIEW,uri));
+        startActivity(new Intent(Intent.ACTION_VIEW, uri));
     }
     //testet ob Kilometer
     private boolean isKM(double numberDouble) {
         int number = (int) numberDouble;
-        return number / 1000 >= 1;
+        int kilometer = 1000;
+        return number / kilometer >= 1;
     }
     //gibt Wert in richter Maßeinheit und gerundet aus
     private String getUnit(double numberDouble) {
-        NumberFormat n = NumberFormat.getInstance();
-        n.setMaximumFractionDigits(2);
+        NumberFormat form = NumberFormat.getInstance();
+        form.setMaximumFractionDigits(2);
         if (isKM(numberDouble)) {
-            return removeKomma(n.format(numberDouble/1000)) + " km";
+            return removeKomma(form.format(numberDouble / 1000)) + " km";
         } else {
-            return removeKomma(n.format(numberDouble)) + " m";
+            return removeKomma(form.format(numberDouble)) + " m";
         }
     }
     //entfernt komma aus String
     private String removeKomma(String number) {
-        return number.replaceAll(",","");
+        return number.replaceAll(komma, "");
     }
     //berechner Punktzahl
     private double getPunkte(double distanz) {
-        if (distanz<10.0) {
+        if (distanz < 10.0) {
             return 5000.0;
         }
-        if (distanz>10000.0) {
+        if (distanz > 10000.0) {
             return 0.0;
         }
-        return (5000.0/Math.log(10000.0/10.0)) * Math.log(10000.0/distanz);
+        return (5000.0 / Math.log(10000.0 / 10.0)) * Math.log(10000.0 / distanz);
     }
 }
 

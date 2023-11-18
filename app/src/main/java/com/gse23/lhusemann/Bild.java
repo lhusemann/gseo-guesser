@@ -1,5 +1,7 @@
 package com.gse23.lhusemann;
-
+/**
+ * Das ist die Klasse Bild in die ich als Datenstruktur verwende.
+ */
 public class Bild {
     String name;
     String description;
