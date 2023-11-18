@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.exifinterface.media.ExifInterface;
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.NumberFormat;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
@@ -32,8 +33,10 @@ public class SpielansichtActivity extends AppCompatActivity {
     EditText latitudeEditText;
     Button validButton;
     TextView linkText;
+    TextView distanzText;
     int imageCount;
     String noGuess;
+    String noDistance;
     @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,8 +48,10 @@ public class SpielansichtActivity extends AppCompatActivity {
         latitudeEditText = findViewById(R.id.latitudeEditText);
         validButton = findViewById(R.id.validButton);
         linkText = findViewById(R.id.link);
+        distanzText = findViewById(R.id.textSchaetzung);
         folder = getIntent().getStringExtra("ausgewaehltesAlbum");
         noGuess = "Kein Guess abgegeben.";
+        noDistance = "keine Schaetzung abgegeben";
         anzahlBilder = getIntent().getIntExtra("anzahlBilder", 0);
         try {
             bilder = makeImageArray();
@@ -69,6 +74,7 @@ public class SpielansichtActivity extends AppCompatActivity {
                     Log.i("Breitengrad des angezeigten Bildes", "" + bilder[imageCount+1].getLatitude());
                     imageCount++;
                     linkText.setText(noGuess);
+                    distanzText.setText(noDistance);
                 } else {
                     AlertDialog.Builder error = new AlertDialog.Builder(SpielansichtActivity.this);
                     error.setMessage("Das waren alle Bilder im Album " + folder +
@@ -95,10 +101,12 @@ public class SpielansichtActivity extends AppCompatActivity {
                     String Lon2 = bilder[imageCount].getLongtitude().toString();
                     double distance = getDistance(Double.parseDouble(Lat1) , bilder[imageCount].getLatitude(),
                             Double.parseDouble(Lon1), bilder[imageCount].getLongtitude());
+                    Log.i("Distanz der Schaetzung", getUnit(distance));
                     String link = "https://www.openstreetmap.org/directions?engine=fossgis_valhalla_foot&route=&lt;" +
                             Lat1 + "&gt;,&lt;" + Lon1 + "&gt;;&lt;" + Lat2 + "&gt;,&lt;" + Lon2 + "&gt;";
                     Log.i("OpenStreetMaps-Link zur Schätzung", link);
                     linkText.setText(link);
+                    distanzText.setText(getUnit(distance));
                 } else {
                     AlertDialog.Builder error = new AlertDialog.Builder(SpielansichtActivity.this);
                     error.setMessage("Die eingegebenen Werte sind nicht Valide! Es dürfen nur Zahlen verwendet " +
@@ -309,6 +317,25 @@ public class SpielansichtActivity extends AppCompatActivity {
     private void openLink(String link) {
         Uri uri = Uri.parse(link);
         startActivity(new Intent(Intent.ACTION_VIEW,uri));
+    }
+    //testet ob Kilometer
+    private boolean isKM(double numberDouble) {
+        int number = (int) numberDouble;
+        return number / 1000 >= 1;
+    }
+    //gibt Wert in richter Maßeinheit und gerundet aus
+    private String getUnit(double numberDouble) {
+        NumberFormat n = NumberFormat.getInstance();
+        n.setMaximumFractionDigits(2);
+        if (isKM(numberDouble)) {
+            return removeKomma(n.format(numberDouble/1000)) + " km";
+        } else {
+            return removeKomma(n.format(numberDouble)) + " m";
+        }
+    }
+    //entfernt komma aus String
+    private String removeKomma(String number) {
+        return number.replaceAll(",","");
     }
 }
 
