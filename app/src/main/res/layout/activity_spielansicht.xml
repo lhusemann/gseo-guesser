@@ -88,6 +88,26 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="keine Schaetzung abgegeben" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Aktueller Score:" />
+
+        <TextView
+            android:id="@+id/aktuellerScore"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="0" />
     </LinearLayout>
 
     <TextView

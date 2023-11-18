@@ -34,6 +34,7 @@ public class SpielansichtActivity extends AppCompatActivity {
     Button validButton;
     TextView linkText;
     TextView distanzText;
+    TextView aktuellerScore;
     int imageCount;
     String noGuess;
     String noDistance;
@@ -49,6 +50,7 @@ public class SpielansichtActivity extends AppCompatActivity {
         validButton = findViewById(R.id.validButton);
         linkText = findViewById(R.id.link);
         distanzText = findViewById(R.id.textSchaetzung);
+        aktuellerScore = findViewById(R.id.aktuellerScore);
         folder = getIntent().getStringExtra("ausgewaehltesAlbum");
         noGuess = "Kein Guess abgegeben.";
         noDistance = "keine Schaetzung abgegeben";
@@ -75,6 +77,7 @@ public class SpielansichtActivity extends AppCompatActivity {
                     imageCount++;
                     linkText.setText(noGuess);
                     distanzText.setText(noDistance);
+                    aktuellerScore.setText("0");
                 } else {
                     AlertDialog.Builder error = new AlertDialog.Builder(SpielansichtActivity.this);
                     error.setMessage("Das waren alle Bilder im Album " + folder +
@@ -107,6 +110,7 @@ public class SpielansichtActivity extends AppCompatActivity {
                     Log.i("OpenStreetMaps-Link zur Schätzung", link);
                     linkText.setText(link);
                     distanzText.setText(getUnit(distance));
+                    aktuellerScore.setText("100");
                 } else {
                     AlertDialog.Builder error = new AlertDialog.Builder(SpielansichtActivity.this);
                     error.setMessage("Die eingegebenen Werte sind nicht Valide! Es dürfen nur Zahlen verwendet " +
