@@ -174,12 +174,12 @@ public class SpielansichtActivity extends AppCompatActivity {
     //macht die String-Exifdaten zu dezimalen Graden
     private double makeValue(String tag) {
         String[] dms = tag.split(komma);
-        double sechsig = 60.0;
-        double sechsigDurchSechsig = 3600.0;
+        final double sechsig = 60.0;
+        final double sechsigDurchSechsig = 3600.0;
         double degreeNumber = helperMakeValue(dms[0]);
         double minuteNumber = helperMakeValue(dms[1]) / sechsig;
         String[] sec = dms[2].split("/");
-        double secondNumber = helperMakeValue(sec[0])/helperMakeValue(sec[1]) / sechsigDurchSechsig;
+        double secondNumber = helperMakeValue(sec[0]) / helperMakeValue(sec[1]) / sechsigDurchSechsig;
         return degreeNumber + minuteNumber + secondNumber;
     }
     //gibt Path aller Bilder in einem Array wieder
@@ -284,7 +284,7 @@ public class SpielansichtActivity extends AppCompatActivity {
             Log.i("Name des aktuellen Bildes", bilder[imageCount].getName());
             Log.i("Laengengrad des aktuellen Bildes", "" + bilder[imageCount].getLongtitude());
             Log.i("Breitengrad des aktuellen Bildes", "" + bilder[imageCount].getLatitude());
-            int mischungen = 100;
+            final int mischungen = 100;
             for (int i = 0; i < mischungen; i++) {
                 int erstesBild = (int) (Math.random() * anzahlBilder - 1);
                 int zweitesBild = (int) (Math.random() * anzahlBilder - 1);
@@ -306,8 +306,8 @@ public class SpielansichtActivity extends AppCompatActivity {
     }
     //prüft ob valider Laengengrad
     private boolean isValidLongitude(String longitude) {
-        double min = -180.0;
-        double max = 180.0;
+        final double min = -180.0;
+        final double max = 180.0;
         try {
             return min <= Double.parseDouble(longitude) && Double.parseDouble(longitude) <= max;
         } catch (NumberFormatException nfe) {
@@ -316,8 +316,8 @@ public class SpielansichtActivity extends AppCompatActivity {
     }
     //prüft ob valider Breitengrad
     private boolean isValidLatitude(String latitude) {
-        double min = -90;
-        double max = 90;
+        final double min = -90;
+        final double max = 90;
         try {
             return min <= Double.parseDouble(latitude) && Double.parseDouble(latitude) <= max;
         } catch (NumberFormatException nfe) {
@@ -326,16 +326,16 @@ public class SpielansichtActivity extends AppCompatActivity {
     }
     //rechnet von degree in radians um
     private Double getRadians(Double degree) {
-        double hundertAchtzig = 180.0;
+        final double hundertAchtzig = 180.0;
         return degree * Math.PI / hundertAchtzig;
     }
     //berechnet Distanz
-    private Double getDistance(Double LatOne, Double LatTwo, Double LonOne, Double LonTwo) {
-        double deltaLat = getRadians(LatTwo - LatOne);
-        double deltaLon = getRadians(LonTwo - LonOne);
-        double haversine = havHelper(deltaLat) + Math.cos(getRadians(LatOne)) * Math.cos(getRadians(LatTwo))
+    private Double getDistance(Double latOne, Double latTwo, Double lonOne, Double lonTwo) {
+        double deltaLat = getRadians(latTwo - latOne);
+        double deltaLon = getRadians(lonTwo - lonOne);
+        double haversine = havHelper(deltaLat) + Math.cos(getRadians(latOne)) * Math.cos(getRadians(latTwo))
                 * havHelper(deltaLon);
-        double radErde = 6371008.7;
+        final double radErde = 6371008.7;
         return 2.0 * radErde * Math.asin(Math.sqrt(haversine));
     }
     private Double havHelper(Double theta) {
@@ -349,15 +349,16 @@ public class SpielansichtActivity extends AppCompatActivity {
     //testet ob Kilometer
     private boolean isKM(double numberDouble) {
         int number = (int) numberDouble;
-        int kilometer = 1000;
+        final int kilometer = 1000;
         return number / kilometer >= 1;
     }
     //gibt Wert in richter Maßeinheit und gerundet aus
     private String getUnit(double numberDouble) {
         NumberFormat form = NumberFormat.getInstance();
         form.setMaximumFractionDigits(2);
+        final int kilometer = 1000;
         if (isKM(numberDouble)) {
-            return removeKomma(form.format(numberDouble / 1000)) + " km";
+            return removeKomma(form.format(numberDouble / kilometer)) + " km";
         } else {
             return removeKomma(form.format(numberDouble)) + " m";
         }
@@ -368,13 +369,16 @@ public class SpielansichtActivity extends AppCompatActivity {
     }
     //berechner Punktzahl
     private double getPunkte(double distanz) {
-        if (distanz < 10.0) {
-            return 5000.0;
+        final double minDistance = 10.0;
+        final double maxDistance = 10000.0;
+        final double maxPoints = 5000.0;
+        if (distanz < minDistance) {
+            return maxPoints;
         }
-        if (distanz > 10000.0) {
+        if (distanz > maxDistance) {
             return 0.0;
         }
-        return (5000.0 / Math.log(10000.0 / 10.0)) * Math.log(10000.0 / distanz);
+        return (maxPoints / Math.log(maxDistance / minDistance)) * Math.log(maxDistance / distanz);
     }
 }
 
