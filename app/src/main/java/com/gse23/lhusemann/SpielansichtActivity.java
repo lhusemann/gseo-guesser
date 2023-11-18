@@ -57,9 +57,9 @@ public class SpielansichtActivity extends AppCompatActivity {
                     longitudeEditText.setText(null);
                     latitudeEditText.setText(null);
                     bild.setImageDrawable(makeDrawable(album + "/" + folder + "/" + bilder[imageCount].getName()));
-                    Log.i("Name des angezeigten Bildes", folder + "/" + bilder[imageCount].getName());
-                    Log.i("Laengengrad des angezeigten Bildes", "" + folder + "/" + bilder[imageCount].getLongtitude());
-                    Log.i("Breitengrad des angezeigten Bildes", "" + folder + "/" + bilder[imageCount].getLatitude());
+                    Log.i("Name des angezeigten Bildes", bilder[imageCount].getName());
+                    Log.i("Laengengrad des angezeigten Bildes", "" + bilder[imageCount].getLongtitude());
+                    Log.i("Breitengrad des angezeigten Bildes", "" + bilder[imageCount].getLatitude());
                     imageCount++;
                 } else {
                     AlertDialog.Builder error = new AlertDialog.Builder(SpielansichtActivity.this);
@@ -107,16 +107,25 @@ public class SpielansichtActivity extends AppCompatActivity {
         }
         return bilderArray;
     }
-    //macht die String-Exifdaten zu verwendbaren Double
-    private double makeValue (String tag) {
+    //macht die String zu verwendbaren Double
+    private double helperMakeValue (String tag) {
         StringBuilder valueAsString = new StringBuilder();
-        for (int i = 0; Character.isDigit(tag.charAt(i)); i++) {
+        for (int i = 0; i<tag.length() && Character.isDigit(tag.charAt(i)); i++) {
             valueAsString.append(tag.charAt(i));
         }
         if (valueAsString.equals("")) {
             return 0;
         }
         return Integer.parseInt(valueAsString.toString());
+    }
+    //macht die String-Exifdaten zu dezimalen Graden
+    private double makeValue (String tag) {
+        String[] dms = tag.split(",");
+        double degreeNumber = helperMakeValue(dms[0]);
+        double minuteNumber = helperMakeValue(dms[1])/60;
+        String[] sec = dms[2].split("/");
+        double secondNumber = helperMakeValue(sec[0])/helperMakeValue(sec[1])/3600;
+        return degreeNumber + minuteNumber + secondNumber;
     }
     //gibt Path aller Bilder in einem Array wieder
     private String[] getPath() {
@@ -217,9 +226,9 @@ public class SpielansichtActivity extends AppCompatActivity {
     private void mischenErstesBild() {
         if (anzahlBilder>0) {
             bild.setImageDrawable(makeDrawable(album + "/" + folder+"/"+bilder[0].getName()));
-            Log.i("Name des angezeigten Bildes", folder+"/"+bilder[imageCount].getName());
-            Log.i("Laengengrad des angezeigten Bildes", "" + folder+"/"+bilder[imageCount].getLongtitude());
-            Log.i("Breitengrad des angezeigten Bildes", "" + folder+"/"+bilder[imageCount].getLatitude());
+            Log.i("Name des angezeigten Bildes", bilder[imageCount].getName());
+            Log.i("Laengengrad des angezeigten Bildes", "" + bilder[imageCount].getLongtitude());
+            Log.i("Breitengrad des angezeigten Bildes", "" + bilder[imageCount].getLatitude());
             for (int i = 0; i < 100; i++) {
                 int erstesBild = (int) (Math.random() * anzahlBilder - 1);
                 int zweitesBild = (int) (Math.random() * anzahlBilder - 1);
