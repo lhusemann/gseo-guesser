@@ -70,4 +70,16 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Bestätigen" />
+
+    <TextView
+        android:id="@+id/openStreetMap"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="OpenStreetMaps:" />
+
+    <TextView
+        android:id="@+id/link"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Kein Guess abgegeben." />
 </LinearLayout>

@@ -7,13 +7,16 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 /**
  * Das ist die SpielansichtActivity, die zuerst ausgeführt wird, wenn diese Activity gestartet wird.
@@ -28,7 +31,9 @@ public class SpielansichtActivity extends AppCompatActivity {
     EditText longitudeEditText;
     EditText latitudeEditText;
     Button validButton;
+    TextView linkText;
     int imageCount;
+    String noGuess;
     @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,7 +44,9 @@ public class SpielansichtActivity extends AppCompatActivity {
         longitudeEditText = findViewById(R.id.longitudeEditText);
         latitudeEditText = findViewById(R.id.latitudeEditText);
         validButton = findViewById(R.id.validButton);
+        linkText = findViewById(R.id.link);
         folder = getIntent().getStringExtra("ausgewaehltesAlbum");
+        noGuess = "Kein Guess abgegeben.";
         anzahlBilder = getIntent().getIntExtra("anzahlBilder", 0);
         try {
             bilder = makeImageArray();
@@ -61,6 +68,7 @@ public class SpielansichtActivity extends AppCompatActivity {
                     Log.i("Laengengrad des angezeigten Bildes", "" + bilder[imageCount+1].getLongtitude());
                     Log.i("Breitengrad des angezeigten Bildes", "" + bilder[imageCount+1].getLatitude());
                     imageCount++;
+                    linkText.setText(noGuess);
                 } else {
                     AlertDialog.Builder error = new AlertDialog.Builder(SpielansichtActivity.this);
                     error.setMessage("Das waren alle Bilder im Album " + folder +
@@ -87,9 +95,10 @@ public class SpielansichtActivity extends AppCompatActivity {
                     String Lon2 = bilder[imageCount].getLongtitude().toString();
                     double distance = getDistance(Double.parseDouble(Lat1) , bilder[imageCount].getLatitude(),
                             Double.parseDouble(Lon1), bilder[imageCount].getLongtitude());
-                    Log.i("OpenStreetMaps-Link zur Schätzung",
-                            "https://www.openstreetmap.org/directions?engine=fossgis_valhalla_foot&route=&lt;" +
-                                    Lat1 + "&gt;,&lt;" + Lon1 + "&gt;;&lt;" + Lat2 + "&gt;,&lt;" + Lon2 + "&gt;");
+                    String link = "https://www.openstreetmap.org/directions?engine=fossgis_valhalla_foot&route=&lt;" +
+                            Lat1 + "&gt;,&lt;" + Lon1 + "&gt;;&lt;" + Lat2 + "&gt;,&lt;" + Lon2 + "&gt;";
+                    Log.i("OpenStreetMaps-Link zur Schätzung", link);
+                    linkText.setText(link);
                 } else {
                     AlertDialog.Builder error = new AlertDialog.Builder(SpielansichtActivity.this);
                     error.setMessage("Die eingegebenen Werte sind nicht Valide! Es dürfen nur Zahlen verwendet " +
@@ -99,6 +108,15 @@ public class SpielansichtActivity extends AppCompatActivity {
                             .setTitle("Error");
                     AlertDialog alert = error.create();
                     alert.show();
+                }
+            }
+        });
+        //link
+        linkText.setOnClickListener(new View.OnClickListener()  {
+            @Override
+            public void onClick(View link) {
+                if (!linkText.getText().equals(noGuess)) {
+                    openLink(linkText.getText().toString());
                 }
             }
         });
@@ -276,6 +294,7 @@ public class SpielansichtActivity extends AppCompatActivity {
     private Double getRadians(Double degree) {
         return degree*Math.PI/180;
     }
+    //berechnet Distanz
     private Double getDistance(Double Lat1, Double Lat2, Double Lon1, Double Lon2) {
         double deltaLat = getRadians(Lat2-Lat1);
         double deltaLon = getRadians(Lon2-Lon1);
@@ -285,6 +304,11 @@ public class SpielansichtActivity extends AppCompatActivity {
     }
     private Double havHelper(Double theta) {
         return Math.sin(theta/2)*Math.sin(theta/2);
+    }
+    //startet URL, ich habe dies Methode aus dem Internet gefunden im Youtube Video von "With Sam"
+    private void openLink(String link) {
+        Uri uri = Uri.parse(link);
+        startActivity(new Intent(Intent.ACTION_VIEW,uri));
     }
 }
 
