@@ -3,8 +3,8 @@ package com.gse23.lhusemann;
 public class Bild {
     String name;
     String description;
-    Double longtitude;
-    Double latitude;
+    double longtitude;
+    double latitude;
     Bild(String pName, String pDescription, Double pLongtitude, Double pLatitude) {
         name = pName;
         description = pDescription;

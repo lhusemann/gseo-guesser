@@ -85,6 +85,8 @@ public class SpielansichtActivity extends AppCompatActivity {
                     String Lon1 = longitudeEditText.getText().toString();
                     String Lat2 = bilder[imageCount].getLatitude().toString();
                     String Lon2 = bilder[imageCount].getLongtitude().toString();
+                    double distance = getDistance(Double.parseDouble(Lat1) , bilder[imageCount].getLatitude(),
+                            Double.parseDouble(Lon1), bilder[imageCount].getLongtitude());
                     Log.i("OpenStreetMaps-Link zur Schätzung",
                             "https://www.openstreetmap.org/directions?engine=fossgis_valhalla_foot&route=&lt;" +
                                     Lat1 + "&gt;,&lt;" + Lon1 + "&gt;;&lt;" + Lat2 + "&gt;,&lt;" + Lon2 + "&gt;");
@@ -269,6 +271,20 @@ public class SpielansichtActivity extends AppCompatActivity {
         } catch (NumberFormatException nfe) {
             return false;
         }
+    }
+    //rechnet von degree in radians um
+    private Double getRadians(Double degree) {
+        return degree*Math.PI/180;
+    }
+    private Double getDistance(Double Lat1, Double Lat2, Double Lon1, Double Lon2) {
+        double deltaLat = getRadians(Lat2-Lat1);
+        double deltaLon = getRadians(Lon2-Lon1);
+        double haversine = havHelper(deltaLat) + Math.cos(getRadians(Lat1)) * Math.cos(getRadians(Lat2)) *
+                havHelper(deltaLon);
+        return 2.0 * 6371008.7 * Math.asin(Math.sqrt(haversine));
+    }
+    private Double havHelper(Double theta) {
+        return Math.sin(theta/2)*Math.sin(theta/2);
     }
 }
 
