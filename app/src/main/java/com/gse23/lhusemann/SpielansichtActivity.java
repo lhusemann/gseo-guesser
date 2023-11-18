@@ -29,8 +29,8 @@ public class SpielansichtActivity extends AppCompatActivity {
     Bild[] bilder;
     Button nextButton;
     ImageView bild;
-    EditText longitudeEditText;
-    EditText latitudeEditText;
+    EditText longitudeField;
+    EditText latitudeField;
     Button validButton;
     TextView linkText;
     TextView distanzText;
@@ -46,8 +46,8 @@ public class SpielansichtActivity extends AppCompatActivity {
         setContentView(R.layout.activity_spielansicht);
         bild = findViewById(R.id.bild);
         nextButton = findViewById(R.id.nextButton);
-        longitudeEditText = findViewById(R.id.longitudeEditText);
-        latitudeEditText = findViewById(R.id.latitudeEditText);
+        longitudeField = findViewById(R.id.longitudeField);
+        latitudeField = findViewById(R.id.latitudeField);
         validButton = findViewById(R.id.validButton);
         linkText = findViewById(R.id.link);
         distanzText = findViewById(R.id.textSchaetzung);
@@ -69,8 +69,8 @@ public class SpielansichtActivity extends AppCompatActivity {
             @Override
             public void onClick(View button) {
                 if (imageCount + 1 < anzahlBilder) {
-                    longitudeEditText.setText(null);
-                    latitudeEditText.setText(null);
+                    longitudeField.setText(null);
+                    latitudeField.setText(null);
                     bild.setImageDrawable(makeDrawable(album + "/" + folder + "/" + bilder[imageCount + 1].getName()));
                     Log.i("Name des angezeigten Bildes", bilder[imageCount + 1].getName());
                     Log.i("Laengengrad des angezeigten Bildes", "" + bilder[imageCount + 1].getLongtitude());
@@ -98,27 +98,25 @@ public class SpielansichtActivity extends AppCompatActivity {
             @SuppressLint("SetTextI18n")
             @Override
             public void onClick(View button) {
-                if (isValidLongitude(longitudeEditText.getText().toString())
-                        && isValidLatitude(latitudeEditText.getText().toString())) {
-                    String LatOne = latitudeEditText.getText().toString();
-                    String LonOne = longitudeEditText.getText().toString();
-                    String LatTwo = bilder[imageCount].getLatitude().toString();
-                    String LonTwo = bilder[imageCount].getLongtitude().toString();
-                    double distance = getDistance(Double.parseDouble(LatOne), bilder[imageCount].getLatitude(),
-                            Double.parseDouble(LonOne), bilder[imageCount].getLongtitude());
+                if (isValidLongitude(longitudeField.getText().toString())
+                        && isValidLatitude(latitudeField.getText().toString())) {
+                    String latOne = latitudeField.getText().toString();
+                    String lonOne = longitudeField.getText().toString();
+                    String latTwo = bilder[imageCount].getLatitude().toString();
+                    String lonTwo = bilder[imageCount].getLongtitude().toString();
+                    double distance = getDistance(Double.parseDouble(latOne), bilder[imageCount].getLatitude(),
+                            Double.parseDouble(lonOne), bilder[imageCount].getLongtitude());
                     Log.i("Distanz der Schaetzung", getUnit(distance));
-                    String gtlt = "&gt;,&lt;";
-                    String link = "https://www.openstreetmap.org/directions?engine=fossgis_valhalla_foot&route=&lt;"
-                            + LatOne + gtlt + LonOne + "&gt;;&lt;" + LatTwo + gtlt + LonTwo + "&gt;";
+                    String link = "https://www.openstreetmap.org/directions?engine=fossgis_valhalla_foot&route="
+                            + latOne + komma + lonOne + ";" + latTwo + komma + lonTwo;
                     Log.i("OpenStreetMaps-Link zur Schätzung", link);
                     linkText.setText(link);
                     distanzText.setText(getUnit(distance));
                     aktuellerScore.setText("" + getPunkte(distance));
                 } else {
                     AlertDialog.Builder error = new AlertDialog.Builder(SpielansichtActivity.this);
-                    error.setMessage("Die eingegebenen Werte sind nicht Valide! Es dürfen nur Zahlen verwendet "
-                                    + "werden! Zudem darf der Längengrad nur zwischen -180 und +180 und der "
-                                    + "Breitengrad zwischen -90 und +90 liegen!")
+                    error.setMessage("Die eingegebenen Werte sind nicht Valide! Der Längengrad darf nur zwischen"
+                                    + "-180 und +180, und der Breitengrad zwischen -90 und +90 liegen!")
                             .setPositiveButton("Ok", (dialog, id) -> {})
                             .setTitle("Error");
                     AlertDialog alert = error.create();
@@ -251,7 +249,11 @@ public class SpielansichtActivity extends AppCompatActivity {
         try (InputStream in =  getAssets().open(filepath)) {
             ExifInterface exifInterface = new ExifInterface(in);
             if (exifInterface.getAttribute(exifTag) == null) {
-                throw new CorruptedExifDataException(exifTag, filepath);
+                if (exifTag.equals( ExifInterface.TAG_IMAGE_DESCRIPTION)) {
+                    return "nicht vorhanden";
+                } else {
+                    throw new CorruptedExifDataException(exifTag, filepath);
+                }
             } else {
                 return exifInterface.getAttribute(exifTag);
             }

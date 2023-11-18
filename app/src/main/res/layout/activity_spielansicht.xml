@@ -47,22 +47,21 @@
         android:orientation="horizontal">
 
         <EditText
-            android:id="@+id/longitudeEditText"
+            android:id="@+id/longitudeField"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:ems="10"
-            android:gravity="center_horizontal"
-            android:inputType="text" />
+            android:inputType="numberSigned|numberDecimal" />
 
         <EditText
-            android:id="@+id/latitudeEditText"
+            android:id="@+id/latitudeField"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:ems="10"
-            android:gravity="center_horizontal"
-            android:inputType="text" />
+            android:inputType="numberSigned|numberDecimal" />
+
     </LinearLayout>
 
     <Button
