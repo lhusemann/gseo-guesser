@@ -64,4 +64,10 @@
             android:gravity="center_horizontal"
             android:inputType="text" />
     </LinearLayout>
+
+    <Button
+        android:id="@+id/validButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Bestätigen" />
 </LinearLayout>

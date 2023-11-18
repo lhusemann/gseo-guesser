@@ -5,6 +5,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.exifinterface.media.ExifInterface;
 import java.io.IOException;
 import java.io.InputStream;
+
+import android.annotation.SuppressLint;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.Log;
@@ -25,7 +27,9 @@ public class SpielansichtActivity extends AppCompatActivity {
     ImageView bild;
     EditText longitudeEditText;
     EditText latitudeEditText;
+    Button validButton;
     int imageCount;
+    @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -34,6 +38,7 @@ public class SpielansichtActivity extends AppCompatActivity {
         nextButton = findViewById(R.id.nextButton);
         longitudeEditText = findViewById(R.id.longitudeEditText);
         latitudeEditText = findViewById(R.id.latitudeEditText);
+        validButton = findViewById(R.id.validButton);
         folder = getIntent().getStringExtra("ausgewaehltesAlbum");
         anzahlBilder = getIntent().getIntExtra("anzahlBilder", 0);
         try {
@@ -48,21 +53,42 @@ public class SpielansichtActivity extends AppCompatActivity {
         nextButton.setOnClickListener(new View.OnClickListener()  {
             @Override
             public void onClick(View button) {
-                if(imageCount<anzahlBilder) {
+                if (imageCount < anzahlBilder) {
                     longitudeEditText.setText(null);
                     latitudeEditText.setText(null);
-                    bild.setImageDrawable(makeDrawable(album + "/" + folder+"/"+bilder[imageCount].getName()));
-                    Log.i("Name des angezeigten Bildes", folder+"/"+bilder[imageCount].getName());
-                    Log.i("Laengengrad des angezeigten Bildes", "" + folder+"/"+bilder[imageCount].getLongtitude());
-                    Log.i("Breitengrad des angezeigten Bildes", "" + folder+"/"+bilder[imageCount].getLatitude());
+                    bild.setImageDrawable(makeDrawable(album + "/" + folder + "/" + bilder[imageCount].getName()));
+                    Log.i("Name des angezeigten Bildes", folder + "/" + bilder[imageCount].getName());
+                    Log.i("Laengengrad des angezeigten Bildes", "" + folder + "/" + bilder[imageCount].getLongtitude());
+                    Log.i("Breitengrad des angezeigten Bildes", "" + folder + "/" + bilder[imageCount].getLatitude());
                     imageCount++;
                 } else {
                     AlertDialog.Builder error = new AlertDialog.Builder(SpielansichtActivity.this);
                     error.setMessage("Das waren alle Bilder im Album " + folder +
                                     ". Möchtest du zur Startansicht zurueckkehren?")
-                            .setPositiveButton("Startansicht", (dialog, id) -> {finish();})
-                            .setNeutralButton("Abbruch", (dialog, id) -> {})
-                            .setTitle("Hinweis");
+                            .setPositiveButton("Startansicht", (dialog, id) -> {
+                                    finish();
+                            })
+                                .setNeutralButton("Abbruch", (dialog, id) -> {})
+                                .setTitle("Hinweis");
+                    AlertDialog alert = error.create();
+                    alert.show();
+                }
+            }
+        });
+        //validButton
+        validButton.setOnClickListener(new View.OnClickListener()  {
+            @Override
+            public void onClick(View button) {
+                if (isValidLongitude(longitudeEditText.getText().toString()) &&
+                        isValidLatitude(latitudeEditText.getText().toString())) {
+                    //ja
+                } else {
+                    AlertDialog.Builder error = new AlertDialog.Builder(SpielansichtActivity.this);
+                    error.setMessage("Die eingegebenen Werte sind nicht Valide! Es dürfen nur Zahlen verwendet " +
+                                    "werden! Zudem darf der Längengrad nur zwischen -180 und +180 und der " +
+                                    "Breitengrad zwischen -90 und +90 liegen!")
+                            .setPositiveButton("Ok", (dialog, id) -> {})
+                            .setTitle("Error");
                     AlertDialog alert = error.create();
                     alert.show();
                 }
@@ -212,6 +238,22 @@ public class SpielansichtActivity extends AppCompatActivity {
             return null;
         }
         return erschaffen;
+    }
+    //prüft ob valider Laengengrad
+    private boolean isValidLongitude(String longitude) {
+        try {
+            return -180.0 < Double.parseDouble(longitude) && Double.parseDouble(longitude) < 180.0;
+        } catch (NumberFormatException nfe) {
+            return false;
+        }
+    }
+    //prüft ob valider Breitengrad
+    private boolean isValidLatitude(String latitude) {
+        try {
+            return -90.0 < Double.parseDouble(latitude) && Double.parseDouble(latitude) < 90.0;
+        } catch (NumberFormatException nfe) {
+            return false;
+        }
     }
 }
 
