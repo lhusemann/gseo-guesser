@@ -129,6 +129,16 @@ public class SpielansichtActivity extends AppCompatActivity {
             }
         });
     }
+    @Override
+    public void onBackPressed() {
+        AlertDialog.Builder back = new AlertDialog.Builder(SpielansichtActivity.this);
+        back.setMessage("Möchtest du das aktuelle Spiel wirklich beeenden?")
+                .setPositiveButton("Ja", (dialog, id) -> {finish();})
+                .setNegativeButton("Nein", (dialog, id) -> {})
+                .setTitle("Zurück");
+        AlertDialog alert = back.create();
+        alert.show();
+    }
     //erstellt ein Array aus allen Bilder des Ordners
     private Bild[] makeImageArray() throws CorruptedExifDataException {
         Bild[] bilderArray = new Bild[anzahlBilder];
