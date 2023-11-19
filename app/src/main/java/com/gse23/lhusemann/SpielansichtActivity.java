@@ -56,6 +56,7 @@ public class SpielansichtActivity extends AppCompatActivity {
         noDistance = "keine Schaetzung abgegeben";
         folder = getIntent().getStringExtra("ausgewaehltesAlbum");
         anzahlBilder = getIntent().getIntExtra("anzahlBilder", 0);
+        imageCount = 0;
         try {
             bilder = makeImageArray();
             bilderAusgabe();
@@ -63,7 +64,6 @@ public class SpielansichtActivity extends AppCompatActivity {
             throw new RuntimeException(e);
         }
         mischenErstesBild();
-        imageCount = 0;
         //NextButton
         nextButton.setOnClickListener(new View.OnClickListener()  {
             @Override
@@ -295,10 +295,6 @@ public class SpielansichtActivity extends AppCompatActivity {
     //mischt das Bilder-Array
     private void mischenErstesBild() {
         if (anzahlBilder > 0) {
-            bild.setImageDrawable(makeDrawable(album + "/" + folder + "/" + bilder[0].getName()));
-            Log.i("Name des aktuellen Bildes", bilder[imageCount].getName());
-            Log.i("Laengengrad des aktuellen Bildes", "" + bilder[imageCount].getLongtitude());
-            Log.i("Breitengrad des aktuellen Bildes", "" + bilder[imageCount].getLatitude());
             final int mischungen = 100;
             for (int i = 0; i < mischungen; i++) {
                 int erstesBild = (int) (Math.random() * anzahlBilder - 1);
@@ -307,6 +303,10 @@ public class SpielansichtActivity extends AppCompatActivity {
                 bilder[erstesBild] = bilder[zweitesBild];
                 bilder[zweitesBild] = platzhalter;
             }
+            bild.setImageDrawable(makeDrawable(album + "/" + folder + "/" + bilder[imageCount].getName()));
+            Log.i("Name des aktuellen Bildes", bilder[imageCount].getName());
+            Log.i("Laengengrad des aktuellen Bildes", "" + bilder[imageCount].getLongtitude());
+            Log.i("Breitengrad des aktuellen Bildes", "" + bilder[imageCount].getLatitude());
         }
     }
     //macht ein File zu Drawable
