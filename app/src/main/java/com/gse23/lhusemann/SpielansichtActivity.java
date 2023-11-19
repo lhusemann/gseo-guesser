@@ -38,6 +38,8 @@ public class SpielansichtActivity extends AppCompatActivity {
     String noGuess;
     String noDistance;
     String komma = ",";
+    String normalColor = "#808080";
+    String zero = "0";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -76,9 +78,9 @@ public class SpielansichtActivity extends AppCompatActivity {
                     Log.i("Breitengrad des angezeigten Bildes", "" + bilder[imageCount + 1].getLatitude());
                     imageCount++;
                     linkText.setText(noGuess);
-                    linkText.setTextColor(Color.parseColor("#808080"));
+                    linkText.setTextColor(Color.parseColor(normalColor));
                     distanzText.setText(noDistance);
-                    aktuellerScore.setText("0");
+                    aktuellerScore.setText(zero);
                 } else {
                     AlertDialog.Builder error = new AlertDialog.Builder(SpielansichtActivity.this);
                     error.setMessage("Das waren alle Bilder im Album " + folder
@@ -115,9 +117,9 @@ public class SpielansichtActivity extends AppCompatActivity {
                     aktuellerScore.setText("" + getPunkte(distance));
                 } else {
                     linkText.setText(noGuess);
-                    linkText.setTextColor(Color.parseColor("#808080"));
+                    linkText.setTextColor(Color.parseColor(normalColor));
                     distanzText.setText(noDistance);
-                    aktuellerScore.setText("0");
+                    aktuellerScore.setText(zero);
                     AlertDialog.Builder error = new AlertDialog.Builder(SpielansichtActivity.this);
                     error.setMessage("Die eingegebenen Werte sind nicht Valide! Der Längengrad darf nur zwischen"
                                     + "-180 und +180, und der Breitengrad zwischen -90 und +90 liegen!")
@@ -264,7 +266,7 @@ public class SpielansichtActivity extends AppCompatActivity {
             } else {
                 if (exifTag.equals(ExifInterface.TAG_IMAGE_DESCRIPTION)) {
                     return "nicht vorhanden";
-                }else {
+                } else {
                     return exifInterface.getAttribute(exifTag);
                 }
             }
