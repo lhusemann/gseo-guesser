@@ -383,16 +383,16 @@ public class SpielansichtActivity extends AppCompatActivity {
         return number.replaceAll(komma, "");
     }
     //berechner Punktzahl
-    private double getPunkte(double distanz) {
+    private int getPunkte(double distanz) {
         final double minDistance = 10.0;
         final double maxDistance = 10000.0;
-        final double maxPoints = 5000.0;
+        final int maxPoints = 5000;
         if (distanz < minDistance) {
             return maxPoints;
         }
         if (distanz > maxDistance) {
-            return 0.0;
+            return 0;
         }
-        return (maxPoints / Math.log(maxDistance / minDistance)) * Math.log(maxDistance / distanz);
+        return (int) ((int) (maxPoints / Math.log(maxDistance / minDistance)) * Math.log(maxDistance / distanz));
     }
 }
