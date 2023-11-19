@@ -17,7 +17,9 @@
         android:id="@+id/nextButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Next" />
+        android:background="@android:color/holo_blue_light"
+        android:textColor="@android:color/white"
+        android:text="Nächstes Bild" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -68,6 +70,8 @@
         android:id="@+id/validButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="@android:color/holo_blue_light"
+        android:textColor="@android:color/white"
         android:text="Bestätigen" />
 
     <LinearLayout
@@ -119,5 +123,6 @@
         android:id="@+id/link"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Kein Guess abgegeben." />
+        android:text="Kein Guess abgegeben."
+        android:textColor="#808080" />
 </LinearLayout>

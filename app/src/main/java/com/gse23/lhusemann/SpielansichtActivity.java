@@ -6,9 +6,8 @@ import androidx.exifinterface.media.ExifInterface;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.NumberFormat;
-
-import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
@@ -23,23 +22,22 @@ import android.widget.TextView;
  * Das ist die SpielansichtActivity, die zuerst ausgeführt wird, wenn diese Activity gestartet wird.
  */
 public class SpielansichtActivity extends AppCompatActivity {
-    String folder;
-    int anzahlBilder;
-    String album = "albums";
     Bild[] bilder;
     Button nextButton;
+    Button validButton;
     ImageView bild;
     EditText longitudeField;
     EditText latitudeField;
-    Button validButton;
     TextView linkText;
     TextView distanzText;
     TextView aktuellerScore;
+    int anzahlBilder;
     int imageCount;
+    String folder;
+    String album = "albums";
     String noGuess;
     String noDistance;
     String komma = ",";
-    @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -52,22 +50,23 @@ public class SpielansichtActivity extends AppCompatActivity {
         linkText = findViewById(R.id.link);
         distanzText = findViewById(R.id.textSchaetzung);
         aktuellerScore = findViewById(R.id.aktuellerScore);
-        folder = getIntent().getStringExtra("ausgewaehltesAlbum");
         noGuess = "Kein Guess abgegeben.";
         noDistance = "keine Schaetzung abgegeben";
+        folder = getIntent().getStringExtra("ausgewaehltesAlbum");
         anzahlBilder = getIntent().getIntExtra("anzahlBilder", 0);
         try {
             bilder = makeImageArray();
             bilderAusgabe();
-            mischenErstesBild();
         } catch (CorruptedExifDataException | NoImagesInAlbumException e) {
             throw new RuntimeException(e);
         }
+        mischenErstesBild();
         imageCount = 0;
         //NextButton
         nextButton.setOnClickListener(new View.OnClickListener()  {
             @Override
             public void onClick(View button) {
+                //falls es noch ein naechstes Bild gibt
                 if (imageCount + 1 < anzahlBilder) {
                     longitudeField.setText(null);
                     latitudeField.setText(null);
@@ -77,6 +76,7 @@ public class SpielansichtActivity extends AppCompatActivity {
                     Log.i("Breitengrad des angezeigten Bildes", "" + bilder[imageCount + 1].getLatitude());
                     imageCount++;
                     linkText.setText(noGuess);
+                    linkText.setTextColor(Color.parseColor("#808080"));
                     distanzText.setText(noDistance);
                     aktuellerScore.setText("0");
                 } else {
@@ -95,7 +95,6 @@ public class SpielansichtActivity extends AppCompatActivity {
         });
         //validButton
         validButton.setOnClickListener(new View.OnClickListener()  {
-            @SuppressLint("SetTextI18n")
             @Override
             public void onClick(View button) {
                 if (isValidLongitude(longitudeField.getText().toString())
@@ -111,9 +110,14 @@ public class SpielansichtActivity extends AppCompatActivity {
                             + latOne + komma + lonOne + ";" + latTwo + komma + lonTwo;
                     Log.i("OpenStreetMaps-Link zur Schätzung", link);
                     linkText.setText(link);
+                    linkText.setTextColor(Color.parseColor("#0000EE"));
                     distanzText.setText(getUnit(distance));
                     aktuellerScore.setText("" + getPunkte(distance));
                 } else {
+                    linkText.setText(noGuess);
+                    linkText.setTextColor(Color.parseColor("#808080"));
+                    distanzText.setText(noDistance);
+                    aktuellerScore.setText("0");
                     AlertDialog.Builder error = new AlertDialog.Builder(SpielansichtActivity.this);
                     error.setMessage("Die eingegebenen Werte sind nicht Valide! Der Längengrad darf nur zwischen"
                                     + "-180 und +180, und der Breitengrad zwischen -90 und +90 liegen!")
@@ -129,11 +133,13 @@ public class SpielansichtActivity extends AppCompatActivity {
             @Override
             public void onClick(View link) {
                 if (!linkText.getText().equals(noGuess)) {
+                    linkText.setTextColor(Color.parseColor("#551A8B"));
                     openLink(linkText.getText().toString());
                 }
             }
         });
     }
+    //Zurücktaste
     @Override
     public void onBackPressed() {
         AlertDialog.Builder back = new AlertDialog.Builder(SpielansichtActivity.this);
@@ -164,7 +170,7 @@ public class SpielansichtActivity extends AppCompatActivity {
         for (int i = 0; i < tag.length() && Character.isDigit(tag.charAt(i)); i++) {
             valueAsString.append(tag.charAt(i));
         }
-        if (valueAsString.equals("")) {
+        if (valueAsString.length() == 0) {
             return 0;
         }
         return Integer.parseInt(valueAsString.toString());
@@ -172,13 +178,18 @@ public class SpielansichtActivity extends AppCompatActivity {
     //macht die String-Exifdaten zu dezimalen Graden
     private double makeValue(String tag) {
         String[] dms = tag.split(komma);
-        final double sechsig = 60.0;
-        final double sechsigDurchSechsig = 3600.0;
-        double degreeNumber = helperMakeValue(dms[0]);
-        double minuteNumber = helperMakeValue(dms[1]) / sechsig;
-        String[] sec = dms[2].split("/");
-        double secondNumber = helperMakeValue(sec[0]) / helperMakeValue(sec[1]) / sechsigDurchSechsig;
-        return degreeNumber + minuteNumber + secondNumber;
+        final int dmsNumber = 3;
+        if (dms.length == dmsNumber) {
+            final double sechsig = 60.0;
+            final double sechsigDurchSechsig = 3600.0;
+            double degreeNumber = helperMakeValue(dms[0]);
+            double minuteNumber = helperMakeValue(dms[1]) / sechsig;
+            String[] sec = dms[2].split("/");
+            double secondNumber = helperMakeValue(sec[0]) / helperMakeValue(sec[1]) / sechsigDurchSechsig;
+            return degreeNumber + minuteNumber + secondNumber;
+        } else {
+            return 0;
+        }
     }
     //gibt Path aller Bilder in einem Array wieder
     private String[] getPath() {
@@ -245,17 +256,17 @@ public class SpielansichtActivity extends AppCompatActivity {
         return false;
     }
     //gibt Exifdaten zurück
-    private String getExifdata(String filepath, String exifTag) throws CorruptedExifDataException {
+    private String getExifdata(String filepath, String exifTag) {
         try (InputStream in =  getAssets().open(filepath)) {
             ExifInterface exifInterface = new ExifInterface(in);
-            if (exifInterface.getAttribute(exifTag) == null) {
-                if (exifTag.equals( ExifInterface.TAG_IMAGE_DESCRIPTION)) {
-                    return "nicht vorhanden";
-                } else {
+            if (exifInterface.getAttribute(exifTag) == null && !(exifTag.equals(ExifInterface.TAG_IMAGE_DESCRIPTION))) {
                     throw new CorruptedExifDataException(exifTag, filepath);
-                }
             } else {
-                return exifInterface.getAttribute(exifTag);
+                if (exifTag.equals(ExifInterface.TAG_IMAGE_DESCRIPTION)) {
+                    return "nicht vorhanden";
+                }else {
+                    return exifInterface.getAttribute(exifTag);
+                }
             }
         } catch (CorruptedExifDataException | IOException e) {
             finish();
@@ -383,4 +394,3 @@ public class SpielansichtActivity extends AppCompatActivity {
         return (maxPoints / Math.log(maxDistance / minDistance)) * Math.log(maxDistance / distanz);
     }
 }
-

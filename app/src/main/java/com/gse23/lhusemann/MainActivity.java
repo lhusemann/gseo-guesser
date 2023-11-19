@@ -27,7 +27,6 @@ public class MainActivity extends AppCompatActivity {
         Spinner spinner = findViewById(R.id.spinner);
         Button startButton = findViewById(R.id.startButton);
         String error = "Kein Ordner ausgewaehlt";
-        //füllt spinner und gibt alle Bilder in den Albumordnern aus
         try {
             String[] empty = new String[1];
             empty[0] =  error;
