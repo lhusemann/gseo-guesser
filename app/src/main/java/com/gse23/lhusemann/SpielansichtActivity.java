@@ -264,8 +264,8 @@ public class SpielansichtActivity extends AppCompatActivity {
             if (exifInterface.getAttribute(exifTag) == null && !(exifTag.equals(ExifInterface.TAG_IMAGE_DESCRIPTION))) {
                     throw new CorruptedExifDataException(exifTag, filepath);
             } else {
-                if (exifTag.equals(ExifInterface.TAG_IMAGE_DESCRIPTION) &&
-                        exifInterface.getAttribute(exifTag) == null) {
+                if (exifTag.equals(ExifInterface.TAG_IMAGE_DESCRIPTION)
+                        && exifInterface.getAttribute(exifTag) == null) {
                     return "nicht vorhanden";
                 } else {
                     return exifInterface.getAttribute(exifTag);
