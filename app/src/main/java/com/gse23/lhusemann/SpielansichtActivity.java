@@ -264,7 +264,8 @@ public class SpielansichtActivity extends AppCompatActivity {
             if (exifInterface.getAttribute(exifTag) == null && !(exifTag.equals(ExifInterface.TAG_IMAGE_DESCRIPTION))) {
                     throw new CorruptedExifDataException(exifTag, filepath);
             } else {
-                if (exifTag.equals(ExifInterface.TAG_IMAGE_DESCRIPTION)) {
+                if (exifTag.equals(ExifInterface.TAG_IMAGE_DESCRIPTION) &&
+                        exifInterface.getAttribute(exifTag) == null) {
                     return "nicht vorhanden";
                 } else {
                     return exifInterface.getAttribute(exifTag);
@@ -356,7 +357,7 @@ public class SpielansichtActivity extends AppCompatActivity {
     private Double havHelper(Double theta) {
         return Math.sin(theta / 2) * Math.sin(theta / 2);
     }
-    //startet URL, ich habe dies Methode aus dem Internet gefunden im Youtube Video von "With Sam"
+    //startet URL, ich habe dies Methode im Internet gefunden: https://www.youtube.com/watch?v=TU-yDCgpbZw
     private void openLink(String link) {
         Uri uri = Uri.parse(link);
         startActivity(new Intent(Intent.ACTION_VIEW, uri));

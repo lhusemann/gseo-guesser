@@ -143,7 +143,8 @@ public class MainActivity extends AppCompatActivity {
     }
     /**
      * habe arraycopy auf dieser Website gefunden und das Beispiel so umgeschrieben
-     * dass es meinen Zweck erfüllt (https://www.javatpoint.com/)
+     * dass es meinen Zweck erfüllt: https://www.javatpoint.com/how-to-merge-two-arrays-in-java#:~:text=
+     * Java%20arraycopy()%20method&text=It%20copies%20an%20array%20from,equal%20to%20the%20length%20argument
      */
     String[] mergeArray(String[] firstArray, String[] secondArray) {
         int firstLength = firstArray.length;
