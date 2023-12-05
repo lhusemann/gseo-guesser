@@ -111,7 +111,7 @@ public class MainActivity extends AppCompatActivity {
                 return exifInterface.getAttribute(exifTag);
             }
         } catch (IOException e) {
-            return "liegt nicht vor";
+            return "Das öffnen des InputsStreams hat nicht funktioniert";
         }
     }
     /**
