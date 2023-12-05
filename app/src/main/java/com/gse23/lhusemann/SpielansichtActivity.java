@@ -106,7 +106,7 @@ public class SpielansichtActivity extends AppCompatActivity {
                     String lonOne = longitudeField.getText().toString();
                     String latTwo = bilder[imageCount].getLatitude().toString();
                     String lonTwo = bilder[imageCount].getLongtitude().toString();
-                    double distance = getDistance(Double.parseDouble(latOne), bilder[imageCount].getLatitude(),
+                    double distance = Distanz.getDistance((Double.parseDouble(latOne)), bilder[imageCount].getLatitude(),
                             Double.parseDouble(lonOne), bilder[imageCount].getLongtitude());
                     Log.i("Distanz der Schaetzung", getUnit(distance));
                     String link = "https://www.openstreetmap.org/directions?engine=fossgis_valhalla_foot&route="
@@ -313,23 +313,6 @@ public class SpielansichtActivity extends AppCompatActivity {
         } catch (NumberFormatException nfe) {
             return false;
         }
-    }
-    //rechnet von degree in radians um
-    private Double getRadians(Double degree) {
-        final double hundertAchtzig = 180.0;
-        return degree * Math.PI / hundertAchtzig;
-    }
-    //berechnet Distanz
-    private Double getDistance(Double latOne, Double latTwo, Double lonOne, Double lonTwo) {
-        double deltaLat = getRadians(latTwo - latOne);
-        double deltaLon = getRadians(lonTwo - lonOne);
-        double haversine = havHelper(deltaLat) + Math.cos(getRadians(latOne)) * Math.cos(getRadians(latTwo))
-                * havHelper(deltaLon);
-        final double radErde = 6371008.7;
-        return 2.0 * radErde * Math.asin(Math.sqrt(haversine));
-    }
-    private Double havHelper(Double theta) {
-        return Math.sin(theta / 2) * Math.sin(theta / 2);
     }
     //startet URL, ich habe dies Methode im Internet gefunden: https://www.youtube.com/watch?v=TU-yDCgpbZw
     private void openLink(String link) {
