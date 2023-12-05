@@ -57,6 +57,7 @@ public class SpielansichtActivity extends AppCompatActivity {
         folder = getIntent().getStringExtra("ausgewaehltesAlbum");
         anzahlBilder = getIntent().getIntExtra("anzahlBilder", 0);
         imageCount = 0;
+        Log.i("Ausgewahl", "Das Album " + folder + " wurde ausgewaehlt.");
         try {
             bilder = makeImageArray();
             bilderAusgabe();

@@ -66,7 +66,6 @@ public class MainActivity extends AppCompatActivity {
                     AlertDialog alert = error.create();
                     alert.show();
                 } else {
-                    Log.i("Ausgewahl", "Das Album " + spinner.getSelectedItem().toString() + " wurde ausgewaehlt.");
                     Intent intent = new Intent(MainActivity.this, SpielansichtActivity.class);
                     intent.putExtra("ausgewaehltesAlbum", spinner.getSelectedItem().toString());
                     intent.putExtra("anzahlBilder", getImagesCount(spinner.getSelectedItem().toString()));
