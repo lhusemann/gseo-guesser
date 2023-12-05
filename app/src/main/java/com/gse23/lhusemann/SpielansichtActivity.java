@@ -108,13 +108,13 @@ public class SpielansichtActivity extends AppCompatActivity {
                     String lonTwo = bilder[imageCount].getLongtitude().toString();
                     double distance = Distanz.getDistance((Double.parseDouble(latOne)), bilder[imageCount].getLatitude(),
                             Double.parseDouble(lonOne), bilder[imageCount].getLongtitude());
-                    Log.i("Distanz der Schaetzung", getUnit(distance));
+                    Log.i("Distanz der Schaetzung", FormatUmrechner.getUnit(distance));
                     String link = "https://www.openstreetmap.org/directions?engine=fossgis_valhalla_foot&route="
                             + latOne + komma + lonOne + ";" + latTwo + komma + lonTwo;
                     Log.i("OpenStreetMaps-Link zur Schätzung", link);
                     linkText.setText(link);
                     linkText.setTextColor(Color.parseColor("#0000EE"));
-                    distanzText.setText(getUnit(distance));
+                    distanzText.setText(FormatUmrechner.getUnit(distance));
                     aktuellerScore.setText("" + getPunkte(distance));
                 } else {
                     linkText.setText(noGuess);
@@ -318,27 +318,6 @@ public class SpielansichtActivity extends AppCompatActivity {
     private void openLink(String link) {
         Uri uri = Uri.parse(link);
         startActivity(new Intent(Intent.ACTION_VIEW, uri));
-    }
-    //testet ob Kilometer
-    private boolean isKM(double numberDouble) {
-        int number = (int) numberDouble;
-        final int kilometer = 1000;
-        return number / kilometer >= 1;
-    }
-    //gibt Wert in richter Maßeinheit und gerundet aus
-    private String getUnit(double numberDouble) {
-        NumberFormat form = NumberFormat.getInstance();
-        form.setMaximumFractionDigits(2);
-        final int kilometer = 1000;
-        if (isKM(numberDouble)) {
-            return removeKomma(form.format(numberDouble / kilometer)) + " km";
-        } else {
-            return removeKomma(form.format(numberDouble)) + " m";
-        }
-    }
-    //entfernt komma aus String
-    private String removeKomma(String number) {
-        return number.replaceAll(komma, "");
     }
     //berechner Punktzahl
     private int getPunkte(double distanz) {
