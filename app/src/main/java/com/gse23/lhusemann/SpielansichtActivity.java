@@ -98,8 +98,8 @@ public class SpielansichtActivity extends AppCompatActivity {
         validButton.setOnClickListener(new View.OnClickListener()  {
             @Override
             public void onClick(View button) {
-                if (isValidLongitude(longitudeField.getText().toString())
-                        && isValidLatitude(latitudeField.getText().toString())) {
+                if (isValidLongitude(Double.parseDouble(longitudeField.getText().toString()))
+                        && isValidLatitude(Double.parseDouble(latitudeField.getText().toString()))) {
                     String latOne = latitudeField.getText().toString();
                     String lonOne = longitudeField.getText().toString();
                     String latTwo = bilder[imageCount].getLatitude().toString();
@@ -266,24 +266,16 @@ public class SpielansichtActivity extends AppCompatActivity {
         return erschaffen;
     }
     //prüft ob valider Laengengrad
-    private boolean isValidLongitude(String longitude) {
+    private boolean isValidLongitude(Double longitude) {
         final double min = -180.0;
         final double max = 180.0;
-        try {
-            return min <= Double.parseDouble(longitude) && Double.parseDouble(longitude) <= max;
-        } catch (NumberFormatException nfe) {
-            return false;
-        }
+        return min <= longitude && longitude <= max;
     }
     //prüft ob valider Breitengrad
-    private boolean isValidLatitude(String latitude) {
+    private boolean isValidLatitude(Double latitude) {
         final double min = -90;
         final double max = 90;
-        try {
-            return min <= Double.parseDouble(latitude) && Double.parseDouble(latitude) <= max;
-        } catch (NumberFormatException nfe) {
-            return false;
-        }
+        return min <= latitude && latitude <= max;
     }
     //startet URL, ich habe dies Methode im Internet gefunden: https://www.youtube.com/watch?v=TU-yDCgpbZw
     private void openLink(String link) {
