@@ -228,34 +228,7 @@ public class SpielansichtActivity extends AppCompatActivity {
     }
     //prüft ob es sich um eine Bild-Datei handelt
     private boolean isImage(String name) {
-        int laenge = name.length();
-        final int three = 3;
-        final int four = 4;
-        final int five = 5;
-        if (name.charAt(laenge - 1) == 'g') {
-            if (name.charAt(laenge - 2) == 'n') {
-                if (name.charAt(laenge - three) == 'p') {
-                    if (name.charAt(laenge - four) == '.') {
-                        return true;
-                    }
-                }
-            }
-            if (name.charAt(laenge - 2) == 'p') {
-                if (name.charAt(laenge - three) == 'j') {
-                    if (name.charAt(laenge - four) == '.') {
-                        return true;
-                    }
-                }
-            }
-            if (name.charAt(laenge - 2) == 'e') {
-                if (name.charAt(laenge - three) == 'p') {
-                    if (name.charAt(laenge - four) == 'j') {
-                        return name.charAt(laenge - five) == '.';
-                    }
-                }
-            }
-        }
-        return false;
+        return name.endsWith(".jpg") || name.endsWith(".png") || name.endsWith(".jpeg");
     }
     //gibt Exifdaten zurück
     private String getExifdata(String filepath, String exifTag) {
