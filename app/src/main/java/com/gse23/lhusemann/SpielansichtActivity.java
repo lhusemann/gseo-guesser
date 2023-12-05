@@ -5,7 +5,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.exifinterface.media.ExifInterface;
 import java.io.IOException;
 import java.io.InputStream;
-import java.text.NumberFormat;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
@@ -17,7 +16,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
-
 /**
  * Das ist die SpielansichtActivity, die zuerst ausgeführt wird, wenn diese Activity gestartet wird.
  */
@@ -161,38 +159,11 @@ public class SpielansichtActivity extends AppCompatActivity {
         String[] paths = this.getPath();
         for (int i = 0; i < anzahlBilder; i++) {
             Bild aktuellesBild = new Bild(getNames()[i], getExifdata(paths[i], ExifInterface.TAG_IMAGE_DESCRIPTION),
-                    makeValue(getExifdata(paths[i], ExifInterface.TAG_GPS_LONGITUDE)),
-                    makeValue(getExifdata(paths[i], ExifInterface.TAG_GPS_LATITUDE)));
+                    getExifdata(paths[i], ExifInterface.TAG_GPS_LONGITUDE),
+                    getExifdata(paths[i], ExifInterface.TAG_GPS_LATITUDE));
             bilderArray[i] = aktuellesBild;
         }
         return bilderArray;
-    }
-    //macht die String zu verwendbaren Double
-    private double helperMakeValue(String tag) {
-        StringBuilder valueAsString = new StringBuilder();
-        for (int i = 0; i < tag.length() && Character.isDigit(tag.charAt(i)); i++) {
-            valueAsString.append(tag.charAt(i));
-        }
-        if (valueAsString.length() == 0) {
-            return 0;
-        }
-        return Integer.parseInt(valueAsString.toString());
-    }
-    //macht die String-Exifdaten zu dezimalen Graden
-    private double makeValue(String tag) {
-        String[] dms = tag.split(komma);
-        final int dmsNumber = 3;
-        if (dms.length == dmsNumber) {
-            final double sechsig = 60.0;
-            final double sechsigDurchSechsig = 3600.0;
-            double degreeNumber = helperMakeValue(dms[0]);
-            double minuteNumber = helperMakeValue(dms[1]) / sechsig;
-            String[] sec = dms[2].split("/");
-            double secondNumber = helperMakeValue(sec[0]) / helperMakeValue(sec[1]) / sechsigDurchSechsig;
-            return degreeNumber + minuteNumber + secondNumber;
-        } else {
-            return 0;
-        }
     }
     //gibt Path aller Bilder in einem Array wieder
     private String[] getPath() {
