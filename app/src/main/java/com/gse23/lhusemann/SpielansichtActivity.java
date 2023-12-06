@@ -59,11 +59,9 @@ public class SpielansichtActivity extends AppCompatActivity {
         try {
             bilder = makeImageArray();
             bilderAusgabe();
-        } catch (CorruptedExifDataException e) {
-            throw new RuntimeException();
-        } catch (NoImagesInAlbumException e) {
+        } catch (CorruptedExifDataException | NoImagesInAlbumException e) {
             return;
-            //Ausgabe für Nutzer im catch der bilderAusgabe
+            //Ausgabe für Nutzer im catch der bilderAusgabe und getExifData
         }
         mischenErstesBild();
         //NextButton
@@ -214,13 +212,20 @@ public class SpielansichtActivity extends AppCompatActivity {
             } else {
                 if (exifTag.equals(ExifInterface.TAG_IMAGE_DESCRIPTION)
                         && exifInterface.getAttribute(exifTag) == null) {
-                    return "nicht vorhanden";
+                    return "";
                 } else {
                     return exifInterface.getAttribute(exifTag);
                 }
             }
         } catch (CorruptedExifDataException | IOException e) {
-            finish();
+            AlertDialog.Builder error = new AlertDialog.Builder(SpielansichtActivity.this);
+            error.setMessage("Ein und mehrere Dateien haben keine Standortdaten. Kehre auf Startansicht zurück.")
+                    .setPositiveButton("Ok", (dialog, id) -> {
+                        this.finish();
+                    })
+                    .setTitle("Hinweis");
+            AlertDialog alert = error.create();
+            alert.show();
             return "";
         }
     }
