@@ -219,7 +219,7 @@ public class SpielansichtActivity extends AppCompatActivity {
             }
         } catch (CorruptedExifDataException | IOException e) {
             AlertDialog.Builder error = new AlertDialog.Builder(SpielansichtActivity.this);
-            error.setMessage("Ein und mehrere Dateien haben keine Standortdaten. Kehre auf Startansicht zurück.")
+            error.setMessage("Eine und mehrere Dateien haben keine Standortdaten. Kehre auf Startansicht zurück.")
                     .setPositiveButton("Ok", (dialog, id) -> {
                         this.finish();
                     })
@@ -236,10 +236,10 @@ public class SpielansichtActivity extends AppCompatActivity {
                 throw new NoImagesInAlbumException(album);
             } else {
                 for (Bild bild : bilder) {
-                    Log.i("Bildname", bild.getName());
-                    Log.i("Beschreibung", bild.getDescription());
-                    Log.i("Laengengrad", "" + bild.getLongtitude());
-                    Log.i("Breitengrad", "" + bild.getLatitude());
+                    bild.logName();
+                    bild.logDescription();
+                    bild.logLongtitude();
+                    bild.logLatitude();
                 }
             }
         } catch (NoImagesInAlbumException e) {

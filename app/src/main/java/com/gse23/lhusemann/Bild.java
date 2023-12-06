@@ -1,4 +1,7 @@
 package com.gse23.lhusemann;
+
+import android.util.Log;
+
 /**
  * Das ist die Klasse Bild in die ich als Datenstruktur verwende.
  */
@@ -52,5 +55,17 @@ public class Bild {
             return 0;
         }
         return Integer.parseInt(valueAsString.toString());
+    }
+    public void logName() {
+        Log.i("Bildname", name);
+    }
+    public void logDescription() {
+        Log.i("Beschreibung", description);
+    }
+    public void logLongtitude() {
+        Log.i("Laengengrad", "" + longtitude);
+    }
+    public void logLatitude() {
+        Log.i("Breitengrad", "" + latitude);
     }
 }
