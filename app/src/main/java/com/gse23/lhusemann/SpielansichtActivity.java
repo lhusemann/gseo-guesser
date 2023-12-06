@@ -55,12 +55,15 @@ public class SpielansichtActivity extends AppCompatActivity {
         folder = getIntent().getStringExtra("ausgewaehltesAlbum");
         anzahlBilder = getIntent().getIntExtra("anzahlBilder", 0);
         imageCount = 0;
-        Log.i("Ausgewahl", "Das Album " + folder + " wurde ausgewaehlt.");
+        Log.i("Auswahl", "Das Album " + folder + " wurde ausgewaehlt.");
         try {
             bilder = makeImageArray();
             bilderAusgabe();
-        } catch (CorruptedExifDataException | NoImagesInAlbumException e) {
-            throw new RuntimeException(e);
+        } catch (CorruptedExifDataException e) {
+            throw new RuntimeException();
+        } catch (NoImagesInAlbumException e) {
+            return;
+            //Ausgabe für Nutzer im catch der bilderAusgabe
         }
         mischenErstesBild();
         //NextButton
@@ -235,7 +238,14 @@ public class SpielansichtActivity extends AppCompatActivity {
                 }
             }
         } catch (NoImagesInAlbumException e) {
-            this.finish();
+            AlertDialog.Builder error = new AlertDialog.Builder(SpielansichtActivity.this);
+            error.setMessage("Keine Bilder im ausgewaehltem Album vorhanden. Kehre auf Startansicht zurück")
+                    .setPositiveButton("Ok", (dialog, id) -> {
+                        this.finish();
+                    })
+                    .setTitle("Hinweis");
+            AlertDialog alert = error.create();
+            alert.show();
         }
     }
     //mischt das Bilder-Array
