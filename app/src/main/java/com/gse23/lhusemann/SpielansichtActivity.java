@@ -117,7 +117,8 @@ public class SpielansichtActivity extends AppCompatActivity {
                     linkText.setText(link);
                     linkText.setTextColor(Color.parseColor("#0000EE"));
                     distanzText.setText(Formatierung.getUnit(distance));
-                    aktuellerScore.setText("" + getPunkte(distance));
+                    Punkte punktzahl = new Punkte(distance);
+                    aktuellerScore.setText("" + punktzahl.getPunkte());
                 } else {
                     linkText.setText(noGuess);
                     linkText.setTextColor(Color.parseColor(normalColor));
@@ -278,18 +279,5 @@ public class SpielansichtActivity extends AppCompatActivity {
     private void openLink(String link) {
         Uri uri = Uri.parse(link);
         startActivity(new Intent(Intent.ACTION_VIEW, uri));
-    }
-    //berechner Punktzahl
-    private int getPunkte(double distanz) {
-        final double minDistance = 10.0;
-        final double maxDistance = 10000.0;
-        final int maxPoints = 5000;
-        if (distanz < minDistance) {
-            return maxPoints;
-        }
-        if (distanz > maxDistance) {
-            return 0;
-        }
-        return (int) ((int) (maxPoints / Math.log(maxDistance / minDistance)) * Math.log(maxDistance / distanz));
     }
 }
