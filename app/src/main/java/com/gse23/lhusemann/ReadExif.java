@@ -9,7 +9,6 @@ public class ReadExif {
     private ReadExif() {
     }
     public static String getData(String exifTag, InputStream in) throws IOException {
-        //try (InputStream in = getAssets().open(filepath))
         ExifInterface exifInterface = new ExifInterface(in);
         return exifInterface.getAttribute(exifTag);
     }

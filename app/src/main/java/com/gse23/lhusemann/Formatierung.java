@@ -1,10 +1,9 @@
 package com.gse23.lhusemann;
 
-import java.text.Format;
 import java.text.NumberFormat;
 
-public class FormatUmrechner {
-    private FormatUmrechner() {
+public class Formatierung {
+    private Formatierung() {
     }
     //gibt Wert in richter Maßeinheit und gerundet aus
     public static String getUnit(double numberDouble) {
@@ -26,5 +25,17 @@ public class FormatUmrechner {
         int number = (int) numberDouble;
         final int kilometer = 1000;
         return number / kilometer >= 1;
+    }
+    //prüft ob valider Laengengrad
+    public static boolean isValidLongitude(Double longitude) {
+        final double min = -180.0;
+        final double max = 180.0;
+        return min <= longitude && longitude <= max;
+    }
+    //prüft ob valider Breitengrad
+    public static boolean isValidLatitude(Double latitude) {
+        final double min = -90;
+        final double max = 90;
+        return min <= latitude && latitude <= max;
     }
 }

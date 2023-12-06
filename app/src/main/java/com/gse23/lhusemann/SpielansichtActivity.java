@@ -101,8 +101,8 @@ public class SpielansichtActivity extends AppCompatActivity {
         validButton.setOnClickListener(new View.OnClickListener()  {
             @Override
             public void onClick(View button) {
-                if (isValidLongitude(Double.parseDouble(longitudeField.getText().toString()))
-                        && isValidLatitude(Double.parseDouble(latitudeField.getText().toString()))) {
+                if (Formatierung.isValidLongitude(Double.parseDouble(longitudeField.getText().toString()))
+                        && Formatierung.isValidLatitude(Double.parseDouble(latitudeField.getText().toString()))) {
                     String latOne = latitudeField.getText().toString();
                     String lonOne = longitudeField.getText().toString();
                     String latTwo = bilder[imageCount].getLatitude().toString();
@@ -110,13 +110,13 @@ public class SpielansichtActivity extends AppCompatActivity {
                     double distance = Distanz.getDistance((Double.parseDouble(latOne)),
                             bilder[imageCount].getLatitude(), Double.parseDouble(lonOne),
                             bilder[imageCount].getLongtitude());
-                    Log.i("Distanz der Schaetzung", FormatUmrechner.getUnit(distance));
+                    Log.i("Distanz der Schaetzung", Formatierung.getUnit(distance));
                     String link = "https://www.openstreetmap.org/directions?engine=fossgis_valhalla_foot&route="
                             + latOne + komma + lonOne + ";" + latTwo + komma + lonTwo;
                     Log.i("OpenStreetMaps-Link zur Schätzung", link);
                     linkText.setText(link);
                     linkText.setTextColor(Color.parseColor("#0000EE"));
-                    distanzText.setText(FormatUmrechner.getUnit(distance));
+                    distanzText.setText(Formatierung.getUnit(distance));
                     aktuellerScore.setText("" + getPunkte(distance));
                 } else {
                     linkText.setText(noGuess);
@@ -277,18 +277,6 @@ public class SpielansichtActivity extends AppCompatActivity {
             return null;
         }
         return erschaffen;
-    }
-    //prüft ob valider Laengengrad
-    private boolean isValidLongitude(Double longitude) {
-        final double min = -180.0;
-        final double max = 180.0;
-        return min <= longitude && longitude <= max;
-    }
-    //prüft ob valider Breitengrad
-    private boolean isValidLatitude(Double latitude) {
-        final double min = -90;
-        final double max = 90;
-        return min <= latitude && latitude <= max;
     }
     //startet URL, ich habe dies Methode im Internet gefunden: https://www.youtube.com/watch?v=TU-yDCgpbZw
     private void openLink(String link) {
