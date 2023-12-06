@@ -1,6 +1,8 @@
 package com.gse23.lhusemann;
 
 public class Distanz {
+    private Distanz() {
+    }
     //berechnet Distanz
     public static Double getDistance(Double latOne, Double latTwo, Double lonOne, Double lonTwo) {
         double deltaLat = getRadians(latTwo - latOne);

@@ -1,9 +1,11 @@
 package com.gse23.lhusemann;
 
+import java.text.Format;
 import java.text.NumberFormat;
 
 public class FormatUmrechner {
-    final static String komma = ",";
+    private FormatUmrechner() {
+    }
     //gibt Wert in richter Maßeinheit und gerundet aus
     public static String getUnit(double numberDouble) {
         NumberFormat form = NumberFormat.getInstance();
@@ -17,7 +19,7 @@ public class FormatUmrechner {
     }
     //entfernt komma aus String
     private static String removeKomma(String number) {
-        return number.replaceAll(komma, "");
+        return number.replaceAll(",", "");
     }
     //testet ob Kilometer
     private static boolean isKM(double numberDouble) {

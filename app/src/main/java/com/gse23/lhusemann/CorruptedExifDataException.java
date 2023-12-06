@@ -6,7 +6,6 @@ import android.util.Log;
  */
 public class CorruptedExifDataException extends Exception {
     public CorruptedExifDataException(String exifTag, String filepath) {
-        Log.i("CorruptedExifDataException", exifTag + " konnte in " + filepath + " nicht gefunden werden."
-        + " Kehre auf Startansicht zurück...");
+        Log.i("CorruptedExifDataException", exifTag + " konnte in " + filepath + " nicht gefunden werden.");
     }
 }

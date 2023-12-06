@@ -38,6 +38,8 @@ public class SpielansichtActivity extends AppCompatActivity {
     String komma = ",";
     String normalColor = "#808080";
     String zero = "0";
+    String hint = "Hinweis";
+    String ok = "Ok";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -89,7 +91,7 @@ public class SpielansichtActivity extends AppCompatActivity {
                                     finish();
                             })
                                 .setNeutralButton("Abbruch", (dialog, id) -> {})
-                                .setTitle("Hinweis");
+                                .setTitle(hint);
                     AlertDialog alert = error.create();
                     alert.show();
                 }
@@ -105,8 +107,9 @@ public class SpielansichtActivity extends AppCompatActivity {
                     String lonOne = longitudeField.getText().toString();
                     String latTwo = bilder[imageCount].getLatitude().toString();
                     String lonTwo = bilder[imageCount].getLongtitude().toString();
-                    double distance = Distanz.getDistance((Double.parseDouble(latOne)), bilder[imageCount].getLatitude(),
-                            Double.parseDouble(lonOne), bilder[imageCount].getLongtitude());
+                    double distance = Distanz.getDistance((Double.parseDouble(latOne)),
+                            bilder[imageCount].getLatitude(), Double.parseDouble(lonOne),
+                            bilder[imageCount].getLongtitude());
                     Log.i("Distanz der Schaetzung", FormatUmrechner.getUnit(distance));
                     String link = "https://www.openstreetmap.org/directions?engine=fossgis_valhalla_foot&route="
                             + latOne + komma + lonOne + ";" + latTwo + komma + lonTwo;
@@ -123,7 +126,7 @@ public class SpielansichtActivity extends AppCompatActivity {
                     AlertDialog.Builder error = new AlertDialog.Builder(SpielansichtActivity.this);
                     error.setMessage("Die eingegebenen Werte sind nicht Valide! Der Längengrad darf nur zwischen"
                                     + "-180 und +180, und der Breitengrad zwischen -90 und +90 liegen!")
-                            .setPositiveButton("Ok", (dialog, id) -> {})
+                            .setPositiveButton(ok, (dialog, id) -> {})
                             .setTitle("Error");
                     AlertDialog alert = error.create();
                     alert.show();
@@ -206,24 +209,19 @@ public class SpielansichtActivity extends AppCompatActivity {
     //gibt Exifdaten zurück
     private String getExifdata(String filepath, String exifTag) {
         try (InputStream in =  getAssets().open(filepath)) {
-            ExifInterface exifInterface = new ExifInterface(in);
-            if (exifInterface.getAttribute(exifTag) == null && !(exifTag.equals(ExifInterface.TAG_IMAGE_DESCRIPTION))) {
-                    throw new CorruptedExifDataException(exifTag, filepath);
+            String exifData = ReadExif.getData(exifTag, in);
+            if (ReadExif.corrupted(exifData, exifTag)) {
+                throw new CorruptedExifDataException(exifTag, filepath);
             } else {
-                if (exifTag.equals(ExifInterface.TAG_IMAGE_DESCRIPTION)
-                        && exifInterface.getAttribute(exifTag) == null) {
-                    return "";
-                } else {
-                    return exifInterface.getAttribute(exifTag);
+                return exifData;
                 }
-            }
         } catch (CorruptedExifDataException | IOException e) {
             AlertDialog.Builder error = new AlertDialog.Builder(SpielansichtActivity.this);
             error.setMessage("Eine und mehrere Dateien haben keine Standortdaten. Kehre auf Startansicht zurück.")
-                    .setPositiveButton("Ok", (dialog, id) -> {
+                    .setPositiveButton(ok, (dialog, id) -> {
                         this.finish();
                     })
-                    .setTitle("Hinweis");
+                    .setTitle(hint);
             AlertDialog alert = error.create();
             alert.show();
             return "";
@@ -245,10 +243,10 @@ public class SpielansichtActivity extends AppCompatActivity {
         } catch (NoImagesInAlbumException e) {
             AlertDialog.Builder error = new AlertDialog.Builder(SpielansichtActivity.this);
             error.setMessage("Keine Bilder im ausgewaehltem Album vorhanden. Kehre auf Startansicht zurück")
-                    .setPositiveButton("Ok", (dialog, id) -> {
+                    .setPositiveButton(ok, (dialog, id) -> {
                         this.finish();
                     })
-                    .setTitle("Hinweis");
+                    .setTitle(hint);
             AlertDialog alert = error.create();
             alert.show();
         }

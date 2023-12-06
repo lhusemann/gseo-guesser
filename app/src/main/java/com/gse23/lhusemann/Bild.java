@@ -60,7 +60,7 @@ public class Bild {
         Log.i("Bildname", name);
     }
     public void logDescription() {
-        Log.i("Beschreibung", description);
+        Log.i("Beschreibung", "" + description);
     }
     public void logLongtitude() {
         Log.i("Laengengrad", "" + longtitude);
