@@ -73,9 +73,9 @@ public class SpielansichtActivity extends AppCompatActivity {
                     longitudeField.setText(null);
                     latitudeField.setText(null);
                     bild.setImageDrawable(makeDrawable(album + "/" + folder + "/" + bilder[imageCount + 1].getName()));
-                    Log.i("Name des angezeigten Bildes", bilder[imageCount + 1].getName());
-                    Log.i("Laengengrad des angezeigten Bildes", "" + bilder[imageCount + 1].getLongtitude());
-                    Log.i("Breitengrad des angezeigten Bildes", "" + bilder[imageCount + 1].getLatitude());
+                    bilder[imageCount + 1].logName();
+                    bilder[imageCount + 1].logLongtitude();
+                    bilder[imageCount + 1].logLatitude();
                     imageCount++;
                     linkText.setText(noGuess);
                     linkText.setTextColor(Color.parseColor(normalColor));
@@ -265,9 +265,9 @@ public class SpielansichtActivity extends AppCompatActivity {
                 bilder[zweitesBild] = platzhalter;
             }
             bild.setImageDrawable(makeDrawable(album + "/" + folder + "/" + bilder[imageCount].getName()));
-            Log.i("Name des aktuellen Bildes", bilder[imageCount].getName());
-            Log.i("Laengengrad des aktuellen Bildes", "" + bilder[imageCount].getLongtitude());
-            Log.i("Breitengrad des aktuellen Bildes", "" + bilder[imageCount].getLatitude());
+            bilder[imageCount].logName();
+            bilder[imageCount].logLongtitude();
+            bilder[imageCount].logLatitude();
         }
     }
     //macht ein File zu Drawable
