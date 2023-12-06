@@ -68,4 +68,8 @@ public class Bild {
     public void logLatitude() {
         Log.i("Breitengrad", "" + latitude);
     }
+    //prüft ob es sich um eine Bild-Datei handelt
+    public static boolean isImage(String name) {
+        return name.endsWith(".jpg") || name.endsWith(".png") || name.endsWith(".jpeg");
+    }
 }

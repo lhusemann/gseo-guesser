@@ -175,7 +175,7 @@ public class SpielansichtActivity extends AppCompatActivity {
         int counter = 0;
         String vorPath = album + "/" + folder;
         for (String file : getFolderInhalt(vorPath)) {
-            if (this.isImage(file)) {
+            if (Bild.isImage(file)) {
                 paths[counter] = vorPath + "/" + file;
                 counter++;
             }
@@ -187,7 +187,7 @@ public class SpielansichtActivity extends AppCompatActivity {
         String[] paths = new String[anzahlBilder];
         int counter = 0;
         for (String file : getFolderInhalt(album + "/" + folder)) {
-            if (this.isImage(file)) {
+            if (Bild.isImage(file)) {
                 paths[counter] = file;
                 counter++;
             }
@@ -201,10 +201,6 @@ public class SpielansichtActivity extends AppCompatActivity {
         } catch (IOException e) {
             return new String[0];
         }
-    }
-    //prüft ob es sich um eine Bild-Datei handelt
-    private boolean isImage(String name) {
-        return name.endsWith(".jpg") || name.endsWith(".png") || name.endsWith(".jpeg");
     }
     //gibt Exifdaten zurück
     private String getExifdata(String filepath, String exifTag) {
