@@ -2,7 +2,7 @@ package com.gse23.lhusemann;
 
 import java.text.NumberFormat;
 
-public class Formatierung {
+public final class Formatierung {
     private Formatierung() {
     }
     //gibt Wert in richter Maßeinheit und gerundet aus
@@ -27,15 +27,23 @@ public class Formatierung {
         return number / kilometer >= 1;
     }
     //prüft ob valider Laengengrad
-    public static boolean isValidLongitude(Double longitude) {
+    public static boolean isValidLongitude(String longitude) {
+        if (longitude == null || longitude.equals("")) {
+            return false;
+        }
+        double zahl = Double.parseDouble(longitude);
         final double min = -180.0;
         final double max = 180.0;
-        return min <= longitude && longitude <= max;
+        return min <= zahl && zahl <= max;
     }
     //prüft ob valider Breitengrad
-    public static boolean isValidLatitude(Double latitude) {
+    public static boolean isValidLatitude(String latitude) {
+        if (latitude == null || latitude.equals("")) {
+            return false;
+        }
+        double zahl = Double.parseDouble(latitude);
         final double min = -90;
         final double max = 90;
-        return min <= latitude && latitude <= max;
+        return min <= zahl && zahl <= max;
     }
 }

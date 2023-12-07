@@ -5,7 +5,7 @@ import androidx.exifinterface.media.ExifInterface;
 import java.io.IOException;
 import java.io.InputStream;
 
-public class ReadExif {
+public final class ReadExif {
     private ReadExif() {
     }
     public static String getData(String exifTag, InputStream in) throws IOException {

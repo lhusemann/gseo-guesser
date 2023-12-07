@@ -20,7 +20,7 @@ import android.widget.TextView;
  * Das ist die SpielansichtActivity, die zuerst ausgeführt wird, wenn diese Activity gestartet wird.
  */
 public class SpielansichtActivity extends AppCompatActivity {
-    Bild[] bilder;
+    Album pics;
     Button nextButton;
     Button validButton;
     ImageView bild;
@@ -56,28 +56,28 @@ public class SpielansichtActivity extends AppCompatActivity {
         noDistance = "keine Schaetzung abgegeben";
         folder = getIntent().getStringExtra("ausgewaehltesAlbum");
         anzahlBilder = getIntent().getIntExtra("anzahlBilder", 0);
+        pics = new Album();
         imageCount = 0;
         Log.i("Auswahl", "Das Album " + folder + " wurde ausgewaehlt.");
         try {
-            bilder = makeImageArray();
-            bilderAusgabe();
+            this.addBilderInAlbum();
+            this.bilderLoggen();
         } catch (CorruptedExifDataException | NoImagesInAlbumException e) {
             return;
-            //Ausgabe für Nutzer im catch der bilderAusgabe und getExifData
+            //Ausgabe für Nutzer im catch der bilderLoggen() und getExifData()
         }
-        mischenErstesBild();
+        pics.mix();
         //NextButton
         nextButton.setOnClickListener(new View.OnClickListener()  {
             @Override
             public void onClick(View button) {
                 //falls es noch ein naechstes Bild gibt
-                if (imageCount + 1 < anzahlBilder) {
+                if (imageCount < anzahlBilder) {
                     longitudeField.setText(null);
                     latitudeField.setText(null);
-                    bild.setImageDrawable(makeDrawable(album + "/" + folder + "/" + bilder[imageCount + 1].getName()));
-                    bilder[imageCount + 1].logName();
-                    bilder[imageCount + 1].logLongtitude();
-                    bilder[imageCount + 1].logLatitude();
+                    bild.setImageDrawable(makeDrawable(album + "/" + folder + "/"
+                            + pics.getBild(imageCount).getName()));
+                    pics.logExifNoDec(imageCount);
                     imageCount++;
                     linkText.setText(noGuess);
                     linkText.setTextColor(Color.parseColor(normalColor));
@@ -97,19 +97,21 @@ public class SpielansichtActivity extends AppCompatActivity {
                 }
             }
         });
+        //da ich direkt bei einem Bild starten möchte drücke ich die next Taste einmal manuell.
+            nextButton.performClick();
         //validButton
         validButton.setOnClickListener(new View.OnClickListener()  {
             @Override
             public void onClick(View button) {
-                if (Formatierung.isValidLongitude(Double.parseDouble(longitudeField.getText().toString()))
-                        && Formatierung.isValidLatitude(Double.parseDouble(latitudeField.getText().toString()))) {
+                if (Formatierung.isValidLongitude(longitudeField.getText().toString())
+                        && Formatierung.isValidLatitude(latitudeField.getText().toString())) {
                     String latOne = latitudeField.getText().toString();
                     String lonOne = longitudeField.getText().toString();
-                    String latTwo = bilder[imageCount].getLatitude().toString();
-                    String lonTwo = bilder[imageCount].getLongtitude().toString();
+                    String latTwo = pics.getBild(imageCount).getLatitude().toString();
+                    String lonTwo = pics.getBild(imageCount).getLongtitude().toString();
                     double distance = Distanz.getDistance((Double.parseDouble(latOne)),
-                            bilder[imageCount].getLatitude(), Double.parseDouble(lonOne),
-                            bilder[imageCount].getLongtitude());
+                            pics.getBild(imageCount).getLatitude(), Double.parseDouble(lonOne),
+                            pics.getBild(imageCount).getLongtitude());
                     Log.i("Distanz der Schaetzung", Formatierung.getUnit(distance));
                     String link = "https://www.openstreetmap.org/directions?engine=fossgis_valhalla_foot&route="
                             + latOne + komma + lonOne + ";" + latTwo + komma + lonTwo;
@@ -158,17 +160,15 @@ public class SpielansichtActivity extends AppCompatActivity {
         AlertDialog alert = back.create();
         alert.show();
     }
-    //erstellt ein Array aus allen Bilder des Ordners
-    private Bild[] makeImageArray() throws CorruptedExifDataException {
-        Bild[] bilderArray = new Bild[anzahlBilder];
+    //erstellt das Album aus allen Bilder des Ordners
+    private void addBilderInAlbum() throws CorruptedExifDataException {
         String[] paths = this.getPath();
-        for (int i = 0; i < anzahlBilder; i++) {
+        for (int i = 0; i < paths.length; i++) {
             Bild aktuellesBild = new Bild(getNames()[i], getExifdata(paths[i], ExifInterface.TAG_IMAGE_DESCRIPTION),
                     getExifdata(paths[i], ExifInterface.TAG_GPS_LONGITUDE),
                     getExifdata(paths[i], ExifInterface.TAG_GPS_LATITUDE));
-            bilderArray[i] = aktuellesBild;
+            pics.addBild(aktuellesBild);
         }
-        return bilderArray;
     }
     //gibt Path aller Bilder in einem Array wieder
     private String[] getPath() {
@@ -203,7 +203,7 @@ public class SpielansichtActivity extends AppCompatActivity {
             return new String[0];
         }
     }
-    //gibt Exifdaten zurück
+    //gibt Exifdaten zurück mit Hilfe der Klasse ReadExif
     private String getExifdata(String filepath, String exifTag) {
         try (InputStream in =  getAssets().open(filepath)) {
             String exifData = ReadExif.getData(exifTag, in);
@@ -225,17 +225,10 @@ public class SpielansichtActivity extends AppCompatActivity {
         }
     }
     //gibt alle Werte von allen Bildern aus
-    private void bilderAusgabe() throws NoImagesInAlbumException {
+    private void bilderLoggen() throws NoImagesInAlbumException {
         try {
-            if (anzahlBilder < 1) {
+            if (pics.isEmptyUndLogAll()) {
                 throw new NoImagesInAlbumException(album);
-            } else {
-                for (Bild bild : bilder) {
-                    bild.logName();
-                    bild.logDescription();
-                    bild.logLongtitude();
-                    bild.logLatitude();
-                }
             }
         } catch (NoImagesInAlbumException e) {
             AlertDialog.Builder error = new AlertDialog.Builder(SpielansichtActivity.this);
@@ -246,23 +239,6 @@ public class SpielansichtActivity extends AppCompatActivity {
                     .setTitle(hint);
             AlertDialog alert = error.create();
             alert.show();
-        }
-    }
-    //mischt das Bilder-Array
-    private void mischenErstesBild() {
-        if (anzahlBilder > 0) {
-            final int mischungen = 100;
-            for (int i = 0; i < mischungen; i++) {
-                int erstesBild = (int) (Math.random() * anzahlBilder - 1);
-                int zweitesBild = (int) (Math.random() * anzahlBilder - 1);
-                Bild platzhalter = bilder[erstesBild];
-                bilder[erstesBild] = bilder[zweitesBild];
-                bilder[zweitesBild] = platzhalter;
-            }
-            bild.setImageDrawable(makeDrawable(album + "/" + folder + "/" + bilder[imageCount].getName()));
-            bilder[imageCount].logName();
-            bilder[imageCount].logLongtitude();
-            bilder[imageCount].logLatitude();
         }
     }
     //macht ein File zu Drawable

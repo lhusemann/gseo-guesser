@@ -8,7 +8,7 @@ public class Punkte {
     Punkte(double distanz) {
         if (distanz < minDistance) {
             punkte = maxPoints;
-        } else if (distanz > maxDistance){
+        } else if (distanz > maxDistance) {
             punkte = 0;
         } else {
             punkte = (int) ((int) (maxPoints / Math.log(maxDistance / minDistance)) * Math.log(maxDistance / distanz));
