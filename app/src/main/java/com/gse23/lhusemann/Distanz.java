@@ -1,6 +1,6 @@
 package com.gse23.lhusemann;
 
-public final class Distanz {
+public class Distanz {
     private Distanz() {
     }
     //berechnet Distanz

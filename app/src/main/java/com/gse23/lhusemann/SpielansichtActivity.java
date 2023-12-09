@@ -43,6 +43,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
     TextView linkText;
     TextView distanzText;
     TextView aktuellerScore;
+    TextView gesScore;
     TextView runde;
     MapView karte;
     Context context;
@@ -75,6 +76,8 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         linkText = findViewById(R.id.link);
         distanzText = findViewById(R.id.textSchaetzung);
         aktuellerScore = findViewById(R.id.aktuellerScore);
+        gesScore = findViewById(R.id.gesScore);
+        gesScore.setText(gameApplication.getGesamtscore().getStringGesamtscore());
         runde = findViewById(R.id.rundenID);
         karte = findViewById(R.id.mapView);
         context = getApplicationContext();
@@ -129,6 +132,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                     int scoreDavor = gameApplication.getGesamtscore().getGesamtscore();
                     Gesamtscore score = new Gesamtscore(currentpunkte.getPunkte() + scoreDavor);
                     gameApplication.setGesamtscore(score);
+                    gesScore.setText(gameApplication.getGesamtscore().getStringGesamtscore());
                     currentpunkte.reset();
                     aktuellerScore.setText(currentpunkte.getStringPunkte());
                 } else {
@@ -155,11 +159,11 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                         && Formatierung.isValidLatitude(latitudeField.getText().toString())) {
                     String latOne = latitudeField.getText().toString();
                     String lonOne = longitudeField.getText().toString();
-                    String latTwo = pics.getBild(imageCount).getLatitude().toString();
-                    String lonTwo = pics.getBild(imageCount).getLongtitude().toString();
+                    String latTwo = pics.getBild(imageCount-1).getLatitude().toString();
+                    String lonTwo = pics.getBild(imageCount-1).getLongtitude().toString();
                     double distance = Distanz.getDistance((Double.parseDouble(latOne)),
-                            pics.getBild(imageCount).getLatitude(), Double.parseDouble(lonOne),
-                            pics.getBild(imageCount).getLongtitude());
+                            pics.getBild(imageCount-1).getLatitude(), Double.parseDouble(lonOne),
+                            pics.getBild(imageCount-1).getLongtitude());
                     Log.i("Distanz der Schaetzung", Formatierung.getUnit(distance));
                     String link = "https://www.openstreetmap.org/directions?engine=fossgis_valhalla_foot&route="
                             + latOne + komma + lonOne + ";" + latTwo + komma + lonTwo;
@@ -169,6 +173,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                     distanzText.setText(Formatierung.getUnit(distance));
                     currentpunkte.berechne(distance);
                     aktuellerScore.setText(currentpunkte.getStringPunkte());
+                    gesScore.setText(gameApplication.getGesamtscore().getStringGesamtscore());
 
 
                 } else {

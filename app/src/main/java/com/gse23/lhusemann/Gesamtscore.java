@@ -17,6 +17,9 @@ public class Gesamtscore {
     public int getGesamtscore() {
         return score;
     }
+    public String getStringGesamtscore() {
+        return "" + score;
+    }
     public void addListener(PropertyChangeListener listener) {
         support.addPropertyChangeListener(listener);
     }
