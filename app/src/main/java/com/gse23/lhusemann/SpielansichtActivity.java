@@ -43,6 +43,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
     TextView linkText;
     TextView distanzText;
     TextView aktuellerScore;
+    TextView runde;
     MapView karte;
     Context context;
     IConfigurationProvider provider;
@@ -72,6 +73,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         linkText = findViewById(R.id.link);
         distanzText = findViewById(R.id.textSchaetzung);
         aktuellerScore = findViewById(R.id.aktuellerScore);
+        runde = findViewById(R.id.rundenID);
         karte = findViewById(R.id.mapView);
         context = getApplicationContext();
         provider = Configuration.getInstance();
@@ -115,6 +117,9 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                             + pics.getBild(imageCount).getName()));
                     pics.logExifNoDec(imageCount);
                     imageCount++;
+                    Rundenzaehler neueRunde = new Rundenzaehler(imageCount);
+                    gameApplication.setRundezaehler(neueRunde);
+                    runde.setText("" + gameApplication.getRundenZaehler().getRunde());
                     linkText.setText(noGuess);
                     linkText.setTextColor(Color.parseColor(normalColor));
                     distanzText.setText(noDistance);

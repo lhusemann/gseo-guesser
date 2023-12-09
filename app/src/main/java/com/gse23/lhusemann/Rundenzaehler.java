@@ -14,7 +14,7 @@ public class Rundenzaehler {
         this.support.firePropertyChange("Runde", this.runde, runde);
         this.runde = runde;
     }
-    public double getRunde() {
+    public int getRunde() {
         return runde;
     }
     public void addListener(PropertyChangeListener listener) {
