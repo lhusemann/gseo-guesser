@@ -3,8 +3,12 @@ package com.gse23.lhusemann;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.exifinterface.media.ExifInterface;
+import androidx.preference.PreferenceManager;
+
 import java.io.IOException;
 import java.io.InputStream;
+
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
@@ -16,6 +20,12 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import org.osmdroid.config.Configuration;
+import org.osmdroid.config.IConfigurationProvider;
+import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
+import org.osmdroid.views.MapView;
+
 /**
  * Das ist die SpielansichtActivity, die zuerst ausgeführt wird, wenn diese Activity gestartet wird.
  */
@@ -29,6 +39,9 @@ public class SpielansichtActivity extends AppCompatActivity {
     TextView linkText;
     TextView distanzText;
     TextView aktuellerScore;
+    MapView karte;
+    Context context;
+    IConfigurationProvider provider;
     int anzahlBilder;
     int imageCount;
     String folder;
@@ -52,6 +65,13 @@ public class SpielansichtActivity extends AppCompatActivity {
         linkText = findViewById(R.id.link);
         distanzText = findViewById(R.id.textSchaetzung);
         aktuellerScore = findViewById(R.id.aktuellerScore);
+        karte = findViewById(R.id.mapView);
+        context = getApplicationContext();
+        provider = Configuration.getInstance();
+        provider.setUserAgentValue(context.getPackageName());
+        provider.load(context, PreferenceManager.getDefaultSharedPreferences(context));
+        karte.setTileSource(TileSourceFactory.MAPNIK);
+        karte.setMultiTouchControls(true);
         noGuess = "Kein Guess abgegeben.";
         noDistance = "keine Schaetzung abgegeben";
         folder = getIntent().getStringExtra("ausgewaehltesAlbum");
@@ -146,6 +166,17 @@ public class SpielansichtActivity extends AppCompatActivity {
                 }
             }
         });
+    }
+    @Override
+    protected void onResume() {
+        super.onResume();
+        karte.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        karte.onPause();
     }
     //Zurücktaste
     @Override
