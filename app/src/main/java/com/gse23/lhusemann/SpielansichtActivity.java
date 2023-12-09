@@ -10,6 +10,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
+
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
@@ -17,6 +20,7 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -47,7 +51,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
     TextView gesScore;
     TextView runde;
     TextView beschreibung;
-    TextView timer;
+    TextView timerText;
     MapView karte;
     Context context;
     IConfigurationProvider provider;
@@ -62,7 +66,11 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
     String normalColor = "#808080";
     String hint = "Hinweis";
     String ok = "Ok";
-    int counter = 60;
+    int counter;
+
+    private TimerTask timerTask;
+    private Timer timer;
+    private Handler timerHandler = new Handler();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,7 +89,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         linkText = findViewById(R.id.link);
         distanzText = findViewById(R.id.textSchaetzung);
         beschreibung = findViewById(R.id.beschreibungID);
-        timer = findViewById(R.id.timerID);
+        timerText = findViewById(R.id.timerID);
         aktuellerScore = findViewById(R.id.aktuellerScore);
         gesScore = findViewById(R.id.gesScore);
         gesScore.setText(gameApplication.getGesamtscore().getStringGesamtscore());
@@ -332,17 +340,34 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         Uri uri = Uri.parse(link);
         startActivity(new Intent(Intent.ACTION_VIEW, uri));
     }
-    //startet Timer, ich habe diese Methode im Internet gefunden: https://abhiandroid.com/ui/countdown-timer#gsc.tab=0
-    private void startTimer() {
-        new CountDownTimer(60000, 1000){
-            public void onTick(long millisUntilFinished){
-                timer.setText(String.valueOf(counter));
-                counter--;
+    //koopiert von https://stackoverflow.com/questions/10029831/how-do-you-use-a-timertask-to-run-a-thread
+    private void stopTimer(){
+        if(timer != null){
+            timer.cancel();
+            timer.purge();
+            counter = 0;
+            timerText.setText("" + counter);
+        }
+    }
+    //koopiert von https://stackoverflow.com/questions/10029831/how-do-you-use-a-timertask-to-run-a-thread
+    private void startTimer(){
+        timer = new Timer();
+        counter = 60;
+        timerTask = new TimerTask() {
+            public void run() {
+                timerHandler.post(new Runnable() {
+                    public void run(){
+                        timerText.setText("" + counter);
+                        counter--;
+                        if (counter<1) {
+                            stopTimer();
+                        }
+                    }
+                });
             }
-            public  void onFinish(){
-                timer.setText("0");
-            }
-        }.start();
+        };
+
+        timer.schedule(timerTask, 1, 1000);
     }
     @Override
     public void propertyChange(PropertyChangeEvent propertyChangeEvent) {
