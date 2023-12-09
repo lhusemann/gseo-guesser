@@ -8,8 +8,6 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -19,7 +17,6 @@ import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.CountDownTimer;
 import android.os.Handler;
 import android.util.Log;
 import android.view.View;
@@ -27,6 +24,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import org.osmdroid.api.IMapController;
 import org.osmdroid.config.Configuration;
 import org.osmdroid.config.IConfigurationProvider;
 import org.osmdroid.events.MapEventsReceiver;
@@ -44,6 +43,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
     Album pics;
     Button nextButton;
     Button validButton;
+    Button centerButton;
     ImageView bild;
     EditText longitudeField;
     EditText latitudeField;
@@ -91,6 +91,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         longitudeField = findViewById(R.id.longitudeField);
         latitudeField = findViewById(R.id.latitudeField);
         validButton = findViewById(R.id.validButton);
+        centerButton = findViewById(R.id.centerButton);
         linkText = findViewById(R.id.link);
         distanzText = findViewById(R.id.textSchaetzung);
         beschreibung = findViewById(R.id.beschreibungID);
@@ -228,6 +229,14 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                     AlertDialog alert = error.create();
                     alert.show();
                 }
+            }
+        });
+        //centerButton
+        centerButton.setOnClickListener(new View.OnClickListener()  {
+            @Override
+            public void onClick(View button) {
+                IMapController mapController = karte.getController();
+                mapController.setCenter(nutzerMarker.getPosition());
             }
         });
         //link
