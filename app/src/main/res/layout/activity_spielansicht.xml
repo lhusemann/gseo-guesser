@@ -10,8 +10,14 @@
     <ImageView
         android:id="@+id/bild"
         android:layout_width="match_parent"
-        android:layout_height="405dp"
+        android:layout_height="269dp"
         tools:srcCompat="@tools:sample/avatars" />
+
+    <org.osmdroid.views.MapView
+        android:id="@+id/mapView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
 
     <Button
         android:id="@+id/nextButton"
