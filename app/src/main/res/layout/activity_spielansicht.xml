@@ -44,6 +44,11 @@
         android:layout_height="269dp"
         tools:srcCompat="@tools:sample/avatars" />
 
+    <TextView
+        android:id="@+id/beschreibungID"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
     <org.osmdroid.views.MapView
         android:id="@+id/mapView"
         android:layout_width="match_parent"

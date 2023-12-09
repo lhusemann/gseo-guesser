@@ -45,6 +45,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
     TextView aktuellerScore;
     TextView gesScore;
     TextView runde;
+    TextView beschreibung;
     MapView karte;
     Context context;
     IConfigurationProvider provider;
@@ -75,6 +76,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         validButton = findViewById(R.id.validButton);
         linkText = findViewById(R.id.link);
         distanzText = findViewById(R.id.textSchaetzung);
+        beschreibung = findViewById(R.id.beschreibungID);
         aktuellerScore = findViewById(R.id.aktuellerScore);
         gesScore = findViewById(R.id.gesScore);
         gesScore.setText(gameApplication.getGesamtscore().getStringGesamtscore());
@@ -119,6 +121,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                 if (imageCount < anzahlBilder) {
                     longitudeField.setText(null);
                     latitudeField.setText(null);
+                    beschreibung.setText(pics.getBild(imageCount).getDescription());
                     bild.setImageDrawable(makeDrawable(album + "/" + folder + "/"
                             + pics.getBild(imageCount).getName()));
                     pics.logExifNoDec(imageCount);
