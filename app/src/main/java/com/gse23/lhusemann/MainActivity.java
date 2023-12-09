@@ -31,6 +31,8 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
         gameApplication = (GameApplication) getApplication();
         gameApplication.setRundezaehler(new Rundenzaehler(1));
         gameApplication.getRundenZaehler().addListener(this);
+        gameApplication.setGesamtscore(new Gesamtscore(0));
+        gameApplication.getGesamtscore().addListener(this);
         Spinner spinner = findViewById(R.id.spinner);
         Button startButton = findViewById(R.id.startButton);
         String error = "Kein Ordner ausgewaehlt";
@@ -153,7 +155,8 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
     }
     @Override
     protected void onDestroy() {
-        gameApplication.getMarkerKoordinaten().removeListener(this);
+        gameApplication.getGesamtscore().removeListener(this);
+        gameApplication.getRundenZaehler().removeListener(this);
         super.onDestroy();
     }
 }

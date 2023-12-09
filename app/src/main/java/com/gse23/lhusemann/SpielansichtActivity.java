@@ -50,12 +50,12 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
     int anzahlBilder;
     int imageCount;
     String folder;
+    Punkte currentpunkte;
     String album = "albums";
     String noGuess;
     String noDistance;
     String komma = ",";
     String normalColor = "#808080";
-    String zero = "0";
     String hint = "Hinweis";
     String ok = "Ok";
     @Override
@@ -64,7 +64,9 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         setContentView(R.layout.activity_spielansicht);
         gameApplication = (GameApplication) getApplication();
         gameApplication.setMarkerKoordinaten(new MarkerKoordinaten(0,0));
-        gameApplication.getMarkerKoordinaten().addListener(this); //---------ob das richtig ist? idk
+        gameApplication.getMarkerKoordinaten().addListener(this);
+        gameApplication.getRundenZaehler().addListener(this);
+        gameApplication.getGesamtscore().addListener(this);
         bild = findViewById(R.id.bild);
         nextButton = findViewById(R.id.nextButton);
         longitudeField = findViewById(R.id.longitudeField);
@@ -87,6 +89,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         anzahlBilder = getIntent().getIntExtra("anzahlBilder", 0);
         pics = new Album();
         imageCount = 0;
+        currentpunkte = new Punkte();
         Log.i("Auswahl", "Das Album " + folder + " wurde ausgewaehlt.");
         try {
             this.addBilderInAlbum();
@@ -123,7 +126,11 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                     linkText.setText(noGuess);
                     linkText.setTextColor(Color.parseColor(normalColor));
                     distanzText.setText(noDistance);
-                    aktuellerScore.setText(zero);
+                    int scoreDavor = gameApplication.getGesamtscore().getGesamtscore();
+                    Gesamtscore score = new Gesamtscore(currentpunkte.getPunkte() + scoreDavor);
+                    gameApplication.setGesamtscore(score);
+                    currentpunkte.reset();
+                    aktuellerScore.setText(currentpunkte.getStringPunkte());
                 } else {
                     AlertDialog.Builder error = new AlertDialog.Builder(SpielansichtActivity.this);
                     error.setMessage("Das waren alle Bilder im Album " + folder
@@ -160,15 +167,16 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                     linkText.setText(link);
                     linkText.setTextColor(Color.parseColor("#0000EE"));
                     distanzText.setText(Formatierung.getUnit(distance));
-                    Punkte punktzahl = new Punkte(distance);
-                    aktuellerScore.setText("" + punktzahl.getPunkte());
+                    currentpunkte.berechne(distance);
+                    aktuellerScore.setText(currentpunkte.getStringPunkte());
 
 
                 } else {
                     linkText.setText(noGuess);
                     linkText.setTextColor(Color.parseColor(normalColor));
                     distanzText.setText(noDistance);
-                    aktuellerScore.setText(zero);
+                    currentpunkte.reset();
+                    aktuellerScore.setText(currentpunkte.getStringPunkte());
                     AlertDialog.Builder error = new AlertDialog.Builder(SpielansichtActivity.this);
                     error.setMessage("Die eingegebenen Werte sind nicht Valide! Der Längengrad darf nur zwischen"
                                     + "-180 und +180, und der Breitengrad zwischen -90 und +90 liegen!")
@@ -318,6 +326,8 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
     @Override
     protected void onDestroy() {
         gameApplication.getMarkerKoordinaten().removeListener(this);
+        gameApplication.getRundenZaehler().removeListener(this);
+        gameApplication.getGesamtscore().removeListener(this);
         super.onDestroy();
     }
 }
