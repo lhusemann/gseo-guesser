@@ -29,9 +29,11 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import org.osmdroid.config.Configuration;
 import org.osmdroid.config.IConfigurationProvider;
+import org.osmdroid.events.MapEventsReceiver;
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
+import org.osmdroid.views.overlay.MapEventsOverlay;
 import org.osmdroid.views.overlay.Marker;
 
 /**
@@ -53,6 +55,9 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
     TextView beschreibung;
     TextView timerText;
     MapView karte;
+    Marker nutzerMarker;
+    Marker bildMarker;
+    MarkerKoordinaten markerK;
     Context context;
     IConfigurationProvider provider;
     int anzahlBilder;
@@ -101,6 +106,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         provider.load(context, PreferenceManager.getDefaultSharedPreferences(context));
         karte.setTileSource(TileSourceFactory.MAPNIK);
         karte.setMultiTouchControls(true);
+        nutzerMarker = new Marker(karte);
         noGuess = "Kein Guess abgegeben.";
         noDistance = "keine Schaetzung abgegeben";
         folder = getIntent().getStringExtra("ausgewaehltesAlbum");
@@ -116,15 +122,6 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
             return;
             //Ausgabe für Nutzer im catch der bilderLoggen() und getExifData()
         }
-        // GameApplication gameApplication = (GameApplication) getApplication();
-        // Marker marker = new Marker(karte);
-        // marker.setPosition(geoPoints.get(index))
-        // marker.setPosition(geoPoints.get(0));
-        // marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);--------------------------------------------------------------------- Marker übergabe nur ka wo
-        // marker.setTitle("Ihre Eingabe");
-        // MarkerKoordinaten markerK = new MarkerKoordinaten(long, lat);
-        // gameApplication.setMarker(markerK);
-        // karte.getOverlays().add(marker);
         pics.mix();
         //NextButton
         nextButton.setOnClickListener(new View.OnClickListener()  {
@@ -151,6 +148,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                     gesScore.setText(gameApplication.getGesamtscore().getStringGesamtscore());
                     currentpunkte.reset();
                     aktuellerScore.setText(currentpunkte.getStringPunkte());
+                    karte.getOverlays().remove(nutzerMarker);
                     startTimer();
                 } else {
                     AlertDialog.Builder error = new AlertDialog.Builder(SpielansichtActivity.this);
@@ -168,10 +166,33 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         });
         //da ich direkt bei einem Bild starten möchte drücke ich die next Taste einmal manuell.
             nextButton.performClick();
+        // folgendes passiert bei clicken auf die Map:
+        // koopiert von https://stackoverflow.com/questions/67850072/set-onclicklistener-for-mapview-using-open-street-map
+        karte.getOverlays().add(new MapEventsOverlay(new MapEventsReceiver() {
+            @Override
+            public boolean singleTapConfirmedHelper(GeoPoint p) {
+                Log.i("Laengengrad des gesetzen Markers","" + p.getLatitude());
+                Log.i("Breitengrad des gesetzen Markers","" + p.getLongitude());
+                nutzerMarker.setPosition(new GeoPoint(p.getLatitude(), p.getLongitude()));
+                nutzerMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
+                nutzerMarker.setTitle("Ihre Eingabe");
+                markerK = new MarkerKoordinaten(p.getLongitude(), p.getLatitude());
+                gameApplication.setMarkerKoordinaten(markerK);
+                karte.getOverlays().add(nutzerMarker);
+                return false;
+            }
+
+            @Override
+            public boolean longPressHelper(GeoPoint p) {
+                return false;
+            }
+        }));
         //validButton
         validButton.setOnClickListener(new View.OnClickListener()  {
             @Override
             public void onClick(View button) {
+                Log.i("",""+ karte.getLatitudeSpanDouble());
+                Log.i("",""+ karte.getLongitudeSpanDouble());
                 if (Formatierung.isValidLongitude(longitudeField.getText().toString())
                         && Formatierung.isValidLatitude(latitudeField.getText().toString())) {
                     String latOne = latitudeField.getText().toString();
@@ -220,6 +241,8 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
             }
         });
     }
+
+
     @Override
     protected void onResume() {
         super.onResume();
