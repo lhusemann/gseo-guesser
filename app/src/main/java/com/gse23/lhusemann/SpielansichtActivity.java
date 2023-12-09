@@ -361,6 +361,14 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                         counter--;
                         if (counter<1) {
                             stopTimer();
+                            AlertDialog.Builder over = new AlertDialog.Builder(SpielansichtActivity.this);
+                            over.setMessage("Deine Zeit ist Abgelaufen!")
+                                    .setPositiveButton("Nächstes Bild", (dialog, id) -> {
+                                        nextButton.performClick();
+                                    })
+                                    .setTitle("Zeit vorbei!");
+                            AlertDialog alert = over.create();
+                            alert.show();
                         }
                     }
                 });
