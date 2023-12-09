@@ -10,6 +10,9 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Spinner;
+
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.io.InputStream;
 import androidx.exifinterface.media.ExifInterface;
@@ -17,13 +20,17 @@ import androidx.exifinterface.media.ExifInterface;
 /**
  * Das ist die MainActivity, die zuerst ausgeführt wird, wenn die App gestartet wird.
  */
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements PropertyChangeListener {
+    private GameApplication gameApplication;
     String album = "albums";
     boolean keineAuswahl = true;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        gameApplication = (GameApplication) getApplication();
+        gameApplication.setRundezaehler(new Rundenzaehler(1));
+        gameApplication.getRundenZaehler().addListener(this);
         Spinner spinner = findViewById(R.id.spinner);
         Button startButton = findViewById(R.id.startButton);
         String error = "Kein Ordner ausgewaehlt";
@@ -138,5 +145,15 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         return counter;
+    }
+
+    @Override
+    public void propertyChange(PropertyChangeEvent propertyChangeEvent) {
+
+    }
+    @Override
+    protected void onDestroy() {
+        gameApplication.getMarkerKoordinaten().removeListener(this);
+        super.onDestroy();
     }
 }
