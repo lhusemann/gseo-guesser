@@ -4,10 +4,12 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.exifinterface.media.ExifInterface;
 import androidx.preference.PreferenceManager;
-
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.io.InputStream;
-
+import java.util.ArrayList;
+import java.util.List;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
@@ -20,16 +22,18 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
-
 import org.osmdroid.config.Configuration;
 import org.osmdroid.config.IConfigurationProvider;
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
+import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
+import org.osmdroid.views.overlay.Marker;
 
 /**
- * Das ist die SpielansichtActivity, die zuerst ausgeführt wird, wenn diese Activity gestartet wird.
+ * Dies ist die Spielansicht
  */
-public class SpielansichtActivity extends AppCompatActivity {
+public class SpielansichtActivity extends AppCompatActivity implements PropertyChangeListener {
+    GameApplication gameApplication;
     Album pics;
     Button nextButton;
     Button validButton;
@@ -57,6 +61,9 @@ public class SpielansichtActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_spielansicht);
+        gameApplication = (GameApplication) getApplication();
+        gameApplication.setMarkerKoordinaten(new MarkerKoordinaten(0,0));
+        gameApplication.getMarkerKoordinaten().addListener(this); //---------ob das richtig ist? idk
         bild = findViewById(R.id.bild);
         nextButton = findViewById(R.id.nextButton);
         longitudeField = findViewById(R.id.longitudeField);
@@ -86,6 +93,15 @@ public class SpielansichtActivity extends AppCompatActivity {
             return;
             //Ausgabe für Nutzer im catch der bilderLoggen() und getExifData()
         }
+        // GameApplication gameApplication = (GameApplication) getApplication();
+        // Marker marker = new Marker(karte);
+        // marker.setPosition(geoPoints.get(index))
+        // marker.setPosition(geoPoints.get(0));
+        // marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);--------------------------------------------------------------------- Marker übergabe nur ka wo
+        // marker.setTitle("Ihre Eingabe");
+        // MarkerKoordinaten markerK = new MarkerKoordinaten(long, lat);
+        // gameApplication.setMarker(markerK);
+        // karte.getOverlays().add(marker);
         pics.mix();
         //NextButton
         nextButton.setOnClickListener(new View.OnClickListener()  {
@@ -141,6 +157,8 @@ public class SpielansichtActivity extends AppCompatActivity {
                     distanzText.setText(Formatierung.getUnit(distance));
                     Punkte punktzahl = new Punkte(distance);
                     aktuellerScore.setText("" + punktzahl.getPunkte());
+
+
                 } else {
                     linkText.setText(noGuess);
                     linkText.setTextColor(Color.parseColor(normalColor));
@@ -286,5 +304,15 @@ public class SpielansichtActivity extends AppCompatActivity {
     private void openLink(String link) {
         Uri uri = Uri.parse(link);
         startActivity(new Intent(Intent.ACTION_VIEW, uri));
+    }
+
+    @Override
+    public void propertyChange(PropertyChangeEvent propertyChangeEvent) {
+
+    }
+    @Override
+    protected void onDestroy() {
+        gameApplication.getMarkerKoordinaten().removeListener(this);
+        super.onDestroy();
     }
 }
