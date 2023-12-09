@@ -16,7 +16,19 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Runde:" />
+            android:text="Zeit: " />
+
+        <TextView
+            android:id="@+id/timerID"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="| Runde:" />
 
         <TextView
             android:id="@+id/rundenID"
@@ -28,7 +40,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Gesamtscore: " />
+            android:text="| Gesamtscore: " />
 
         <TextView
             android:id="@+id/gesScore"
