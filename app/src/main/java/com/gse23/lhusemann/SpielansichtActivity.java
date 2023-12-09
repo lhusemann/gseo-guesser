@@ -139,7 +139,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                             + pics.getBild(imageCount).getName()));
                     pics.logExifNoDec(imageCount);
                     imageCount++;
-                    Rundenzaehler neueRunde = new Rundenzaehler(imageCount);
+                    Rundenzaehler neueRunde = new Rundenzaehler(imageCount,1,30);//--------------------hier noch nicht richtig
                     gameApplication.setRundezaehler(neueRunde);
                     runde.setText("" + gameApplication.getRundenZaehler().getRunde());
                     linkText.setText(noGuess);

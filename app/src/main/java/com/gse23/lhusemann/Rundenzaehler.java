@@ -5,9 +5,13 @@ import java.beans.PropertyChangeSupport;
 
 public class Rundenzaehler {
     private int runde;
+    private int maxRunde;
+    private int rundenlaenge;
     private PropertyChangeSupport support;
-    public Rundenzaehler(int runde) {
+    public Rundenzaehler(int runde, int maxRunde, int rundenLaenge) {
         this.runde = runde;
+        this.maxRunde = maxRunde;
+        this.rundenlaenge = rundenLaenge;
         this.support = new PropertyChangeSupport(this);
     }
     public void setRunde(int runde) {
@@ -17,10 +21,25 @@ public class Rundenzaehler {
     public int getRunde() {
         return runde;
     }
+    public void setMaxRunde(int maxRunde) {
+        this.support.firePropertyChange("Maximale Anzahl an Runden", this.maxRunde, maxRunde);
+        this.maxRunde = maxRunde;
+    }
+    public int getMaxRunde() {
+        return maxRunde;
+    }
+    public void setRundenlaenge(int rundenlaenge) {
+        this.support.firePropertyChange("Laenge einer Runde", this.rundenlaenge, rundenlaenge);
+        this.rundenlaenge = rundenlaenge;
+    }
+    public int getRundenlaenge() {
+        return rundenlaenge;
+    }
+
+
     public void addListener(PropertyChangeListener listener) {
         support.addPropertyChangeListener(listener);
     }
-
     public void removeListener(PropertyChangeListener listener) {
         support.removePropertyChangeListener(listener);
     }

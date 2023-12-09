@@ -29,7 +29,7 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         gameApplication = (GameApplication) getApplication();
-        gameApplication.setRundezaehler(new Rundenzaehler(1));
+        gameApplication.setRundezaehler(new Rundenzaehler(1,1,30));
         gameApplication.getRundenZaehler().addListener(this);
         gameApplication.setGesamtscore(new Gesamtscore(0));
         gameApplication.getGesamtscore().addListener(this);
