@@ -172,8 +172,8 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                 }
             }
         });
-        //da ich direkt bei einem Bild starten möchte drücke ich die next Taste einmal manuell.
-            nextButton.performClick();
+        // da ich direkt bei einem Bild starten möchte drücke ich die next Taste einmal manuell.
+        //  nextButton.performClick();     passiert jetzt schon in resume
         // folgendes passiert bei clicken auf die Map:
         // koopiert von https://stackoverflow.com/questions/67850072/set-onclicklistener-for-mapview-using-open-street-map
         karte.getOverlays().add(new MapEventsOverlay(new MapEventsReceiver() {
@@ -302,6 +302,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
     protected void onResume() {
         super.onResume();
         karte.onResume();
+        nextButton.performClick();
     }
 
     @Override
@@ -460,6 +461,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
     public void propertyChange(PropertyChangeEvent propertyChangeEvent) {
 
     }
+
     @Override
     protected void onDestroy() {
         gameApplication.getMarkerKoordinaten().removeListener(this);

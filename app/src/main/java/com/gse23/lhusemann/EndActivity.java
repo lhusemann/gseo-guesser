@@ -34,6 +34,8 @@ public class EndActivity extends AppCompatActivity {
         restart.setOnClickListener(new View.OnClickListener()  {
             @Override
             public void onClick(View button) {
+                gameApplication.setRundezaehler(new Rundenzaehler(0,gameApplication.getRundenZaehler()
+                        .getMaxRunde(),gameApplication.getRundenZaehler().getRundenlaenge()));
                 Intent intent = new Intent(EndActivity.this, SpielansichtActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
                 startActivity(intent);
@@ -60,5 +62,8 @@ public class EndActivity extends AppCompatActivity {
         }
         rundenTexte.setText(rundenText);
         rundenScores.setText(scoreTexte);
+        Punkte halter = gameApplication.getPunkte();
+        halter.resetScores();
+        gameApplication.setPunkte(halter);
     }
 }
