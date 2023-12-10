@@ -9,6 +9,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.Spinner;
 
 import java.beans.PropertyChangeEvent;
@@ -17,12 +18,19 @@ import java.io.IOException;
 import java.io.InputStream;
 import androidx.exifinterface.media.ExifInterface;
 
+import com.google.android.material.snackbar.Snackbar;
+
 /**
  * Das ist die MainActivity, die zuerst ausgeführt wird, wenn die App gestartet wird.
  */
 public class MainActivity extends AppCompatActivity implements PropertyChangeListener {
     private GameApplication gameApplication;
-    String album = "albums";
+    Spinner spinner;
+    Button startButton;
+    EditText rundenAnzahl;
+    EditText rundenLaenge;
+    String album;
+    String error;
     boolean keineAuswahl = true;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,9 +41,12 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
         gameApplication.getRundenZaehler().addListener(this);
         gameApplication.setGesamtscore(new Gesamtscore(0));
         gameApplication.getGesamtscore().addListener(this);
-        Spinner spinner = findViewById(R.id.spinner);
-        Button startButton = findViewById(R.id.startButton);
-        String error = "Kein Ordner ausgewaehlt";
+        spinner = findViewById(R.id.spinner);
+        startButton = findViewById(R.id.startButton);
+        rundenAnzahl = findViewById(R.id.rundenanzahlField);
+        rundenLaenge = findViewById(R.id.rundenlaengeField);
+        error = "Kein Ordner ausgewaehlt";
+        album = "albums";
         try {
             String[] empty = new String[1];
             empty[0] =  error;
@@ -57,6 +68,15 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 keineAuswahl = position == 0;
+                if (keineAuswahl) {
+                    rundenAnzahl.setHint("0");
+                } else {
+                    if (getImagesCount(spinner.getSelectedItem().toString())<5) {
+                        rundenAnzahl.setHint("" + getImagesCount(spinner.getSelectedItem().toString()));
+                    } else {
+                        rundenAnzahl.setHint("5");
+                    }
+                }
             }
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
@@ -75,13 +95,55 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
                     AlertDialog alert = error.create();
                     alert.show();
                 } else {
-                    Intent intent = new Intent(MainActivity.this, SpielansichtActivity.class);
-                    intent.putExtra("ausgewaehltesAlbum", spinner.getSelectedItem().toString());
-                    intent.putExtra("anzahlBilder", getImagesCount(spinner.getSelectedItem().toString()));
-                    startActivity(intent);
+                    if (configureRunde(button)) {
+                        Intent intent = new Intent(MainActivity.this, SpielansichtActivity.class);
+                        intent.putExtra("ausgewaehltesAlbum", spinner.getSelectedItem().toString());
+                        intent.putExtra("anzahlBilder", getImagesCount(spinner.getSelectedItem().toString()));
+                        startActivity(intent);
+                    }
                 }
             }
         });
+    }
+    private boolean configureRunde(View button) {
+        int rundenanzahl;
+        int rundenlaenge;
+        if (rundenAnzahl.getText().toString().equals("")) {
+            if (getImagesCount(spinner.getSelectedItem().toString())<5) {
+                rundenanzahl = getImagesCount(spinner.getSelectedItem().toString());
+                if (rundenanzahl == 0) {
+                    rundenanzahl++;
+                }
+            } else {
+                rundenanzahl = 5;
+            }
+        } else {
+            if (Integer.parseInt(rundenAnzahl.getText().toString()) > getImagesCount(spinner.getSelectedItem().toString())) {
+                Snackbar.make(button, "Rundenanzahl uebertrifft Bilder in Album!" , Snackbar.LENGTH_SHORT).show();
+                return false;
+            } else if (Integer.parseInt(rundenAnzahl.getText().toString()) < 1) {
+                Snackbar.make(button, "Du musst min. eine Runde spielen!" , Snackbar.LENGTH_SHORT).show();
+                return false;
+            } else {
+                rundenanzahl = Integer.parseInt(rundenAnzahl.getText().toString());
+            }
+        }
+
+        if (rundenLaenge.getText().toString().equals("")) {
+            rundenlaenge = 30;
+        } else {
+            if (Integer.parseInt(rundenLaenge.getText().toString()) > 60) {
+                Snackbar.make(button, "Runde darf max. 60 Sekunden lang sein!" , Snackbar.LENGTH_SHORT).show();
+                return false;
+            } else if (Integer.parseInt(rundenLaenge.getText().toString()) < 10){
+                Snackbar.make(button, "Runde muss min. 10 Sekunden lang sein!" , Snackbar.LENGTH_SHORT).show();
+                return false;
+            }
+            rundenlaenge = Integer.parseInt(rundenLaenge.getText().toString());
+        }
+
+        gameApplication.setRundezaehler(new Rundenzaehler(1,rundenanzahl,rundenlaenge));
+        return true;
     }
     //gibt Inhalt eines Ordner wieder ohne Fehlermeldung
     private String[] getFolderInhalt(String folder) {
