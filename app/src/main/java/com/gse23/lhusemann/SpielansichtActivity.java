@@ -8,12 +8,15 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
@@ -30,10 +33,12 @@ import org.osmdroid.config.Configuration;
 import org.osmdroid.config.IConfigurationProvider;
 import org.osmdroid.events.MapEventsReceiver;
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
+import org.osmdroid.util.BoundingBox;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
 import org.osmdroid.views.overlay.MapEventsOverlay;
 import org.osmdroid.views.overlay.Marker;
+import org.osmdroid.views.overlay.Polyline;
 
 /**
  * Dies ist die Spielansicht
@@ -56,7 +61,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
     TextView timerText;
     MapView karte;
     Marker nutzerMarker;
-    Marker bildMarker;
+    Marker markerCorrect;
     MarkerKoordinaten markerK;
     Context context;
     IConfigurationProvider provider;
@@ -72,10 +77,9 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
     String hint = "Hinweis";
     String ok = "Ok";
     int counter;
-
-    private TimerTask timerTask;
-    private Timer timer;
-    private Handler timerHandler = new Handler();
+    TimerTask timerTask;
+    Timer timer;
+    Handler timerHandler = new Handler();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -107,7 +111,12 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         provider.load(context, PreferenceManager.getDefaultSharedPreferences(context));
         karte.setTileSource(TileSourceFactory.MAPNIK);
         karte.setMultiTouchControls(true);
+        Polyline line = new Polyline();
+        Paint paint = line.getOutlinePaint();
+        paint.setColor(Color.RED);
+        paint.setStrokeWidth(20);
         nutzerMarker = new Marker(karte);
+        markerCorrect = new Marker(karte);
         noGuess = "Kein Guess abgegeben.";
         noDistance = "keine Schaetzung abgegeben";
         folder = getIntent().getStringExtra("ausgewaehltesAlbum");
@@ -174,6 +183,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
             public boolean singleTapConfirmedHelper(GeoPoint p) {
                 Log.i("Laengengrad des gesetzen Markers","" + p.getLatitude());
                 Log.i("Breitengrad des gesetzen Markers","" + p.getLongitude());
+                gameApplication.setMarkerKoordinaten(new MarkerKoordinaten(p.getLongitude(), p.getLatitude()));
                 nutzerMarker.setPosition(new GeoPoint(p.getLatitude(), p.getLongitude()));
                 nutzerMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
                 nutzerMarker.setTitle("Ihre Eingabe");
@@ -214,6 +224,18 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                     aktuellerScore.setText(currentpunkte.getStringPunkte());
                     gesScore.setText(gameApplication.getGesamtscore().getStringGesamtscore());
 
+                    List<GeoPoint> geoPoints = new ArrayList<>();
+                    geoPoints.add(new GeoPoint((Double.parseDouble(latOne)), Double.parseDouble(lonOne)));
+                    geoPoints.add(new GeoPoint(pics.getBild(imageCount).getLatitude(), pics.getBild(imageCount).getLongtitude()));
+                    markerCorrect.setPosition(geoPoints.get(1));
+                    markerCorrect.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
+                    markerCorrect.setTitle("gesuchter Ort");
+                    karte.getOverlays().add(markerCorrect);
+                    line.setPoints(geoPoints);
+                    karte.getOverlays().add(line);
+                    karte.post(() -> {
+                        karte.zoomToBoundingBox(BoundingBox.fromGeoPointsSafe(geoPoints), true);
+                    });
 
                 } else {
                     linkText.setText(noGuess);
