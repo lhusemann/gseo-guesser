@@ -37,7 +37,7 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         gameApplication = (GameApplication) getApplication();
-        gameApplication.setRundezaehler(new Rundenzaehler(1,1,30));
+        gameApplication.setRundezaehler(new Rundenzaehler(0,5,30));
         gameApplication.getRundenZaehler().addListener(this);
         gameApplication.setGesamtscore(new Gesamtscore(0));
         gameApplication.getGesamtscore().addListener(this);
@@ -142,7 +142,7 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
             rundenlaenge = Integer.parseInt(rundenLaenge.getText().toString());
         }
 
-        gameApplication.setRundezaehler(new Rundenzaehler(1,rundenanzahl,rundenlaenge));
+        gameApplication.setRundezaehler(new Rundenzaehler(0,rundenanzahl,rundenlaenge));
         return true;
     }
     //gibt Inhalt eines Ordner wieder ohne Fehlermeldung

@@ -80,7 +80,6 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
     Timer timer;
     Handler timerHandler = new Handler();
     int anzahlBilder;
-    int imageCount;
     int counter;
     boolean rundeVorbei = false;
 
@@ -126,7 +125,6 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         folder = getIntent().getStringExtra("ausgewaehltesAlbum");
         anzahlBilder = getIntent().getIntExtra("anzahlBilder", 0);
         pics = new Album();
-        imageCount = 0;
         currentpunkte = new Punkte();
         Log.i("Auswahl", "Das Album " + folder + " wurde ausgewaehlt.");
         try {
@@ -142,16 +140,17 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
             @Override
             public void onClick(View button) {
                 //falls es noch ein naechstes Bild gibt
-                if (imageCount < anzahlBilder) {
+                stopTimer();
+                if (gameApplication.getRundenZaehler().getRunde() < gameApplication.getRundenZaehler().getMaxRunde()) {
+                    gameApplication.setRundezaehler(new Rundenzaehler(gameApplication.getRundenZaehler().getRunde()+1,
+                            gameApplication.getRundenZaehler().getMaxRunde(),gameApplication.getRundenZaehler().
+                            getRundenlaenge()));
                     longitudeField.setText(null);
                     latitudeField.setText(null);
-                    beschreibung.setText(pics.getBild(imageCount).getDescription());
+                    beschreibung.setText(pics.getBild(gameApplication.getRundenZaehler().getRunde()-1).getDescription());
                     bild.setImageDrawable(makeDrawable(album + "/" + folder + "/"
-                            + pics.getBild(imageCount).getName()));
-                    pics.logExifNoDec(imageCount);
-                    imageCount++;
-                    Rundenzaehler neueRunde = new Rundenzaehler(imageCount,1,30);//--------------------hier noch nicht richtig
-                    gameApplication.setRundezaehler(neueRunde);
+                            + pics.getBild(gameApplication.getRundenZaehler().getRunde()-1).getName()));
+                    pics.logExifNoDec(gameApplication.getRundenZaehler().getRunde()-1);
                     runde.setText("" + gameApplication.getRundenZaehler().getRunde());
                     linkText.setText(noGuess);
                     linkText.setTextColor(Color.parseColor(normalColor));
@@ -209,15 +208,16 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                 if (rundeVorbei) {
                     Snackbar.make(button, "Runde vorbei!" , Snackbar.LENGTH_SHORT).show();
                 } else {
+                    stopTimer();
                     if (Formatierung.isValidLongitude(longitudeField.getText().toString())
                             && Formatierung.isValidLatitude(latitudeField.getText().toString())) {
                         String latOne = latitudeField.getText().toString();
                         String lonOne = longitudeField.getText().toString();
-                        String latTwo = pics.getBild(imageCount - 1).getLatitude().toString();
-                        String lonTwo = pics.getBild(imageCount - 1).getLongtitude().toString();
+                        String latTwo = pics.getBild(gameApplication.getRundenZaehler().getRunde() - 1).getLatitude().toString();
+                        String lonTwo = pics.getBild(gameApplication.getRundenZaehler().getRunde() - 1).getLongtitude().toString();
                         double distance = Distanz.getDistance((Double.parseDouble(latOne)),
-                                pics.getBild(imageCount - 1).getLatitude(), Double.parseDouble(lonOne),
-                                pics.getBild(imageCount - 1).getLongtitude());
+                                pics.getBild(gameApplication.getRundenZaehler().getRunde() - 1).getLatitude(), Double.parseDouble(lonOne),
+                                pics.getBild(gameApplication.getRundenZaehler().getRunde() - 1).getLongtitude());
                         Log.i("Distanz der Schaetzung", Formatierung.getUnit(distance));
                         String link = "https://www.openstreetmap.org/directions?engine=fossgis_valhalla_foot&route="
                                 + latOne + komma + lonOne + ";" + latTwo + komma + lonTwo;
@@ -231,7 +231,9 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
 
                         List<GeoPoint> geoPoints = new ArrayList<>();
                         geoPoints.add(new GeoPoint((Double.parseDouble(latOne)), Double.parseDouble(lonOne)));
-                        geoPoints.add(new GeoPoint(pics.getBild(imageCount).getLatitude(), pics.getBild(imageCount).getLongtitude()));
+                        geoPoints.add(new GeoPoint(pics.getBild(gameApplication.getRundenZaehler().getRunde()-1).
+                                getLatitude(), pics.getBild(gameApplication.getRundenZaehler().getRunde()-1).
+                                getLongtitude()));
                         markerCorrect.setPosition(geoPoints.get(1));
                         markerCorrect.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
                         markerCorrect.setTitle("gesuchter Ort");
@@ -242,7 +244,6 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                             karte.zoomToBoundingBox(BoundingBox.fromGeoPointsSafe(geoPoints), true);
                         });
                         rundeVorbei = true;
-                        stopTimer();
 
                     } else {
                         linkText.setText(noGuess);
@@ -435,7 +436,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
     //koopiert von https://stackoverflow.com/questions/10029831/how-do-you-use-a-timertask-to-run-a-thread
     private void startTimer(){
         timer = new Timer();
-        counter = 60;
+        counter = gameApplication.getRundenZaehler().getRundenlaenge();
         timerTask = new TimerTask() {
             public void run() {
                 timerHandler.post(new Runnable() {
