@@ -164,6 +164,8 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                     gameApplication.setPunkte(halter);
                     aktuellerScore.setText(gameApplication.getPunkte().getStringPunkte());
                     karte.getOverlays().remove(nutzerMarker);
+                    karte.getOverlays().remove(markerCorrect);
+                    karte.getOverlays().remove(line);
                     startTimer();
                     rundeVorbei = false;
                 } else {
