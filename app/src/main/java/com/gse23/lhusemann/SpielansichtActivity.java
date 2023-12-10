@@ -67,7 +67,6 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
     MarkerKoordinaten markerK;
     Context context;
     IConfigurationProvider provider;
-    Punkte currentpunkte;
     String folder;
     String album = "albums";
     String noGuess;
@@ -92,6 +91,8 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         gameApplication.getMarkerKoordinaten().addListener(this);
         gameApplication.getRundenZaehler().addListener(this);
         gameApplication.getGesamtscore().addListener(this);
+        gameApplication.setPunkte(new Punkte(0));
+        gameApplication.getPunkte().addListener(this);
         bild = findViewById(R.id.bild);
         nextButton = findViewById(R.id.nextButton);
         aufgebenButton = findViewById(R.id.ffButton);
@@ -125,7 +126,6 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         folder = getIntent().getStringExtra("ausgewaehltesAlbum");
         anzahlBilder = getIntent().getIntExtra("anzahlBilder", 0);
         pics = new Album();
-        currentpunkte = new Punkte();
         Log.i("Auswahl", "Das Album " + folder + " wurde ausgewaehlt.");
         try {
             this.addBilderInAlbum();
@@ -156,11 +156,13 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                     linkText.setTextColor(Color.parseColor(normalColor));
                     distanzText.setText(noDistance);
                     int scoreDavor = gameApplication.getGesamtscore().getGesamtscore();
-                    Gesamtscore score = new Gesamtscore(currentpunkte.getPunkte() + scoreDavor);
-                    gameApplication.setGesamtscore(score);
+                    gameApplication.setGesamtscore(new Gesamtscore(gameApplication.getPunkte().getPunkte() + scoreDavor));
                     gesScore.setText(gameApplication.getGesamtscore().getStringGesamtscore());
-                    currentpunkte.reset();
-                    aktuellerScore.setText(currentpunkte.getStringPunkte());
+                    Punkte halter = gameApplication.getPunkte();
+                    halter.safePunkte();
+                    halter.reset();
+                    gameApplication.setPunkte(halter);
+                    aktuellerScore.setText(gameApplication.getPunkte().getStringPunkte());
                     karte.getOverlays().remove(nutzerMarker);
                     startTimer();
                     rundeVorbei = false;
@@ -225,8 +227,10 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                         linkText.setText(link);
                         linkText.setTextColor(Color.parseColor("#0000EE"));
                         distanzText.setText(Formatierung.getUnit(distance));
-                        currentpunkte.berechne(distance);
-                        aktuellerScore.setText(currentpunkte.getStringPunkte());
+                        Punkte halter = gameApplication.getPunkte();
+                        halter.berechne(distance);
+                        gameApplication.setPunkte(halter);
+                        aktuellerScore.setText(gameApplication.getPunkte().getStringPunkte());
                         gesScore.setText(gameApplication.getGesamtscore().getStringGesamtscore());
 
                         List<GeoPoint> geoPoints = new ArrayList<>();
@@ -246,11 +250,6 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                         rundeVorbei = true;
 
                     } else {
-                        linkText.setText(noGuess);
-                        linkText.setTextColor(Color.parseColor(normalColor));
-                        distanzText.setText(noDistance);
-                        currentpunkte.reset();
-                        aktuellerScore.setText(currentpunkte.getStringPunkte());
                         AlertDialog.Builder error = new AlertDialog.Builder(SpielansichtActivity.this);
                         error.setMessage("Die eingegebenen Werte sind nicht Valide! Der Längengrad darf nur zwischen"
                                         + "-180 und +180, und der Breitengrad zwischen -90 und +90 liegen!")
@@ -471,6 +470,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         gameApplication.getMarkerKoordinaten().removeListener(this);
         gameApplication.getRundenZaehler().removeListener(this);
         gameApplication.getGesamtscore().removeListener(this);
+        gameApplication.getPunkte().removeListener(this);
         super.onDestroy();
     }
 }

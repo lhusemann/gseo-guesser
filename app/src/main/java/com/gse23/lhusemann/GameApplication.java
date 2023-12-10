@@ -6,6 +6,7 @@ public class GameApplication extends Application {
     private MarkerKoordinaten markerK;
     private Rundenzaehler runde;
     private Gesamtscore score;
+    private Punkte punkte;
     public MarkerKoordinaten getMarkerKoordinaten() {
         return markerK;
     }
@@ -23,5 +24,11 @@ public class GameApplication extends Application {
     }
     public void setGesamtscore(Gesamtscore score) {
         this.score = score;
+    }
+    public Punkte getPunkte() {
+        return punkte;
+    }
+    public void setPunkte(Punkte punkte) {
+        this.punkte = punkte;
     }
 }
