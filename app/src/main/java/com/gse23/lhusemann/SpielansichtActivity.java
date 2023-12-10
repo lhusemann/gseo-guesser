@@ -452,6 +452,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                             AlertDialog alert = over.create();
                             alert.show();
                             validButton.performClick();
+                            rundeVorbei = true;
                         }
                     }
                 });
