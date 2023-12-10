@@ -50,6 +50,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
     Button nextButton;
     Button validButton;
     Button showButton;
+    Button aufgebenButton;
     ImageView bild;
     EditText longitudeField;
     EditText latitudeField;
@@ -94,6 +95,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         gameApplication.getGesamtscore().addListener(this);
         bild = findViewById(R.id.bild);
         nextButton = findViewById(R.id.nextButton);
+        aufgebenButton = findViewById(R.id.ffButton);
         longitudeField = findViewById(R.id.longitudeField);
         latitudeField = findViewById(R.id.latitudeField);
         validButton = findViewById(R.id.validButton);
@@ -273,7 +275,22 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                 }
             }
         });
-        //link
+        //NextButton
+        aufgebenButton.setOnClickListener(new View.OnClickListener()  {
+            @Override
+            public void onClick(View button) {
+                AlertDialog.Builder back = new AlertDialog.Builder(SpielansichtActivity.this);
+                back.setMessage("Möchtest du das aktuelle Spiel wirklich beeenden?")
+                        .setPositiveButton("Ja", (dialog, id) -> {
+                            finish();
+                        })
+                        .setNegativeButton("Abbruch", (dialog, id) -> {})
+                        .setTitle("Aufgeben");
+                AlertDialog alert = back.create();
+                alert.show();
+            }
+        });
+    //link
         linkText.setOnClickListener(new View.OnClickListener()  {
             @Override
             public void onClick(View link) {

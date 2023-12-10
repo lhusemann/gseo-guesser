@@ -81,12 +81,12 @@
             android:textColor="@android:color/white" />
 
         <Button
-            android:id="@+id/showButton"
-            android:layout_width="260dp"
+            android:id="@+id/ffButton"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:background="#7DBAD1"
-            android:text="Zeig auf Karte"
+            android:text="Aufgeben"
             android:textColor="@android:color/white" />
 
     </LinearLayout>
@@ -136,13 +136,28 @@
 
     </LinearLayout>
 
-    <Button
-        android:id="@+id/validButton"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@android:color/holo_blue_light"
-        android:textColor="@android:color/white"
-        android:text="Bestätigen" />
+        android:layout_height="match_parent"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/validButton"
+            android:layout_width="261dp"
+            android:layout_height="wrap_content"
+            android:background="@android:color/holo_blue_light"
+            android:text="Bestätigen"
+            android:textColor="@android:color/white" />
+
+        <Button
+            android:id="@+id/showButton"
+            android:layout_width="260dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="#7DBAD1"
+            android:text="Zeig auf Karte"
+            android:textColor="@android:color/white" />
+    </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
