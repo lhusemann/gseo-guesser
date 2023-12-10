@@ -165,12 +165,10 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                     rundeVorbei = false;
                 } else {
                     AlertDialog.Builder error = new AlertDialog.Builder(SpielansichtActivity.this);
-                    error.setMessage("Das waren alle Bilder im Album " + folder
-                                    + ". Möchtest du zur Startansicht zurueckkehren?")
+                    error.setMessage("Das Spiel ist vorbei!")
                             .setPositiveButton("Startansicht", (dialog, id) -> {
                                     finish();
                             })
-                                .setNeutralButton("Abbruch", (dialog, id) -> {})
                                 .setTitle(hint);
                     AlertDialog alert = error.create();
                     alert.show();
