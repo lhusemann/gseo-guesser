@@ -40,6 +40,9 @@ public class Punkte {
     public void safePunkte() {
         punkteListe.add(punkte);
     }
+    public ArrayList<Integer> giveScores() {
+        return punkteListe;
+    }
     public void addListener(PropertyChangeListener listener) {
         support.addPropertyChangeListener(listener);
     }

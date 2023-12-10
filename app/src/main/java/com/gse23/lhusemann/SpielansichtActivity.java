@@ -167,14 +167,8 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                     startTimer();
                     rundeVorbei = false;
                 } else {
-                    AlertDialog.Builder error = new AlertDialog.Builder(SpielansichtActivity.this);
-                    error.setMessage("Das Spiel ist vorbei!")
-                            .setPositiveButton("Startansicht", (dialog, id) -> {
-                                    finish();
-                            })
-                                .setTitle(hint);
-                    AlertDialog alert = error.create();
-                    alert.show();
+                    Intent intent = new Intent(SpielansichtActivity.this, EndActivity.class);
+                    startActivity(intent);
                 }
             }
         });
@@ -282,6 +276,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                 AlertDialog.Builder back = new AlertDialog.Builder(SpielansichtActivity.this);
                 back.setMessage("Möchtest du das aktuelle Spiel wirklich beeenden?")
                         .setPositiveButton("Ja", (dialog, id) -> {
+                            stopTimer();
                             finish();
                         })
                         .setNegativeButton("Abbruch", (dialog, id) -> {})
