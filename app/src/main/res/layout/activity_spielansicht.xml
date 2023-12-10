@@ -81,12 +81,12 @@
             android:textColor="@android:color/white" />
 
         <Button
-            android:id="@+id/centerButton"
+            android:id="@+id/showButton"
             android:layout_width="260dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:background="#7DBAD1"
-            android:text="Zentrieren"
+            android:text="Zeig auf Karte"
             android:textColor="@android:color/white" />
 
     </LinearLayout>

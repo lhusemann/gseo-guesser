@@ -43,7 +43,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
     Album pics;
     Button nextButton;
     Button validButton;
-    Button centerButton;
+    Button showButton;
     ImageView bild;
     EditText longitudeField;
     EditText latitudeField;
@@ -91,7 +91,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         longitudeField = findViewById(R.id.longitudeField);
         latitudeField = findViewById(R.id.latitudeField);
         validButton = findViewById(R.id.validButton);
-        centerButton = findViewById(R.id.centerButton);
+        showButton = findViewById(R.id.showButton);
         linkText = findViewById(R.id.link);
         distanzText = findViewById(R.id.textSchaetzung);
         beschreibung = findViewById(R.id.beschreibungID);
@@ -178,6 +178,8 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                 nutzerMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
                 nutzerMarker.setTitle("Ihre Eingabe");
                 markerK = new MarkerKoordinaten(p.getLongitude(), p.getLatitude());
+                longitudeField.setText("" + p.getLongitude());
+                latitudeField.setText("" + p.getLatitude());
                 gameApplication.setMarkerKoordinaten(markerK);
                 karte.getOverlays().add(nutzerMarker);
                 return false;
@@ -192,8 +194,6 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         validButton.setOnClickListener(new View.OnClickListener()  {
             @Override
             public void onClick(View button) {
-                Log.i("",""+ karte.getLatitudeSpanDouble());
-                Log.i("",""+ karte.getLongitudeSpanDouble());
                 if (Formatierung.isValidLongitude(longitudeField.getText().toString())
                         && Formatierung.isValidLatitude(latitudeField.getText().toString())) {
                     String latOne = latitudeField.getText().toString();
@@ -231,12 +231,17 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                 }
             }
         });
-        //centerButton
-        centerButton.setOnClickListener(new View.OnClickListener()  {
+        //center/show Button
+        showButton.setOnClickListener(new View.OnClickListener()  {
             @Override
             public void onClick(View button) {
-                IMapController mapController = karte.getController();
-                mapController.setCenter(nutzerMarker.getPosition());
+                if (!latitudeField.getText().toString().equals("") || !longitudeField.getText().toString().equals("")) {
+                    double lati = Double.parseDouble(latitudeField.getText().toString());
+                    double longi = Double.parseDouble(longitudeField.getText().toString());
+                    IMapController mapController = karte.getController();
+                    nutzerMarker.setPosition(new GeoPoint(lati, longi));
+                    mapController.setCenter(nutzerMarker.getPosition());
+                }
             }
         });
         //link
