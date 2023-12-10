@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
-
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
@@ -27,6 +26,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import com.google.android.material.snackbar.Snackbar;
 
 import org.osmdroid.api.IMapController;
 import org.osmdroid.config.Configuration;
@@ -65,10 +66,8 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
     MarkerKoordinaten markerK;
     Context context;
     IConfigurationProvider provider;
-    int anzahlBilder;
-    int imageCount;
-    String folder;
     Punkte currentpunkte;
+    String folder;
     String album = "albums";
     String noGuess;
     String noDistance;
@@ -76,10 +75,13 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
     String normalColor = "#808080";
     String hint = "Hinweis";
     String ok = "Ok";
-    int counter;
     TimerTask timerTask;
     Timer timer;
     Handler timerHandler = new Handler();
+    int anzahlBilder;
+    int imageCount;
+    int counter;
+    boolean rundeVorbei = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -160,6 +162,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                     aktuellerScore.setText(currentpunkte.getStringPunkte());
                     karte.getOverlays().remove(nutzerMarker);
                     startTimer();
+                    rundeVorbei = false;
                 } else {
                     AlertDialog.Builder error = new AlertDialog.Builder(SpielansichtActivity.this);
                     error.setMessage("Das waren alle Bilder im Album " + folder
@@ -187,10 +190,9 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                 nutzerMarker.setPosition(new GeoPoint(p.getLatitude(), p.getLongitude()));
                 nutzerMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
                 nutzerMarker.setTitle("Ihre Eingabe");
-                markerK = new MarkerKoordinaten(p.getLongitude(), p.getLatitude());
+                markerK = gameApplication.getMarkerKoordinaten();
                 longitudeField.setText("" + p.getLongitude());
                 latitudeField.setText("" + p.getLatitude());
-                gameApplication.setMarkerKoordinaten(markerK);
                 karte.getOverlays().add(nutzerMarker);
                 return false;
             }
@@ -204,52 +206,59 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         validButton.setOnClickListener(new View.OnClickListener()  {
             @Override
             public void onClick(View button) {
-                if (Formatierung.isValidLongitude(longitudeField.getText().toString())
-                        && Formatierung.isValidLatitude(latitudeField.getText().toString())) {
-                    String latOne = latitudeField.getText().toString();
-                    String lonOne = longitudeField.getText().toString();
-                    String latTwo = pics.getBild(imageCount-1).getLatitude().toString();
-                    String lonTwo = pics.getBild(imageCount-1).getLongtitude().toString();
-                    double distance = Distanz.getDistance((Double.parseDouble(latOne)),
-                            pics.getBild(imageCount-1).getLatitude(), Double.parseDouble(lonOne),
-                            pics.getBild(imageCount-1).getLongtitude());
-                    Log.i("Distanz der Schaetzung", Formatierung.getUnit(distance));
-                    String link = "https://www.openstreetmap.org/directions?engine=fossgis_valhalla_foot&route="
-                            + latOne + komma + lonOne + ";" + latTwo + komma + lonTwo;
-                    Log.i("OpenStreetMaps-Link zur Schätzung", link);
-                    linkText.setText(link);
-                    linkText.setTextColor(Color.parseColor("#0000EE"));
-                    distanzText.setText(Formatierung.getUnit(distance));
-                    currentpunkte.berechne(distance);
-                    aktuellerScore.setText(currentpunkte.getStringPunkte());
-                    gesScore.setText(gameApplication.getGesamtscore().getStringGesamtscore());
-
-                    List<GeoPoint> geoPoints = new ArrayList<>();
-                    geoPoints.add(new GeoPoint((Double.parseDouble(latOne)), Double.parseDouble(lonOne)));
-                    geoPoints.add(new GeoPoint(pics.getBild(imageCount).getLatitude(), pics.getBild(imageCount).getLongtitude()));
-                    markerCorrect.setPosition(geoPoints.get(1));
-                    markerCorrect.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
-                    markerCorrect.setTitle("gesuchter Ort");
-                    karte.getOverlays().add(markerCorrect);
-                    line.setPoints(geoPoints);
-                    karte.getOverlays().add(line);
-                    karte.post(() -> {
-                        karte.zoomToBoundingBox(BoundingBox.fromGeoPointsSafe(geoPoints), true);
-                    });
-
+                if (rundeVorbei) {
+                    Snackbar.make(button, "Runde vorbei!" , Snackbar.LENGTH_SHORT).show();
                 } else {
-                    linkText.setText(noGuess);
-                    linkText.setTextColor(Color.parseColor(normalColor));
-                    distanzText.setText(noDistance);
-                    currentpunkte.reset();
-                    aktuellerScore.setText(currentpunkte.getStringPunkte());
-                    AlertDialog.Builder error = new AlertDialog.Builder(SpielansichtActivity.this);
-                    error.setMessage("Die eingegebenen Werte sind nicht Valide! Der Längengrad darf nur zwischen"
-                                    + "-180 und +180, und der Breitengrad zwischen -90 und +90 liegen!")
-                            .setPositiveButton(ok, (dialog, id) -> {})
-                            .setTitle("Error");
-                    AlertDialog alert = error.create();
-                    alert.show();
+                    if (Formatierung.isValidLongitude(longitudeField.getText().toString())
+                            && Formatierung.isValidLatitude(latitudeField.getText().toString())) {
+                        String latOne = latitudeField.getText().toString();
+                        String lonOne = longitudeField.getText().toString();
+                        String latTwo = pics.getBild(imageCount - 1).getLatitude().toString();
+                        String lonTwo = pics.getBild(imageCount - 1).getLongtitude().toString();
+                        double distance = Distanz.getDistance((Double.parseDouble(latOne)),
+                                pics.getBild(imageCount - 1).getLatitude(), Double.parseDouble(lonOne),
+                                pics.getBild(imageCount - 1).getLongtitude());
+                        Log.i("Distanz der Schaetzung", Formatierung.getUnit(distance));
+                        String link = "https://www.openstreetmap.org/directions?engine=fossgis_valhalla_foot&route="
+                                + latOne + komma + lonOne + ";" + latTwo + komma + lonTwo;
+                        Log.i("OpenStreetMaps-Link zur Schätzung", link);
+                        linkText.setText(link);
+                        linkText.setTextColor(Color.parseColor("#0000EE"));
+                        distanzText.setText(Formatierung.getUnit(distance));
+                        currentpunkte.berechne(distance);
+                        aktuellerScore.setText(currentpunkte.getStringPunkte());
+                        gesScore.setText(gameApplication.getGesamtscore().getStringGesamtscore());
+
+                        List<GeoPoint> geoPoints = new ArrayList<>();
+                        geoPoints.add(new GeoPoint((Double.parseDouble(latOne)), Double.parseDouble(lonOne)));
+                        geoPoints.add(new GeoPoint(pics.getBild(imageCount).getLatitude(), pics.getBild(imageCount).getLongtitude()));
+                        markerCorrect.setPosition(geoPoints.get(1));
+                        markerCorrect.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
+                        markerCorrect.setTitle("gesuchter Ort");
+                        karte.getOverlays().add(markerCorrect);
+                        line.setPoints(geoPoints);
+                        karte.getOverlays().add(line);
+                        karte.post(() -> {
+                            karte.zoomToBoundingBox(BoundingBox.fromGeoPointsSafe(geoPoints), true);
+                        });
+                        rundeVorbei = true;
+                        stopTimer();
+
+                    } else {
+                        linkText.setText(noGuess);
+                        linkText.setTextColor(Color.parseColor(normalColor));
+                        distanzText.setText(noDistance);
+                        currentpunkte.reset();
+                        aktuellerScore.setText(currentpunkte.getStringPunkte());
+                        AlertDialog.Builder error = new AlertDialog.Builder(SpielansichtActivity.this);
+                        error.setMessage("Die eingegebenen Werte sind nicht Valide! Der Längengrad darf nur zwischen"
+                                        + "-180 und +180, und der Breitengrad zwischen -90 und +90 liegen!")
+                                .setPositiveButton(ok, (dialog, id) -> {
+                                })
+                                .setTitle("Error");
+                        AlertDialog alert = error.create();
+                        alert.show();
+                    }
                 }
             }
         });
@@ -422,12 +431,12 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                             stopTimer();
                             AlertDialog.Builder over = new AlertDialog.Builder(SpielansichtActivity.this);
                             over.setMessage("Deine Zeit ist Abgelaufen!")
-                                    .setPositiveButton("Nächstes Bild", (dialog, id) -> {
-                                        nextButton.performClick();
+                                    .setPositiveButton("ok", (dialog, id) -> {
                                     })
                                     .setTitle("Zeit vorbei!");
                             AlertDialog alert = over.create();
                             alert.show();
+                            validButton.performClick();
                         }
                     }
                 });
