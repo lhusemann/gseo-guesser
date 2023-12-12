@@ -8,9 +8,11 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 
-public class EndActivity extends AppCompatActivity {
+public class EndActivity extends AppCompatActivity implements PropertyChangeListener {
     GameApplication gameApplication;
     TextView gesamtpunkte;
     TextView rundenTexte;
@@ -23,6 +25,8 @@ public class EndActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_end);
         gameApplication = (GameApplication) getApplication();
+        gameApplication.getRundenZaehler().addListener(this);
+        gameApplication.getGesamtscore().addListener(this);
         gesamtpunkte = findViewById(R.id.gesPunkteID);
         rundenTexte = findViewById(R.id.rundenText);
         rundenScores = findViewById(R.id.rundenScores);
@@ -34,6 +38,7 @@ public class EndActivity extends AppCompatActivity {
         restart.setOnClickListener(new View.OnClickListener()  {
             @Override
             public void onClick(View button) {
+                gameApplication.setGesamtscore(new Gesamtscore(0));
                 gameApplication.setRundezaehler(new Rundenzaehler(0,gameApplication.getRundenZaehler()
                         .getMaxRunde(),gameApplication.getRundenZaehler().getRundenlaenge()));
                 Intent intent = new Intent(EndActivity.this, SpielansichtActivity.class);
@@ -65,5 +70,16 @@ public class EndActivity extends AppCompatActivity {
         Punkte halter = gameApplication.getPunkte();
         halter.resetScores();
         gameApplication.setPunkte(halter);
+    }
+
+    @Override
+    public void propertyChange(PropertyChangeEvent propertyChangeEvent) {
+
+    }
+    @Override
+    protected void onDestroy() {
+        gameApplication.getRundenZaehler().removeListener(this);
+        gameApplication.getGesamtscore().removeListener(this);
+        super.onDestroy();
     }
 }

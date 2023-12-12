@@ -43,7 +43,6 @@ public class Punkte {
         punkteListe.add(punkte);
     }
     public ArrayList<Integer> giveScores() {
-        Log.i("",""+punkteListe.size());
         return punkteListe;
     }
     public void resetScores() {

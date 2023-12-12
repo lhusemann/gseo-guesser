@@ -160,7 +160,6 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                     gameApplication.setGesamtscore(new Gesamtscore(gameApplication.getPunkte().getPunkte() + scoreDavor));
                     gesScore.setText(gameApplication.getGesamtscore().getStringGesamtscore());
                     Punkte halter = gameApplication.getPunkte();
-                    Log.i("test","test");
                     halter.safePunkte();
                     halter.reset();
                     gameApplication.setPunkte(halter);
