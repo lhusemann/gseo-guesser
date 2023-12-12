@@ -1,7 +1,6 @@
 package com.gse23.lhusemann;
 
 import androidx.appcompat.app.AppCompatActivity;
-
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -16,21 +15,23 @@ import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
-
-import org.json.JSONObject;
-
 import java.util.Objects;
 
 public class DownloadActivity extends AppCompatActivity {
     Button anfrageButton;
     Spinner spinner;
     Boolean keineAuswahl = true;
+    TextView anzahlBilder;
+    TextView beschreibung;
+    AlbenListe listeAnAlben;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_download);
         anfrageButton = findViewById(R.id.anfrageButton);
         spinner = findViewById(R.id.spinnerDownload);
+        anzahlBilder = findViewById(R.id.anzahlBilderText);
+        beschreibung = findViewById(R.id.beschreibungText);
 
         anfrageButton.setOnClickListener(new View.OnClickListener()  {
             @Override
@@ -48,9 +49,12 @@ public class DownloadActivity extends AppCompatActivity {
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 keineAuswahl = position == 0;
                 if (keineAuswahl) {
-                    //wenn nichts ausgewählt ist
+                    beschreibung.setText(null);
+                    anzahlBilder.setText("0");
                 } else {
                     Log.i("ausgewaehltes Album",spinner.getSelectedItem().toString());
+                    beschreibung.setText(listeAnAlben.getAlbums()[position-1].getName());
+                    anzahlBilder.setText("" + listeAnAlben.getAlbums()[position-1].getNumImages());
                 }
             }
             @Override
@@ -64,7 +68,7 @@ public class DownloadActivity extends AppCompatActivity {
     public StringRequest buildRequest(final String url, final String name) {
         final String finalUrl = url + "?name=" + name;
         final Response.Listener<String> onResponse = response -> {
-            AlbenListe listeAnAlben = AlbenListe.fromJson(response);
+            listeAnAlben = AlbenListe.fromJson(response);
             //hier möchte ich sicher gehen dass respone wirklich eine AlbenListe ist
             spinner.setAdapter(new ArrayAdapter(this,
                     androidx.appcompat.R.layout.support_simple_spinner_dropdown_item, listeAnAlben.getNames()));
