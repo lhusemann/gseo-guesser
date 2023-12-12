@@ -167,6 +167,12 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                     karte.getOverlays().remove(nutzerMarker);
                     karte.getOverlays().remove(markerCorrect);
                     karte.getOverlays().remove(line);
+                    List<GeoPoint> weltKarte = new ArrayList<>();
+                    weltKarte.add(new GeoPoint(85.0, 180.0));
+                    weltKarte.add(new GeoPoint(-85.0, -180.0));
+                    karte.post(() -> {
+                        karte.zoomToBoundingBox(BoundingBox.fromGeoPointsSafe(weltKarte), false);
+                    });
                     startTimer();
                     rundeVorbei = false;
                     vielleichtKeinWertEinloggen = false;
@@ -176,8 +182,6 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                 }
             }
         });
-        // da ich direkt bei einem Bild starten möchte drücke ich die next Taste einmal manuell.
-        //  nextButton.performClick();     passiert jetzt schon in resume
         // folgendes passiert bei clicken auf die Map:
         // koopiert von https://stackoverflow.com/questions/67850072/set-onclicklistener-for-mapview-using-open-street-map
         karte.getOverlays().add(new MapEventsOverlay(new MapEventsReceiver() {
@@ -202,6 +206,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                 return false;
             }
         }));
+        // da ich direkt bei einem Bild starten möchte drücke ich die next Taste einmal manuell.
         nextButton.performClick();
         //validButton
         validButton.setOnClickListener(new View.OnClickListener()  {
