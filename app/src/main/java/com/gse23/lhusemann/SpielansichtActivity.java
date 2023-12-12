@@ -202,6 +202,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                 return false;
             }
         }));
+        nextButton.performClick();
         //validButton
         validButton.setOnClickListener(new View.OnClickListener()  {
             @Override
@@ -314,9 +315,14 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
     protected void onResume() {
         super.onResume();
         karte.onResume();
+    }
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        gameApplication.setPunkte(new Punkte(0));
+        gameApplication.setMarkerKoordinaten(new MarkerKoordinaten(0,0));
         nextButton.performClick();
     }
-
     @Override
     protected void onPause() {
         super.onPause();
