@@ -27,6 +27,7 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
     private GameApplication gameApplication;
     Spinner spinner;
     Button startButton;
+    Button downloadAnsichtButton;
     EditText rundenAnzahl;
     EditText rundenLaenge;
     String album;
@@ -43,6 +44,7 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
         gameApplication.getGesamtscore().addListener(this);
         spinner = findViewById(R.id.spinner);
         startButton = findViewById(R.id.startButton);
+        downloadAnsichtButton = findViewById(R.id.downloadViewButton);
         rundenAnzahl = findViewById(R.id.rundenanzahlField);
         rundenLaenge = findViewById(R.id.rundenlaengeField);
         error = "Kein Ordner ausgewaehlt";
@@ -102,6 +104,13 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
                         startActivity(intent);
                     }
                 }
+            }
+        });
+        downloadAnsichtButton.setOnClickListener(new View.OnClickListener()  {
+            @Override
+            public void onClick(View button) {
+                Intent intent = new Intent(MainActivity.this, DownloadActivity.class);
+                startActivity(intent);
             }
         });
     }
