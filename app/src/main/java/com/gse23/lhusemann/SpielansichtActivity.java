@@ -64,7 +64,6 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
     MapView karte;
     Marker nutzerMarker;
     Marker markerCorrect;
-    MarkerKoordinaten markerK;
     Context context;
     IConfigurationProvider provider;
     String folder;
@@ -187,7 +186,6 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                 nutzerMarker.setPosition(new GeoPoint(p.getLatitude(), p.getLongitude()));
                 nutzerMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
                 nutzerMarker.setTitle("Ihre Eingabe");
-                markerK = gameApplication.getMarkerKoordinaten();
                 longitudeField.setText("" + p.getLongitude());
                 latitudeField.setText("" + p.getLatitude());
                 karte.getOverlays().add(nutzerMarker);
@@ -230,10 +228,15 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                         gesScore.setText(gameApplication.getGesamtscore().getStringGesamtscore());
 
                         List<GeoPoint> geoPoints = new ArrayList<>();
-                        geoPoints.add(new GeoPoint((Double.parseDouble(latOne)), Double.parseDouble(lonOne)));
+                        geoPoints.add(new GeoPoint(Double.parseDouble(latOne), Double.parseDouble(lonOne)));
                         geoPoints.add(new GeoPoint(pics.getBild(gameApplication.getRundenZaehler().getRunde()-1).
                                 getLatitude(), pics.getBild(gameApplication.getRundenZaehler().getRunde()-1).
                                 getLongtitude()));
+                        gameApplication.setMarkerKoordinaten(new MarkerKoordinaten(Double.parseDouble(latOne), Double.parseDouble(lonOne)));
+                        nutzerMarker.setPosition(geoPoints.get(0));
+                        nutzerMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
+                        nutzerMarker.setTitle("Ihre Eingabe");
+                        karte.getOverlays().add(nutzerMarker);
                         markerCorrect.setPosition(geoPoints.get(1));
                         markerCorrect.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
                         markerCorrect.setTitle("gesuchter Ort");

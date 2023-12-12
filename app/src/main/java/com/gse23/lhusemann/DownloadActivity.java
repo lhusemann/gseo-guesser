@@ -1,5 +1,6 @@
 package com.gse23.lhusemann;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -19,6 +20,7 @@ import java.util.Objects;
 
 public class DownloadActivity extends AppCompatActivity {
     Button anfrageButton;
+    Button zurueckButton;
     Spinner spinner;
     Boolean keineAuswahl = true;
     TextView anzahlBilder;
@@ -32,6 +34,7 @@ public class DownloadActivity extends AppCompatActivity {
         spinner = findViewById(R.id.spinnerDownload);
         anzahlBilder = findViewById(R.id.anzahlBilderText);
         beschreibung = findViewById(R.id.beschreibungText);
+        zurueckButton = findViewById(R.id.backButton);
 
         anfrageButton.setOnClickListener(new View.OnClickListener()  {
             @Override
@@ -43,7 +46,20 @@ public class DownloadActivity extends AppCompatActivity {
                 queue.add(request);
             }
         });
-        //prüft ob etwas Ausgewaehlt ist
+        zurueckButton.setOnClickListener(new View.OnClickListener()  {
+            @Override
+            public void onClick(View button){
+                AlertDialog.Builder back = new AlertDialog.Builder(DownloadActivity.this);
+                back.setMessage("Zum Hauptmenü zurückkehren??")
+                        .setPositiveButton("Ja", (dialog, id) -> {
+                            finish();
+                        })
+                        .setNegativeButton("Abbruch", (dialog, id) -> {})
+                        .setTitle("Zurück");
+                AlertDialog alert = back.create();
+                alert.show();
+            }
+        });
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
