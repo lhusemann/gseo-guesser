@@ -14,8 +14,10 @@ import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.android.material.snackbar.Snackbar;
 
+import java.io.IOException;
 import java.util.Objects;
 
 public class DownloadActivity extends AppCompatActivity {
@@ -40,11 +42,12 @@ public class DownloadActivity extends AppCompatActivity {
     public StringRequest buildRequest(final String url, final String name) {
         final String finalUrl = url + "?name=" + name;
         final Response.Listener<String> onResponse = response -> {
-            Log.i("yo","funktioniert");
+            AlbenListe listeAnAlben = AlbenListe.fromJson(response);
         };
         final Response.ErrorListener onError = error -> {
             Toast.makeText(this, new String("Es konnte keine Verbindung zum Server aufgebaut werden!"), Toast.LENGTH_SHORT).show();
         };
         return new StringRequest(Request.Method.GET, finalUrl, onResponse, onError);
     }
+
 }
