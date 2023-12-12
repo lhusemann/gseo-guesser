@@ -5,28 +5,33 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.android.material.snackbar.Snackbar;
 
-import java.io.IOException;
+import org.json.JSONObject;
+
 import java.util.Objects;
 
 public class DownloadActivity extends AppCompatActivity {
     Button anfrageButton;
+    Spinner spinner;
+    Boolean keineAuswahl = true;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_download);
         anfrageButton = findViewById(R.id.anfrageButton);
+        spinner = findViewById(R.id.spinnerDownload);
+
         anfrageButton.setOnClickListener(new View.OnClickListener()  {
             @Override
             public void onClick(View button){
@@ -37,14 +42,36 @@ public class DownloadActivity extends AppCompatActivity {
                 queue.add(request);
             }
         });
+        //prüft ob etwas Ausgewaehlt ist
+        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                keineAuswahl = position == 0;
+                if (keineAuswahl) {
+                    //wenn nichts ausgewählt ist
+                } else {
+                    Log.i("ausgewaehltes Album",spinner.getSelectedItem().toString());
+                }
+            }
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                keineAuswahl = true;
+            }
+        });
     }
+
 
     public StringRequest buildRequest(final String url, final String name) {
         final String finalUrl = url + "?name=" + name;
         final Response.Listener<String> onResponse = response -> {
             AlbenListe listeAnAlben = AlbenListe.fromJson(response);
+            //hier möchte ich sicher gehen dass respone wirklich eine AlbenListe ist
+            spinner.setAdapter(new ArrayAdapter(this,
+                    androidx.appcompat.R.layout.support_simple_spinner_dropdown_item, listeAnAlben.getNames()));
         };
         final Response.ErrorListener onError = error -> {
+            spinner.setAdapter(new ArrayAdapter(this,
+                    androidx.appcompat.R.layout.support_simple_spinner_dropdown_item, new String[]{ "keine Alben vorhanden" }));
             Toast.makeText(this, new String("Es konnte keine Verbindung zum Server aufgebaut werden!"), Toast.LENGTH_SHORT).show();
         };
         return new StringRequest(Request.Method.GET, finalUrl, onResponse, onError);

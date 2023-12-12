@@ -1,5 +1,7 @@
 package com.gse23.lhusemann;
 
+import android.util.Log;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
@@ -47,5 +49,14 @@ public class AlbenListe {
             e.printStackTrace();
             return null;
         }
+    }
+
+    public String[] getNames() {
+        String[] names = new String[albums.length+1];
+        names[0] = "keine auswahl";
+        for(int i = 0; i< albums.length;i++) {
+            names[i+1] = albums[i].name;
+        }
+        return names;
     }
 }

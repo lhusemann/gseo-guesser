@@ -22,4 +22,10 @@
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:text="Anfragen" />
+
+    <Spinner
+        android:id="@+id/spinnerDownload"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1" />
 </LinearLayout>
