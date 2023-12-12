@@ -26,6 +26,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.material.snackbar.Snackbar;
 
@@ -80,6 +81,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
     int anzahlBilder;
     int counter;
     boolean rundeVorbei = false;
+    boolean vielleichtKeinWertEinloggen = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -158,6 +160,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                     gameApplication.setGesamtscore(new Gesamtscore(gameApplication.getPunkte().getPunkte() + scoreDavor));
                     gesScore.setText(gameApplication.getGesamtscore().getStringGesamtscore());
                     Punkte halter = gameApplication.getPunkte();
+                    Log.i("test","test");
                     halter.safePunkte();
                     halter.reset();
                     gameApplication.setPunkte(halter);
@@ -167,6 +170,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                     karte.getOverlays().remove(line);
                     startTimer();
                     rundeVorbei = false;
+                    vielleichtKeinWertEinloggen = false;
                 } else {
                     Intent intent = new Intent(SpielansichtActivity.this, EndActivity.class);
                     startActivity(intent);
@@ -180,15 +184,17 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         karte.getOverlays().add(new MapEventsOverlay(new MapEventsReceiver() {
             @Override
             public boolean singleTapConfirmedHelper(GeoPoint p) {
-                Log.i("Laengengrad des gesetzen Markers","" + p.getLatitude());
-                Log.i("Breitengrad des gesetzen Markers","" + p.getLongitude());
-                gameApplication.setMarkerKoordinaten(new MarkerKoordinaten(p.getLongitude(), p.getLatitude()));
-                nutzerMarker.setPosition(new GeoPoint(p.getLatitude(), p.getLongitude()));
-                nutzerMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
-                nutzerMarker.setTitle("Ihre Eingabe");
-                longitudeField.setText("" + p.getLongitude());
-                latitudeField.setText("" + p.getLatitude());
-                karte.getOverlays().add(nutzerMarker);
+                if (!rundeVorbei) {
+                    Log.i("Laengengrad des gesetzen Markers", "" + p.getLatitude());
+                    Log.i("Breitengrad des gesetzen Markers", "" + p.getLongitude());
+                    gameApplication.setMarkerKoordinaten(new MarkerKoordinaten(p.getLongitude(), p.getLatitude()));
+                    nutzerMarker.setPosition(new GeoPoint(p.getLatitude(), p.getLongitude()));
+                    nutzerMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
+                    nutzerMarker.setTitle("Ihre Eingabe");
+                    longitudeField.setText("" + p.getLongitude());
+                    latitudeField.setText("" + p.getLatitude());
+                    karte.getOverlays().add(nutzerMarker);
+                }
                 return false;
             }
 
@@ -204,9 +210,9 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                 if (rundeVorbei) {
                     Snackbar.make(button, "Runde vorbei!" , Snackbar.LENGTH_SHORT).show();
                 } else {
-                    stopTimer();
                     if (Formatierung.isValidLongitude(longitudeField.getText().toString())
                             && Formatierung.isValidLatitude(latitudeField.getText().toString())) {
+                        stopTimer();
                         String latOne = latitudeField.getText().toString();
                         String lonOne = longitudeField.getText().toString();
                         String latTwo = pics.getBild(gameApplication.getRundenZaehler().getRunde() - 1).getLatitude().toString();
@@ -249,14 +255,16 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                         rundeVorbei = true;
 
                     } else {
-                        AlertDialog.Builder error = new AlertDialog.Builder(SpielansichtActivity.this);
-                        error.setMessage("Die eingegebenen Werte sind nicht Valide! Der Längengrad darf nur zwischen"
-                                        + "-180 und +180, und der Breitengrad zwischen -90 und +90 liegen!")
-                                .setPositiveButton(ok, (dialog, id) -> {
-                                })
-                                .setTitle("Error");
-                        AlertDialog alert = error.create();
-                        alert.show();
+                        if (!vielleichtKeinWertEinloggen) {
+                            AlertDialog.Builder error = new AlertDialog.Builder(SpielansichtActivity.this);
+                            error.setMessage("Die eingegebenen Werte sind nicht Valide! Der Längengrad darf nur zwischen"
+                                            + "-180 und +180, und der Breitengrad zwischen -90 und +90 liegen!")
+                                    .setPositiveButton(ok, (dialog, id) -> {
+                                    })
+                                    .setTitle("Error");
+                            AlertDialog alert = error.create();
+                            alert.show();
+                        }
                     }
                 }
             }
@@ -443,15 +451,10 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                     public void run(){
                         timerText.setText("" + counter);
                         counter--;
-                        if (counter<1) {
+                        if (counter<0) {
                             stopTimer();
-                            AlertDialog.Builder over = new AlertDialog.Builder(SpielansichtActivity.this);
-                            over.setMessage("Deine Zeit ist Abgelaufen!")
-                                    .setPositiveButton("ok", (dialog, id) -> {
-                                    })
-                                    .setTitle("Zeit vorbei!");
-                            AlertDialog alert = over.create();
-                            alert.show();
+                            Toast.makeText(SpielansichtActivity.this, "Die Zeit ist abgelaufen!", Toast.LENGTH_SHORT).show();
+                            vielleichtKeinWertEinloggen = true;
                             validButton.performClick();
                             rundeVorbei = true;
                         }
