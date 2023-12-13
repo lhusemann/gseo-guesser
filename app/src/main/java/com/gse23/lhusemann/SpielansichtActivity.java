@@ -220,8 +220,10 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                         String lonOne = longitudeField.getText().toString();
                         String latTwo = pics.getBild(gameApplication.getRundenZaehler().getRunde() - 1).getLatitude().toString();
                         String lonTwo = pics.getBild(gameApplication.getRundenZaehler().getRunde() - 1).getLongtitude().toString();
-                        double distance = Distanz.getDistance((Double.parseDouble(latOne)),
-                                pics.getBild(gameApplication.getRundenZaehler().getRunde() - 1).getLatitude(), Double.parseDouble(lonOne),
+                        gameApplication.getMarkerKoordinaten().setLongitude(Double.parseDouble(lonOne));
+                        gameApplication.getMarkerKoordinaten().setLatitude(Double.parseDouble(latOne));
+                        double distance = Distanz.getDistance(gameApplication.getMarkerKoordinaten().getLatitude(),
+                                pics.getBild(gameApplication.getRundenZaehler().getRunde() - 1).getLatitude(), gameApplication.getMarkerKoordinaten().getLongitude(),
                                 pics.getBild(gameApplication.getRundenZaehler().getRunde() - 1).getLongtitude());
                         Log.i("Distanz der Schaetzung", Formatierung.getUnit(distance));
                         String link = "https://www.openstreetmap.org/directions?engine=fossgis_valhalla_foot&route="
@@ -237,11 +239,10 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                         gesScore.setText(gameApplication.getGesamtscore().getStringGesamtscore());
 
                         List<GeoPoint> geoPoints = new ArrayList<>();
-                        geoPoints.add(new GeoPoint(Double.parseDouble(latOne), Double.parseDouble(lonOne)));
+                        geoPoints.add(new GeoPoint(gameApplication.getMarkerKoordinaten().getLatitude(), gameApplication.getMarkerKoordinaten().getLongitude()));
                         geoPoints.add(new GeoPoint(pics.getBild(gameApplication.getRundenZaehler().getRunde()-1).
                                 getLatitude(), pics.getBild(gameApplication.getRundenZaehler().getRunde()-1).
                                 getLongtitude()));
-                        gameApplication.setMarkerKoordinaten(new MarkerKoordinaten(Double.parseDouble(latOne), Double.parseDouble(lonOne)));
                         nutzerMarker.setPosition(geoPoints.get(0));
                         nutzerMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
                         nutzerMarker.setTitle("Ihre Eingabe");
@@ -324,6 +325,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         super.onNewIntent(intent);
         gameApplication.setPunkte(new Punkte(0));
         gameApplication.setMarkerKoordinaten(new MarkerKoordinaten(0,0));
+        //---------------------------------------------------------------------------------------musst du noch testen listener noch aktiv ist
         nextButton.performClick();
     }
     @Override
