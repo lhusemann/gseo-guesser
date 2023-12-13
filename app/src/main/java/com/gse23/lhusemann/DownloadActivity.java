@@ -85,7 +85,7 @@ public class DownloadActivity extends AppCompatActivity {
         final String finalUrl = url + "?name=" + name;
         final Response.Listener<String> onResponse = response -> {
             listeAnAlben = AlbenListe.fromJson(response);
-            //hier möchte ich sicher gehen dass respone wirklich eine AlbenListe ist
+            //hier möchte ich sicher gehen dass respone wirklich eine AlbenListe ist null check
             spinner.setAdapter(new ArrayAdapter(this,
                     androidx.appcompat.R.layout.support_simple_spinner_dropdown_item, listeAnAlben.getNames()));
         };

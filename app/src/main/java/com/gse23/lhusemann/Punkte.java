@@ -1,7 +1,5 @@
 package com.gse23.lhusemann;
 
-import android.util.Log;
-
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.ArrayList;

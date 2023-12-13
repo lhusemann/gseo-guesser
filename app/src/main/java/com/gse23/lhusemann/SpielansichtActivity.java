@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
 import android.content.Context;
@@ -133,7 +134,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
             this.bilderLoggen();
         } catch (CorruptedExifDataException | NoImagesInAlbumException e) {
             return;
-            //Ausgabe für Nutzer im catch der bilderLoggen() und getExifData()
+            //Exceptionbehandlung für Nutzer passiert im catch von bilderLoggen() und getExifData()
         }
         pics.mix();
         //NextButton
@@ -157,7 +158,8 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                     linkText.setTextColor(Color.parseColor(normalColor));
                     distanzText.setText(noDistance);
                     int scoreDavor = gameApplication.getGesamtscore().getGesamtscore();
-                    gameApplication.setGesamtscore(new Gesamtscore(gameApplication.getPunkte().getPunkte() + scoreDavor));
+                    gameApplication.getGesamtscore().setGesamtscore(gameApplication.getPunkte().getPunkte() + scoreDavor);
+                    //gameApplication.setGesamtscore(new Gesamtscore(gameApplication.getPunkte().getPunkte() + scoreDavor));
                     gesScore.setText(gameApplication.getGesamtscore().getStringGesamtscore());
                     Punkte halter = gameApplication.getPunkte();
                     halter.safePunkte();
@@ -188,14 +190,10 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
             @Override
             public boolean singleTapConfirmedHelper(GeoPoint p) {
                 if (!rundeVorbei) {
-                    Log.i("Laengengrad des gesetzen Markers", "" + p.getLatitude());
-                    Log.i("Breitengrad des gesetzen Markers", "" + p.getLongitude());
-                    gameApplication.setMarkerKoordinaten(new MarkerKoordinaten(p.getLongitude(), p.getLatitude()));
-                    nutzerMarker.setPosition(new GeoPoint(p.getLatitude(), p.getLongitude()));
+                    gameApplication.getMarkerKoordinaten().setLatitude(p.getLatitude());
+                    gameApplication.getMarkerKoordinaten().setLongitude(p.getLongitude());
                     nutzerMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
                     nutzerMarker.setTitle("Ihre Eingabe");
-                    longitudeField.setText("" + p.getLongitude());
-                    latitudeField.setText("" + p.getLatitude());
                     karte.getOverlays().add(nutzerMarker);
                 }
                 return false;
@@ -477,7 +475,21 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
     }
     @Override
     public void propertyChange(PropertyChangeEvent propertyChangeEvent) {
-
+        String changeName = propertyChangeEvent.getPropertyName();
+        if (changeName.equals("Laengengrad")) {
+            nutzerMarker.setPosition(new GeoPoint(gameApplication.getMarkerKoordinaten().getLatitude(),
+                    (double) propertyChangeEvent.getNewValue()));
+            String wertAlsString = Double.toString((double) propertyChangeEvent.getNewValue());
+            longitudeField.setText(wertAlsString);
+            Log.i("Laengengrad des gesetzen Markers", wertAlsString);
+        }
+        if (changeName.equals("Breitengrad")) {
+            nutzerMarker.setPosition(new GeoPoint((double) propertyChangeEvent.getNewValue(),
+                    gameApplication.getMarkerKoordinaten().getLongitude()));
+            String wertAlsString = Double.toString((double) propertyChangeEvent.getNewValue());
+            latitudeField.setText(wertAlsString);
+            Log.i("Breitengrad des gesetzen Markers", wertAlsString);
+        }
     }
 
     @Override
