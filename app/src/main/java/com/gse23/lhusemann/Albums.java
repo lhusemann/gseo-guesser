@@ -19,6 +19,7 @@ public class Albums {
         this.numImages = numImages;
     }
 
+
     public String getId() {
         return id;
     }

@@ -50,7 +50,7 @@ public class DownloadActivity extends AppCompatActivity {
             @Override
             public void onClick(View button){
                 AlertDialog.Builder back = new AlertDialog.Builder(DownloadActivity.this);
-                back.setMessage("Zum Hauptmenü zurückkehren??")
+                back.setMessage("Zum Hauptmenü zurückkehren?")
                         .setPositiveButton("Ja", (dialog, id) -> {
                             finish();
                         })

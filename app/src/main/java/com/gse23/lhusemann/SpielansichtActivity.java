@@ -277,6 +277,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         AlertDialog.Builder back = new AlertDialog.Builder(SpielansichtActivity.this);
         back.setMessage("Möchtest du das aktuelle Spiel wirklich beeenden?")
                 .setPositiveButton("Ja", (dialog, id) -> {
+                    stopTimer();
                     finish();
                 })
                 .setNegativeButton("Nein", (dialog, id) -> {})
