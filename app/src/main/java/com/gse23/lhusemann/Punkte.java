@@ -38,7 +38,9 @@ public class Punkte {
         this.punkte = 0;
     }
     public void safePunkte() {
+        ArrayList<Integer> halter = punkteListe;
         punkteListe.add(punkte);
+        this.support.firePropertyChange("PunkteListe", halter, punkteListe);
     }
     public ArrayList<Integer> giveScores() {
         return punkteListe;

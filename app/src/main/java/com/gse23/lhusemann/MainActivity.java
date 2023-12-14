@@ -11,6 +11,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -24,7 +25,7 @@ import com.google.android.material.snackbar.Snackbar;
  * Das ist die MainActivity, die zuerst ausgeführt wird, wenn die App gestartet wird.
  */
 public class MainActivity extends AppCompatActivity implements PropertyChangeListener {
-    private GameApplication gameApplication;
+    GameApplication gameApplication;
     Spinner spinner;
     Button startButton;
     Button downloadAnsichtButton;
@@ -33,6 +34,7 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
     String album;
     String error;
     boolean keineAuswahl = true;
+    boolean valid;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -40,8 +42,6 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
         gameApplication = (GameApplication) getApplication();
         gameApplication.setRundezaehler(new Rundenzaehler(0,5,30));
         gameApplication.getRundenZaehler().addListener(this);
-        gameApplication.setGesamtscore(new Gesamtscore(0));
-        gameApplication.getGesamtscore().addListener(this);
         spinner = findViewById(R.id.spinner);
         startButton = findViewById(R.id.startButton);
         downloadAnsichtButton = findViewById(R.id.downloadViewButton);
@@ -97,10 +97,26 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
                     AlertDialog alert = error.create();
                     alert.show();
                 } else {
-                    if (configureRunde(button)) {
+                    if (rundenAnzahl.getText().toString().equals("")) {
+                        if (getImagesCount(spinner.getSelectedItem().toString())<5) {
+                            gameApplication.getRundenZaehler().setMaxRunde(getImagesCount(spinner.getSelectedItem().toString()));
+                        } else {
+                            Log.i("fixen","ruft propertychange nicht auf, aber wenn keine laenge angegeben?");
+                            gameApplication.getRundenZaehler().setMaxRunde(5);
+                        }
+                    } else {
+                        gameApplication.getRundenZaehler().setMaxRunde(Integer.parseInt(rundenAnzahl.getText().toString()));
+                    }
+                    if (rundenLaenge.getText().toString().equals("")) {
+                            gameApplication.getRundenZaehler().setRundenlaenge(30);
+                    } else {
+                        gameApplication.getRundenZaehler().setRundenlaenge(Integer.parseInt(rundenLaenge.getText().toString()));
+                    }
+                    if (valid) {
                         Intent intent = new Intent(MainActivity.this, SpielansichtActivity.class);
                         intent.putExtra("ausgewaehltesAlbum", spinner.getSelectedItem().toString());
                         intent.putExtra("anzahlBilder", getImagesCount(spinner.getSelectedItem().toString()));
+                        Log.i("test","test");
                         startActivity(intent);
                     }
                 }
@@ -113,46 +129,6 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
                 startActivity(intent);
             }
         });
-    }
-    private boolean configureRunde(View button) {
-        int rundenanzahl;
-        int rundenlaenge;
-        if (rundenAnzahl.getText().toString().equals("")) {
-            if (getImagesCount(spinner.getSelectedItem().toString())<5) {
-                rundenanzahl = getImagesCount(spinner.getSelectedItem().toString());
-                if (rundenanzahl == 0) {
-                    rundenanzahl++;
-                }
-            } else {
-                rundenanzahl = 5;
-            }
-        } else {
-            if (Integer.parseInt(rundenAnzahl.getText().toString()) > getImagesCount(spinner.getSelectedItem().toString())) {
-                Snackbar.make(button, "Rundenanzahl uebertrifft Bilder in Album!" , Snackbar.LENGTH_SHORT).show();
-                return false;
-            } else if (Integer.parseInt(rundenAnzahl.getText().toString()) < 1) {
-                Snackbar.make(button, "Du musst min. eine Runde spielen!" , Snackbar.LENGTH_SHORT).show();
-                return false;
-            } else {
-                rundenanzahl = Integer.parseInt(rundenAnzahl.getText().toString());
-            }
-        }
-
-        if (rundenLaenge.getText().toString().equals("")) {
-            rundenlaenge = 30;
-        } else {
-            if (Integer.parseInt(rundenLaenge.getText().toString()) > 60) {
-                Snackbar.make(button, "Runde darf max. 60 Sekunden lang sein!" , Snackbar.LENGTH_SHORT).show();
-                return false;
-            } else if (Integer.parseInt(rundenLaenge.getText().toString()) < 10){
-                Snackbar.make(button, "Runde muss min. 10 Sekunden lang sein!" , Snackbar.LENGTH_SHORT).show();
-                return false;
-            }
-            rundenlaenge = Integer.parseInt(rundenLaenge.getText().toString());
-        }
-
-        gameApplication.setRundezaehler(new Rundenzaehler(0,rundenanzahl,rundenlaenge));
-        return true;
     }
     //gibt Inhalt eines Ordner wieder ohne Fehlermeldung
     private String[] getFolderInhalt(String folder) {
@@ -222,12 +198,34 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
 
     @Override
     public void propertyChange(PropertyChangeEvent propertyChangeEvent) {
-
+        String changeName = propertyChangeEvent.getPropertyName();
+        if (changeName.equals("maxRunde")) {
+            if ((int) propertyChangeEvent.getNewValue() > getImagesCount(spinner.getSelectedItem().toString())) {
+                Toast.makeText(this, "Rundenanzahl uebertrifft Bilder in Album!", Toast.LENGTH_SHORT).show();
+                valid = false;
+            } else if ((int) propertyChangeEvent.getNewValue() < 1) {
+                Toast.makeText(this, "Du musst min. eine Runde spielen!", Toast.LENGTH_SHORT).show();
+                valid = false;
+            } else {
+                valid = true;
+            }
+        }
+        if (changeName.equals("rundenlaenge")) {
+            if ((int) propertyChangeEvent.getNewValue() > 60) {
+                Toast.makeText(this, "Eine Runde kann maximal 60 Sekunden lang sein", Toast.LENGTH_SHORT).show();
+                valid = false;
+            } else if ((int) propertyChangeEvent.getNewValue() < 10) {
+                Toast.makeText(this, "Eine Runde muss mindestens 10 Sekunden lang sein", Toast.LENGTH_SHORT).show();
+                valid = false;
+            } else {
+                valid = true;
+            }
+        }
     }
     @Override
     protected void onDestroy() {
-        gameApplication.getGesamtscore().removeListener(this);
         gameApplication.getRundenZaehler().removeListener(this);
         super.onDestroy();
     }
 }
+

@@ -18,18 +18,22 @@ public class Rundenzaehler {
         this.support.firePropertyChange("Runde", this.runde, runde);
         this.runde = runde;
     }
+    public void incRunde() {
+        this.support.firePropertyChange("RundenInc", this.runde, runde+1);
+        this.runde++;
+    }
     public int getRunde() {
         return runde;
     }
     public void setMaxRunde(int maxRunde) {
-        this.support.firePropertyChange("Maximale Anzahl an Runden", this.maxRunde, maxRunde);
+        this.support.firePropertyChange("maxRunde", this.maxRunde, maxRunde);
         this.maxRunde = maxRunde;
     }
     public int getMaxRunde() {
         return maxRunde;
     }
     public void setRundenlaenge(int rundenlaenge) {
-        this.support.firePropertyChange("Laenge einer Runde", this.rundenlaenge, rundenlaenge);
+        this.support.firePropertyChange("rundenlaenge", this.rundenlaenge, rundenlaenge);
         this.rundenlaenge = rundenlaenge;
     }
     public int getRundenlaenge() {
