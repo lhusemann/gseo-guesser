@@ -10,9 +10,9 @@ public class Gesamtscore {
         this.score = score;
         this.support = new PropertyChangeSupport(this);
     }
-    public void setGesamtscore(int score) {
-        this.support.firePropertyChange("Gesamtscore", this.score, score);
-        this.score = score;
+    public void incGesamtscore(int score) {
+        this.support.firePropertyChange("Gesamtscore", this.score, this.score + score);
+        this.score += score;
     }
     public int getGesamtscore() {
         return score;

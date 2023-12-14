@@ -110,7 +110,6 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         timerText = findViewById(R.id.timerID);
         aktuellerScore = findViewById(R.id.aktuellerScore);
         gesScore = findViewById(R.id.gesScore);
-        gesScore.setText(gameApplication.getGesamtscore().getStringGesamtscore());
         runde = findViewById(R.id.rundenID);
         karte = findViewById(R.id.mapView);
         context = getApplicationContext();
@@ -195,33 +194,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                         linkText.setText(link);
                         linkText.setTextColor(Color.parseColor("#0000EE"));
                         distanzText.setText(Formatierung.getUnit(distance));
-                        Punkte halter = gameApplication.getPunkte();
-                        halter.berechne(distance);
-                        gameApplication.setPunkte(halter);
-                        //mach mit mvc
-                        aktuellerScore.setText(gameApplication.getPunkte().getStringPunkte());
-                        gesScore.setText(gameApplication.getGesamtscore().getStringGesamtscore());
-
-                        List<GeoPoint> geoPoints = new ArrayList<>();
-                        geoPoints.add(new GeoPoint(gameApplication.getMarkerKoordinaten().getLatitude(), gameApplication.getMarkerKoordinaten().getLongitude()));
-                        geoPoints.add(new GeoPoint(pics.getBild(gameApplication.getRundenZaehler().getRunde()-1).
-                                getLatitude(), pics.getBild(gameApplication.getRundenZaehler().getRunde()-1).
-                                getLongtitude()));
-                        nutzerMarker.setPosition(geoPoints.get(0));
-                        nutzerMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
-                        nutzerMarker.setTitle("Ihre Eingabe");
-                        karte.getOverlays().add(nutzerMarker);
-                        markerCorrect.setPosition(geoPoints.get(1));
-                        markerCorrect.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
-                        markerCorrect.setTitle("gesuchter Ort");
-                        karte.getOverlays().add(markerCorrect);
-                        line.setPoints(geoPoints);
-                        karte.getOverlays().add(line);
-                        karte.post(() -> {
-                            karte.zoomToBoundingBox(BoundingBox.fromGeoPointsSafe(geoPoints), true);
-                        });
-                        rundeVorbei = true;
-
+                        gameApplication.getPunkte().berechne(distance);
                     } else {
                         if (!vielleichtKeinWertEinloggen) {
                             AlertDialog.Builder error = new AlertDialog.Builder(SpielansichtActivity.this);
@@ -241,6 +214,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         showButton.setOnClickListener(new View.OnClickListener()  {
             @Override
             public void onClick(View button) {
+                //zeige markerkoords setzte marker maybe wiel da gezeigt wird und center halt
                 if (!latitudeField.getText().toString().equals("") || !longitudeField.getText().toString().equals("")) {
                     double lati = Double.parseDouble(latitudeField.getText().toString());
                     double longi = Double.parseDouble(longitudeField.getText().toString());
@@ -459,7 +433,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         }
         if (changeName.equals("RundenInc")) {
             stopTimer();
-            if ((int) propertyChangeEvent.getNewValue() < gameApplication.getRundenZaehler().getMaxRunde()) {
+            if ((int) propertyChangeEvent.getNewValue() <= gameApplication.getRundenZaehler().getMaxRunde()) {
                 longitudeField.setText(null);
                 latitudeField.setText(null);
                 beschreibung.setText(pics.getBild((int) propertyChangeEvent.getNewValue()-1).getDescription());
@@ -470,8 +444,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                 linkText.setText(noGuess);
                 linkText.setTextColor(Color.parseColor(normalColor));
                 distanzText.setText(noDistance);
-                int scoreDavor = gameApplication.getGesamtscore().getGesamtscore();
-                gameApplication.getGesamtscore().setGesamtscore(gameApplication.getPunkte().getPunkte() + scoreDavor);
+                gameApplication.getGesamtscore().incGesamtscore(gameApplication.getPunkte().getPunkte());
                 gameApplication.getPunkte().safePunkte();
                 gameApplication.getPunkte().reset();
                 karte.getOverlays().remove(nutzerMarker);
@@ -496,6 +469,29 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         }
         if (changeName.equals("Gesamtscore")) {
             gesScore.setText("" + (int) propertyChangeEvent.getNewValue());
+        }
+        if (changeName.equals("Berechnung")) {
+            aktuellerScore.setText("" + (int) propertyChangeEvent.getNewValue());
+            gameApplication.getGesamtscore().incGesamtscore((int) propertyChangeEvent.getNewValue());
+            List<GeoPoint> geoPoints = new ArrayList<>();
+            geoPoints.add(new GeoPoint(gameApplication.getMarkerKoordinaten().getLatitude(), gameApplication.getMarkerKoordinaten().getLongitude()));
+            geoPoints.add(new GeoPoint(pics.getBild(gameApplication.getRundenZaehler().getRunde()-1).
+                    getLatitude(), pics.getBild(gameApplication.getRundenZaehler().getRunde()-1).
+                    getLongtitude()));
+            nutzerMarker.setPosition(geoPoints.get(0));
+            nutzerMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
+            nutzerMarker.setTitle("Ihre Eingabe");
+            karte.getOverlays().add(nutzerMarker);
+            markerCorrect.setPosition(geoPoints.get(1));
+            markerCorrect.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
+            markerCorrect.setTitle("gesuchter Ort");
+            karte.getOverlays().add(markerCorrect);
+            line.setPoints(geoPoints);
+            karte.getOverlays().add(line);
+            karte.post(() -> {
+                karte.zoomToBoundingBox(BoundingBox.fromGeoPointsSafe(geoPoints), true);
+            });
+            rundeVorbei = true;
         }
     }
 
