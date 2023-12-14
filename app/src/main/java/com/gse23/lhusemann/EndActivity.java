@@ -38,9 +38,8 @@ public class EndActivity extends AppCompatActivity implements PropertyChangeList
         restart.setOnClickListener(new View.OnClickListener()  {
             @Override
             public void onClick(View button) {
-                gameApplication.setGesamtscore(new Gesamtscore(0));
-                gameApplication.setRundezaehler(new Rundenzaehler(0,gameApplication.getRundenZaehler()
-                        .getMaxRunde(),gameApplication.getRundenZaehler().getRundenlaenge()));
+                gameApplication.getGesamtscore().setGesamtscore(0);
+                gameApplication.getRundenZaehler().setRunde(0);
                 Intent intent = new Intent(EndActivity.this, SpielansichtActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
                 startActivity(intent);
@@ -74,7 +73,10 @@ public class EndActivity extends AppCompatActivity implements PropertyChangeList
 
     @Override
     public void propertyChange(PropertyChangeEvent propertyChangeEvent) {
+        String changeName = propertyChangeEvent.getPropertyName();
+        if (changeName.equals("nein")) {
 
+        }
     }
     @Override
     protected void onDestroy() {

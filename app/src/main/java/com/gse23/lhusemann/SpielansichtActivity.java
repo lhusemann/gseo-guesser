@@ -467,7 +467,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         if (changeName.equals("Punkte")) {
             aktuellerScore.setText("" + ((int) propertyChangeEvent.getNewValue()));
         }
-        if (changeName.equals("Gesamtscore")) {
+        if (changeName.equals("IncGesamtscore")) {
             gesScore.setText("" + (int) propertyChangeEvent.getNewValue());
         }
         if (changeName.equals("Berechnung")) {
