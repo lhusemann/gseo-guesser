@@ -34,13 +34,14 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
     String album;
     String error;
     boolean keineAuswahl = true;
-    boolean valid;
+    boolean validR;
+    boolean validL;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         gameApplication = (GameApplication) getApplication();
-        gameApplication.setRundezaehler(new Rundenzaehler(0,5,30));
+        gameApplication.setRundezaehler(new Rundenzaehler(0,0,0));
         gameApplication.getRundenZaehler().addListener(this);
         spinner = findViewById(R.id.spinner);
         startButton = findViewById(R.id.startButton);
@@ -101,22 +102,20 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
                         if (getImagesCount(spinner.getSelectedItem().toString())<5) {
                             gameApplication.getRundenZaehler().setMaxRunde(getImagesCount(spinner.getSelectedItem().toString()));
                         } else {
-                            Log.i("fixen","ruft propertychange nicht auf, aber wenn keine laenge angegeben?");
                             gameApplication.getRundenZaehler().setMaxRunde(5);
                         }
                     } else {
                         gameApplication.getRundenZaehler().setMaxRunde(Integer.parseInt(rundenAnzahl.getText().toString()));
                     }
                     if (rundenLaenge.getText().toString().equals("")) {
-                            gameApplication.getRundenZaehler().setRundenlaenge(30);
+                        gameApplication.getRundenZaehler().setRundenlaenge(30);
                     } else {
                         gameApplication.getRundenZaehler().setRundenlaenge(Integer.parseInt(rundenLaenge.getText().toString()));
                     }
-                    if (valid) {
+                    if (validL && validR) {
                         Intent intent = new Intent(MainActivity.this, SpielansichtActivity.class);
                         intent.putExtra("ausgewaehltesAlbum", spinner.getSelectedItem().toString());
                         intent.putExtra("anzahlBilder", getImagesCount(spinner.getSelectedItem().toString()));
-                        Log.i("test","test");
                         startActivity(intent);
                     }
                 }
@@ -202,23 +201,23 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
         if (changeName.equals("maxRunde")) {
             if ((int) propertyChangeEvent.getNewValue() > getImagesCount(spinner.getSelectedItem().toString())) {
                 Toast.makeText(this, "Rundenanzahl uebertrifft Bilder in Album!", Toast.LENGTH_SHORT).show();
-                valid = false;
+                validR = false;
             } else if ((int) propertyChangeEvent.getNewValue() < 1) {
                 Toast.makeText(this, "Du musst min. eine Runde spielen!", Toast.LENGTH_SHORT).show();
-                valid = false;
+                validR = false;
             } else {
-                valid = true;
+                validR = true;
             }
         }
         if (changeName.equals("rundenlaenge")) {
             if ((int) propertyChangeEvent.getNewValue() > 60) {
                 Toast.makeText(this, "Eine Runde kann maximal 60 Sekunden lang sein", Toast.LENGTH_SHORT).show();
-                valid = false;
+                validL = false;
             } else if ((int) propertyChangeEvent.getNewValue() < 10) {
                 Toast.makeText(this, "Eine Runde muss mindestens 10 Sekunden lang sein", Toast.LENGTH_SHORT).show();
-                valid = false;
+                validL = false;
             } else {
-                valid = true;
+                validL = true;
             }
         }
     }
