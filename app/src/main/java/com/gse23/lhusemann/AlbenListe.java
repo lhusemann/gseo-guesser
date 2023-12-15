@@ -1,7 +1,14 @@
 package com.gse23.lhusemann;
 
 import android.util.Log;
+import android.widget.ArrayAdapter;
+import android.widget.Toast;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
@@ -30,15 +37,6 @@ public class AlbenListe {
 
     public Albums[] getAlbums() {
         return albums;
-    }
-
-    public String toJson() {
-        ObjectMapper objectMapper = new ObjectMapper();
-        try {
-            return objectMapper.writeValueAsString(this);
-        } catch (IOException e) {
-            return null;
-        }
     }
 
     public static AlbenListe fromJson(final String json) {

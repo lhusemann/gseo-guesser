@@ -21,11 +21,13 @@ import java.util.Objects;
 public class DownloadActivity extends AppCompatActivity {
     Button anfrageButton;
     Button zurueckButton;
+    Button downloadButton;
     Spinner spinner;
     Boolean keineAuswahl = true;
     TextView anzahlBilder;
     TextView beschreibung;
     AlbenListe listeAnAlben;
+    int positionSpinner = 0;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -35,13 +37,14 @@ public class DownloadActivity extends AppCompatActivity {
         anzahlBilder = findViewById(R.id.anzahlBilderText);
         beschreibung = findViewById(R.id.beschreibungText);
         zurueckButton = findViewById(R.id.backButton);
+        downloadButton = findViewById(R.id.downloadButton);
 
         anfrageButton.setOnClickListener(new View.OnClickListener()  {
             @Override
             public void onClick(View button){
                 final TextView urlText = findViewById(R.id.urlText);
                 final String url = Objects.requireNonNull(urlText.getText()).toString();
-                final StringRequest request = buildRequest(url, "");
+                final StringRequest request = buildRequestAlbenListe(url, "");
                 final RequestQueue queue = Volley.newRequestQueue(DownloadActivity.this);
                 queue.add(request);
             }
@@ -60,10 +63,22 @@ public class DownloadActivity extends AppCompatActivity {
                 alert.show();
             }
         });
+        downloadButton.setOnClickListener(new View.OnClickListener()  {
+            @Override
+            public void onClick(View button){
+                if (!keineAuswahl) {
+                    final StringRequest request = buildRequestImages(listeAnAlben.getAlbums()[positionSpinner-1].getLink(), "");
+                    final RequestQueue queue = Volley.newRequestQueue(DownloadActivity.this);
+                    queue.add(request);
+
+                }
+            }
+        });
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 keineAuswahl = position == 0;
+                positionSpinner = position;
                 if (keineAuswahl) {
                     beschreibung.setText(null);
                     anzahlBilder.setText("0");
@@ -81,14 +96,14 @@ public class DownloadActivity extends AppCompatActivity {
     }
 
     //maybe Loading anzeige während es läd?
-    public StringRequest buildRequest(final String url, final String name) {
+    public StringRequest buildRequestAlbenListe(final String url, final String name) {
         final String finalUrl = url + "?name=" + name;
         final Response.Listener<String> onResponse = response -> {
             listeAnAlben = AlbenListe.fromJson(response);
             if (listeAnAlben == null) {
                 Toast.makeText(this, new String("Unter dieser Adresse befindet sich keine Albenliste"), Toast.LENGTH_SHORT).show();
             } else {
-                Toast.makeText(this, new String("Verbindung wurde hergestellt"), Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, new String(listeAnAlben.getMessage()), Toast.LENGTH_SHORT).show();
                 spinner.setAdapter(new ArrayAdapter(this,
                         androidx.appcompat.R.layout.support_simple_spinner_dropdown_item, listeAnAlben.getNames()));
             }
@@ -100,5 +115,20 @@ public class DownloadActivity extends AppCompatActivity {
         };
         return new StringRequest(Request.Method.GET, finalUrl, onResponse, onError);
     }
-
+    public StringRequest buildRequestImages(final String url, final String name) {
+        final String finalUrl = url + "?name=" + name;
+        final Response.Listener<String> onResponse = response -> {
+            ServerAlbum serverAlbum = ServerAlbum.fromJson(response);
+            if (serverAlbum == null) {
+                Toast.makeText(this, new String("Das Album konnte nicht geladen werden"), Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, new String(serverAlbum.getMessage()), Toast.LENGTH_SHORT).show();
+                //serverAlbum.getImages();
+            }
+        };
+        final Response.ErrorListener onError = error -> {
+            Toast.makeText(this, new String("Es konnte keine Verbindung zu den Bildern, im Album hergestellt werden"), Toast.LENGTH_SHORT).show();
+        };
+        return new StringRequest(Request.Method.GET, finalUrl, onResponse, onError);
+    }
 }

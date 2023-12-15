@@ -1,15 +1,19 @@
 package com.gse23.lhusemann;
 
-public class serverAlbum {
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.io.IOException;
+
+public class ServerAlbum {
     protected String success;
     protected String message;
     protected String id;
     protected String name;
     protected Images[] images;
 
-    public serverAlbum() {
+    public ServerAlbum() {
     }
-    public serverAlbum(String success, String message, String id, String name, Images[] images) {
+    public ServerAlbum(String success, String message, String id, String name, Images[] images) {
         this.success = success;
         this.message = message;
         this.id = id;
@@ -34,5 +38,14 @@ public class serverAlbum {
     }
     public Images[] getImages() {
         return images;
+    }
+    public static ServerAlbum fromJson(final String json) {
+        final ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            return objectMapper.readValue(json, ServerAlbum.class);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 }
