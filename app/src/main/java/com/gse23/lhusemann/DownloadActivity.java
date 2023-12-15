@@ -134,7 +134,11 @@ public class DownloadActivity extends AppCompatActivity {
         return new StringRequest(Request.Method.GET, url, onResponse, onError);
     }
     public void erstelleOrdner(final ServerAlbum serverAlbum) {
-        final File folder = new File(getFilesDir(), serverAlbum.getName());
+        final File albumFolder = new File(getFilesDir(), "Album");
+        if (!albumFolder.exists()) {
+            albumFolder.mkdirs();
+        }
+        final File folder = new File(getFilesDir() + "/Album", serverAlbum.getName());
         if (folder.exists()) {
             AlertDialog.Builder uberschreib = new AlertDialog.Builder(this);
             uberschreib.setMessage("Ein Ordner mit diesem Namen existiert bereits. Soll dieser ueberschrieben werden?")
@@ -159,7 +163,8 @@ public class DownloadActivity extends AppCompatActivity {
             ImageRequest imageRequest = new ImageRequest(url, new Response.Listener<Bitmap>() {
                 @Override
                 public void onResponse(Bitmap response) {
-                    File bild = new File(getFilesDir()+"/"+serverAlbum.getName(),serverAlbum.getImages()[index].getId() + getExtensionFromMimeType(mimeType));
+                    Log.i("test","test");
+                    File bild = new File(getFilesDir() + "/Album" + "/" + serverAlbum.getName(),serverAlbum.getImages()[index].getId() + getExtensionFromMimeType(mimeType));
                     try (FileOutputStream fos = new FileOutputStream(bild)) {
                         if (mimeType.equals("image/jpeg")) {
                             response.compress(Bitmap.CompressFormat.JPEG, 100, fos);
