@@ -125,7 +125,7 @@ public class DownloadActivity extends AppCompatActivity {
             } else {
                 Toast.makeText(this, new String(serverAlbum.getMessage()), Toast.LENGTH_SHORT).show();
                 //hier muss der AlertDialog hin
-                //erstelleOrdner(serverAlbum);
+                erstelleOrdner(serverAlbum);
             }
         };
         final Response.ErrorListener onError = error -> {
@@ -133,7 +133,49 @@ public class DownloadActivity extends AppCompatActivity {
         };
         return new StringRequest(Request.Method.GET, url, onResponse, onError);
     }
+    public void erstelleOrdner(final ServerAlbum serverAlbum) {
+        final File folder = new File(getFilesDir(), serverAlbum.getName());
+        if (folder.exists()) {
+            AlertDialog.Builder uberschreib = new AlertDialog.Builder(this);
+            uberschreib.setMessage("Ein Ordner mit diesem Namen existiert bereits. Soll dieser ueberschrieben werden?")
+                    .setPositiveButton("Ja", (dialog, id) -> {
+                        erstelleOrdnerUndBilder(serverAlbum, folder);
+                    })
+                    .setNegativeButton("Abbruch", (dialog, id) -> {})
+                    .setTitle("Überschreiben?");
+            AlertDialog alert = uberschreib.create();
+            alert.show();
+        } else {
+            erstelleOrdnerUndBilder(serverAlbum, folder);
+        }
+    }
+    public void erstelleOrdnerUndBilder(ServerAlbum serverAlbum, File folder) {
+        folder.mkdirs();
+        for (int i = 0; i<serverAlbum.getImages().length;i++) {
+            final int index = i;
+            final String url = serverAlbum.getImages()[i].getLink();
+            final String mimeType = serverAlbum.getImages()[i].getContentType();
+            RequestQueue requestQueue = Volley.newRequestQueue(this);
+            ImageRequest imageRequest = new ImageRequest(url, new Response.Listener<Bitmap>() {
+                @Override
+                public void onResponse(Bitmap response) {
+                    File bild = new File(getFilesDir()+"/"+serverAlbum.getName(),serverAlbum.getImages()[index].getId() + getExtensionFromMimeType(mimeType));
+                    try (FileOutputStream fos = new FileOutputStream(bild)) {
+                        if (mimeType.equals("image/jpeg")) {
+                            response.compress(Bitmap.CompressFormat.JPEG, 100, fos);
+                        } else if (mimeType.equals("image/png")) {
+                            response.compress(Bitmap.CompressFormat.PNG, 100, fos);
+                        } else {
+                            response.compress(Bitmap.CompressFormat.JPEG, 100, fos);
+                        }
+                    } catch (IOException ignored) {
 
+                    }
+                }
+            }, 0, 0, null, null);
+            requestQueue.add(imageRequest);
+        }
+    }
     private String getExtensionFromMimeType(String mimeType) {
         if (mimeType.equals("image/jpeg")) {
             return ".jpeg";
