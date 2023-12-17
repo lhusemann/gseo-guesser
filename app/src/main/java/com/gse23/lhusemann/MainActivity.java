@@ -15,6 +15,7 @@ import android.widget.Toast;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -56,21 +57,10 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
         rundenAnzahl = findViewById(R.id.rundenanzahlField);
         rundenLaenge = findViewById(R.id.rundenlaengeField);
         auswahlmoeglichkeitenListe = new ArrayList<>();
-        auswahlmoeglichkeitenListe.add("Kein Ordner ausgewaehlt");
         album = "albums";
         auswahlAdapter = new ArrayAdapter<>(this, androidx.appcompat.R.layout.support_simple_spinner_dropdown_item,auswahlmoeglichkeitenListe);
         spinner.setAdapter(auswahlAdapter);
-        try {
-            if (getAssets().list(album) == null || getFolderInhalt(album).length < 1) {
-                Log.i("Fehler", "Keine Dateien in albums vorhanden");
-            } else {
-                this.showAllImagesInAlbums();
-                auswahlmoeglichkeitenListe.addAll(Arrays.asList(getFolderInhalt(album)));
-                auswahlAdapter.notifyDataSetChanged();
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+
         //prüft ob etwas Ausgewaehlt ist
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -136,9 +126,35 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
         updateAnsichtButton.setOnClickListener(new View.OnClickListener()  {
             @Override
             public void onClick(View button) {
-
+                auswahlAdapter.clear();
+                auswahlmoeglichkeitenListe.add("Kein Ordner ausgewaehlt");
+                try {
+                    if (getAssets().list(album) == null || getFolderInhalt(album).length < 1) {
+                    } else {
+                        auswahlmoeglichkeitenListe.addAll(Arrays.asList(getFolderInhalt(album)));
+                    }
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+                addDownloads();
+                auswahlAdapter.notifyDataSetChanged();
             }
         });
+        updateAnsichtButton.performClick();
+        showAllImagesInAlbums();
+    }
+    private void addDownloads() {
+        File downloadOrdner = new File(getFilesDir() + "/Album");
+        if (downloadOrdner.exists() && downloadOrdner.isDirectory()) {
+            File[] dateien = downloadOrdner.listFiles();
+            if (dateien != null) {
+                for (File album : dateien) {
+                    if (album.isDirectory()) {
+                        auswahlmoeglichkeitenListe.add(album.getName() + " (Heruntergeladen)");
+                    }
+                }
+            }
+        }
     }
     //gibt Inhalt eines Ordner wieder ohne Fehlermeldung
     private String[] getFolderInhalt(String folder) {
