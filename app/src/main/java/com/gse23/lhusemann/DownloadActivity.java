@@ -2,6 +2,8 @@ package com.gse23.lhusemann;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.exifinterface.media.ExifInterface;
+
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.util.Log;
@@ -21,6 +23,10 @@ import com.android.volley.toolbox.Volley;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.Objects;
 
 public class DownloadActivity extends AppCompatActivity {
@@ -155,31 +161,38 @@ public class DownloadActivity extends AppCompatActivity {
     }
     public void erstelleOrdnerUndBilder(ServerAlbum serverAlbum, File folder) {
         folder.mkdirs();
-        for (int i = 0; i<serverAlbum.getImages().length;i++) {
+        for (int i = 0; i < serverAlbum.getImages().length; i++) {
             final int index = i;
             final String url = serverAlbum.getImages()[i].getLink();
             final String mimeType = serverAlbum.getImages()[i].getContentType();
-            RequestQueue requestQueue = Volley.newRequestQueue(this);
-            ImageRequest imageRequest = new ImageRequest(url, new Response.Listener<Bitmap>() {
+            String location = getFilesDir() + "/Album" + "/" + serverAlbum.getName() +"/"+ serverAlbum.getImages()[index].getId() + getExtensionFromMimeType(mimeType);
+            new Thread(new Runnable() {
                 @Override
-                public void onResponse(Bitmap response) {
-                    Log.i("test","test");
-                    File bild = new File(getFilesDir() + "/Album" + "/" + serverAlbum.getName(),serverAlbum.getImages()[index].getId() + getExtensionFromMimeType(mimeType));
-                    try (FileOutputStream fos = new FileOutputStream(bild)) {
-                        if (mimeType.equals("image/jpeg")) {
-                            response.compress(Bitmap.CompressFormat.JPEG, 100, fos);
-                        } else if (mimeType.equals("image/png")) {
-                            response.compress(Bitmap.CompressFormat.PNG, 100, fos);
-                        } else {
-                            response.compress(Bitmap.CompressFormat.JPEG, 100, fos);
-                        }
-                    } catch (IOException ignored) {
-
+                public void run() {
+                    try {
+                        saveImage(url, location);
+                    } catch (IOException e) {
+                        Toast.makeText(getApplicationContext(), "Bild konnte nicht geladen werden", Toast.LENGTH_SHORT).show();
                     }
                 }
-            }, 0, 0, null, null);
-            requestQueue.add(imageRequest);
+            }).start();
         }
+    }
+    // https://www.avajava.com/tutorials/lessons/how-do-i-save-an-image-from-a-url-to-a-file.html
+    public void saveImage(String imageUrl, String destinationFile) throws IOException {
+        URL url = new URL(imageUrl);
+        InputStream is = url.openStream();
+        OutputStream os = new FileOutputStream(destinationFile);
+
+        byte[] b = new byte[2048];
+        int length;
+
+        while ((length = is.read(b)) != -1) {
+            os.write(b, 0, length);
+        }
+
+        is.close();
+        os.close();
     }
     private String getExtensionFromMimeType(String mimeType) {
         if (mimeType.equals("image/jpeg")) {
