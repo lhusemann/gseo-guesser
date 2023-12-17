@@ -77,13 +77,28 @@
 
     </LinearLayout>
 
-    <Button
-        android:id="@+id/downloadViewButton"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="left"
-        android:backgroundTint="#7DBAD1"
-        android:text="Download-Ansicht"
-        android:textColor="#FFFFFF" />
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/downloadViewButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="left"
+            android:layout_weight="1"
+            android:backgroundTint="#7DBAD1"
+            android:text="Download-Ansicht"
+            android:textColor="#FFFFFF" />
+
+        <Button
+            android:id="@+id/updateViewButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:backgroundTint="#7DBAD1"
+            android:text="Neu Laden"
+            android:textColor="#FFFFFF" />
+    </LinearLayout>
 
 </LinearLayout>

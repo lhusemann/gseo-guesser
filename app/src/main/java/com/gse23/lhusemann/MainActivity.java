@@ -17,6 +17,10 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import androidx.exifinterface.media.ExifInterface;
 
 import com.google.android.material.snackbar.Snackbar;
@@ -29,10 +33,12 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
     Spinner spinner;
     Button startButton;
     Button downloadAnsichtButton;
+    Button updateAnsichtButton;
     EditText rundenAnzahl;
     EditText rundenLaenge;
     String album;
-    String error;
+    List<String> auswahlmoeglichkeitenListe;
+    ArrayAdapter<String> auswahlAdapter;
     boolean keineAuswahl = true;
     boolean validR;
     boolean validL;
@@ -46,22 +52,21 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
         spinner = findViewById(R.id.spinner);
         startButton = findViewById(R.id.startButton);
         downloadAnsichtButton = findViewById(R.id.downloadViewButton);
+        updateAnsichtButton = findViewById(R.id.updateViewButton);
         rundenAnzahl = findViewById(R.id.rundenanzahlField);
         rundenLaenge = findViewById(R.id.rundenlaengeField);
-        error = "Kein Ordner ausgewaehlt";
+        auswahlmoeglichkeitenListe = new ArrayList<>();
+        auswahlmoeglichkeitenListe.add("Kein Ordner ausgewaehlt");
         album = "albums";
+        auswahlAdapter = new ArrayAdapter<>(this, androidx.appcompat.R.layout.support_simple_spinner_dropdown_item,auswahlmoeglichkeitenListe);
+        spinner.setAdapter(auswahlAdapter);
         try {
-            String[] empty = new String[1];
-            empty[0] =  error;
             if (getAssets().list(album) == null || getFolderInhalt(album).length < 1) {
                 Log.i("Fehler", "Keine Dateien in albums vorhanden");
-                spinner.setAdapter(new ArrayAdapter(this,
-                        androidx.appcompat.R.layout.support_simple_spinner_dropdown_item, empty));
             } else {
                 this.showAllImagesInAlbums();
-                String[] auswahlmoeglichkeiten = this.mergeArray(empty, getFolderInhalt(album));
-                spinner.setAdapter(new ArrayAdapter(this,
-                        androidx.appcompat.R.layout.support_simple_spinner_dropdown_item, auswahlmoeglichkeiten));
+                auswahlmoeglichkeitenListe.addAll(Arrays.asList(getFolderInhalt(album)));
+                auswahlAdapter.notifyDataSetChanged();
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -128,6 +133,12 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
                 startActivity(intent);
             }
         });
+        updateAnsichtButton.setOnClickListener(new View.OnClickListener()  {
+            @Override
+            public void onClick(View button) {
+
+            }
+        });
     }
     //gibt Inhalt eines Ordner wieder ohne Fehlermeldung
     private String[] getFolderInhalt(String folder) {
@@ -168,19 +179,6 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
             return "Das öffnen des InputsStreams hat nicht funktioniert";
         }
     }
-    /**
-     * habe arraycopy auf dieser Website gefunden und das Beispiel so umgeschrieben
-     * dass es meinen Zweck erfüllt: https://www.javatpoint.com/how-to-merge-two-arrays-in-java#:~:text=
-     * Java%20arraycopy()%20method&text=It%20copies%20an%20array%20from,equal%20to%20the%20length%20argument
-     */
-    String[] mergeArray(String[] firstArray, String[] secondArray) {
-        int firstLength = firstArray.length;
-        int secondLength = secondArray.length;
-        String[] result = new String[firstLength + secondLength];
-        System.arraycopy(firstArray, 0, result, 0, firstLength);
-        System.arraycopy(secondArray, 0, result, firstLength, secondLength);
-        return result;
-    }
     //gibt anzahl der Bilder in einem Ordner wieder
     private int getImagesCount(String folder) {
         int counter = 0;
@@ -194,7 +192,6 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
         }
         return counter;
     }
-
     @Override
     public void propertyChange(PropertyChangeEvent propertyChangeEvent) {
         String changeName = propertyChangeEvent.getPropertyName();
