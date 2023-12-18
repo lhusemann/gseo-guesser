@@ -1,6 +1,6 @@
 package com.gse23.lhusemann;
 
-import androidx.appcompat.app.AlertDialog;
+import android.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.exifinterface.media.ExifInterface;
 import androidx.preference.PreferenceManager;
@@ -290,67 +290,15 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
     }
     //erstellt das Album aus allen Bilder des Ordners
     private void addBilderInAlbum() throws CorruptedExifDataException {
-        String[] paths = this.getPath().toArray(new String[0]);
+        String[] paths = ReadExif.getPath(getApplicationContext(), gameApplication.getAlbum().getName(), gameApplication.getAlbum().isDownloaded()).toArray(new String[0]);
         for (int i = 0; i < paths.length; i++) {
-            Log.i("test","neuesBild");
-            Bild aktuellesBild = new Bild(getNames()[i], getExifdata(paths[i], ExifInterface.TAG_IMAGE_DESCRIPTION),
-                    getExifdata(paths[i], ExifInterface.TAG_GPS_LONGITUDE),
-                    getExifdata(paths[i], ExifInterface.TAG_GPS_LATITUDE));
+            Bild aktuellesBild = new Bild(ReadExif.getNames(getApplicationContext(), gameApplication.getAlbum().getName(), gameApplication.getAlbum().isDownloaded())[i], ReadExif.getExifdata(paths[i], ExifInterface.TAG_IMAGE_DESCRIPTION, SpielansichtActivity.this),
+                    ReadExif.getExifdata(paths[i], ExifInterface.TAG_GPS_LONGITUDE, SpielansichtActivity.this),
+                    ReadExif.getExifdata(paths[i], ExifInterface.TAG_GPS_LATITUDE, SpielansichtActivity.this));
             gameApplication.getAlbum().addBild(aktuellesBild);
         }
     }
-    //gibt Path aller Bilder in einem Array wieder
-    private ArrayList<String> getPath() {
-        ArrayList<String> paths = new ArrayList<>();
-        String vorPath = album + "/" + folder;
-        Log.i("test","bild suchen starten");
-        for (String file : getFolderInhalt(vorPath)) {
-            if (Bild.isImage(file)) {
-                Log.i("test","bild gefunden");
-                paths.add(vorPath + "/" + file);
-            }
-        }
-        return paths;
-    }
-    //gibt Namen aller Bilder in einem Array wieder
-    private String[] getNames() {
-        ArrayList<String> paths = new ArrayList<>();
-        for (String file : getFolderInhalt(album + "/" + folder)) {
-            if (Bild.isImage(file)) {
-                paths.add(file);
-            }
-        }
-        return paths.toArray(new String[0]);
-    }
-    //gibt Inhalt eines Ordner wieder ohne Fehlermeldung
-    private String[] getFolderInhalt(String folder) {
-        try {
-            return getAssets().list(folder);
-        } catch (IOException e) {
-            return new String[0];
-        }
-    }
-    //gibt Exifdaten zurück mit Hilfe der Klasse ReadExif
-    private String getExifdata(String filepath, String exifTag) {
-        try (InputStream in =  getAssets().open(filepath)) {
-            String exifData = ReadExif.getData(exifTag, in);
-            if (ReadExif.corrupted(exifData, exifTag)) {
-                throw new CorruptedExifDataException(exifTag, filepath);
-            } else {
-                return exifData;
-                }
-        } catch (CorruptedExifDataException | IOException e) {
-            AlertDialog.Builder error = new AlertDialog.Builder(SpielansichtActivity.this);
-            error.setMessage("Eine und mehrere Dateien haben keine Standortdaten. Kehre auf Startansicht zurück.")
-                    .setPositiveButton(ok, (dialog, id) -> {
-                        this.finish();
-                    })
-                    .setTitle(hint);
-            AlertDialog alert = error.create();
-            alert.show();
-            return "";
-        }
-    }
+
     //gibt alle Werte von allen Bildern aus
     private void bilderLoggen() throws NoImagesInAlbumException {
         try {
