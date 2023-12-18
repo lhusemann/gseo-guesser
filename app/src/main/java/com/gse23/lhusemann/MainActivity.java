@@ -44,6 +44,7 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
     boolean validR;
     boolean validL;
     boolean ignoreCauseNoImage = false;
+    int indexDownloaded = 0;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -72,6 +73,7 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
                 if (keineAuswahl) {
                     rundenAnzahl.setHint("0");
                 } else {
+                    gameApplication.getAlbum().setDownloaded(position > indexDownloaded);
                     if (getImagesCount(spinner.getSelectedItem().toString())<5) {
                         rundenAnzahl.setHint("" + getImagesCount(spinner.getSelectedItem().toString()));
                     } else {
@@ -135,6 +137,7 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
                     if (getAssets().list(album) == null || getFolderInhalt(album).length < 1) {
                     } else {
                         auswahlmoeglichkeitenListe.addAll(Arrays.asList(getFolderInhalt(album)));
+                        indexDownloaded = getFolderInhalt(album).length;
                     }
                 } catch (IOException e) {
                     throw new RuntimeException(e);

@@ -8,6 +8,7 @@ import java.util.Collections;
 public class Album {
     ArrayList<Bild> album = new ArrayList<>();
     String name;
+    boolean downloaded = false;
     private PropertyChangeSupport support;
     public Album(String name) {
         this.name = name;
@@ -19,6 +20,12 @@ public class Album {
     }
     public String getName() {
         return name;
+    }
+    public void setDownloaded(boolean downloaded) {
+        this.downloaded = downloaded;
+    }
+    public boolean isDownloaded() {
+        return downloaded;
     }
     public int getSize() {
         return album.size();
@@ -56,6 +63,8 @@ public class Album {
         ArrayList<Bild> alt = new ArrayList<>(album);
         album.clear();
         this.support.firePropertyChange("albumReset", alt, album);
+        this.support.firePropertyChange("downloadedReset", downloaded, false);
+        this.downloaded = false;
     }
     public void logExif(int index) {
         if (album.size()>=index) {
