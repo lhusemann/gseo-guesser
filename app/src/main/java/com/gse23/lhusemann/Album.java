@@ -1,14 +1,32 @@
 package com.gse23.lhusemann;
 
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.util.ArrayList;
 import java.util.Collections;
 
 public class Album {
     ArrayList<Bild> album = new ArrayList<>();
-    public Album() {
+    String name;
+    private PropertyChangeSupport support;
+    public Album(String name) {
+        this.name = name;
+        this.support = new PropertyChangeSupport(this);
+    }
+    public void setName(String name) {
+        this.support.firePropertyChange("name", this.name, name);
+        this.name = name;
+    }
+    public String getName() {
+        return name;
+    }
+    public int getSize() {
+        return album.size();
     }
     public void addBild(Bild neu) {
+        ArrayList<Bild> alt = new ArrayList<>(album);
         album.add(neu);
+        this.support.firePropertyChange("addBild", alt, album);
     }
     public Bild getBild(int index) {
         if (album.size()>=index) {
@@ -18,7 +36,9 @@ public class Album {
         }
     }
     public void mix() {
+        ArrayList<Bild> alt = new ArrayList<>(album);
         Collections.shuffle(album);
+        this.support.firePropertyChange("mix", alt, album);
     }
     public boolean isEmptyUndLogAll() throws NoImagesInAlbumException {
             if (album.isEmpty()) {
@@ -29,6 +49,13 @@ public class Album {
                 }
                 return false;
             }
+    }
+    public void reset() {
+        this.support.firePropertyChange("nameReset", this.name, "");
+        name = "";
+        ArrayList<Bild> alt = new ArrayList<>(album);
+        album.clear();
+        this.support.firePropertyChange("albumReset", alt, album);
     }
     public void logExif(int index) {
         if (album.size()>=index) {
@@ -44,5 +71,12 @@ public class Album {
             album.get(index).logLongtitude();
             album.get(index).logLatitude();
         }
+    }
+    public void addListener(PropertyChangeListener listener) {
+        support.addPropertyChangeListener(listener);
+    }
+
+    public void removeListener(PropertyChangeListener listener) {
+        support.removePropertyChangeListener(listener);
     }
 }

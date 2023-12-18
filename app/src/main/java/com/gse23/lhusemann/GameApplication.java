@@ -7,6 +7,7 @@ public class GameApplication extends Application {
     private Rundenzaehler runde;
     private Gesamtscore score;
     private Punkte punkte;
+    private Album album;
     public MarkerKoordinaten getMarkerKoordinaten() {
         return markerK;
     }
@@ -30,5 +31,11 @@ public class GameApplication extends Application {
     }
     public void setPunkte(Punkte punkte) {
         this.punkte = punkte;
+    }
+    public Album getAlbum() {
+        return album;
+    }
+    public void setAlbum(Album album) {
+        this.album = album;
     }
 }

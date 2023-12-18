@@ -43,13 +43,16 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
     boolean keineAuswahl = true;
     boolean validR;
     boolean validL;
+    boolean ignoreCauseNoImage = false;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         gameApplication = (GameApplication) getApplication();
-        gameApplication.setRundezaehler(new Rundenzaehler(0,0,0));
+        gameApplication.setRundezaehler(new Rundenzaehler(0,-1,0));
         gameApplication.getRundenZaehler().addListener(this);
+        gameApplication.setAlbum(new Album(""));
+        gameApplication.getAlbum().addListener(this);
         spinner = findViewById(R.id.spinner);
         startButton = findViewById(R.id.startButton);
         downloadAnsichtButton = findViewById(R.id.downloadViewButton);
@@ -102,16 +105,16 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
                     } else {
                         gameApplication.getRundenZaehler().setMaxRunde(Integer.parseInt(rundenAnzahl.getText().toString()));
                     }
+                    if (ignoreCauseNoImage) {
+                        gameApplication.getRundenZaehler().setMaxRunde(2);
+                    }
                     if (rundenLaenge.getText().toString().equals("")) {
                         gameApplication.getRundenZaehler().setRundenlaenge(30);
                     } else {
                         gameApplication.getRundenZaehler().setRundenlaenge(Integer.parseInt(rundenLaenge.getText().toString()));
                     }
                     if (validL && validR) {
-                        Intent intent = new Intent(MainActivity.this, SpielansichtActivity.class);
-                        intent.putExtra("ausgewaehltesAlbum", spinner.getSelectedItem().toString());
-                        intent.putExtra("anzahlBilder", getImagesCount(spinner.getSelectedItem().toString()));
-                        startActivity(intent);
+                        gameApplication.getAlbum().setName(spinner.getSelectedItem().toString());
                     }
                 }
             }
@@ -212,12 +215,17 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
     public void propertyChange(PropertyChangeEvent propertyChangeEvent) {
         String changeName = propertyChangeEvent.getPropertyName();
         if (changeName.equals("maxRunde")) {
-            if ((int) propertyChangeEvent.getNewValue() > getImagesCount(spinner.getSelectedItem().toString())) {
+            if ((int) propertyChangeEvent.getNewValue() > getImagesCount(spinner.getSelectedItem().toString()) && !ignoreCauseNoImage) {
                 Toast.makeText(this, "Rundenanzahl uebertrifft Bilder in Album!", Toast.LENGTH_SHORT).show();
                 validR = false;
             } else if ((int) propertyChangeEvent.getNewValue() < 1) {
-                Toast.makeText(this, "Du musst min. eine Runde spielen!", Toast.LENGTH_SHORT).show();
-                validR = false;
+                if (getImagesCount(spinner.getSelectedItem().toString()) == 0) {
+                    ignoreCauseNoImage = true;
+                } else {
+                    ignoreCauseNoImage = false;
+                    Toast.makeText(this, "Du musst min. eine Runde spielen!", Toast.LENGTH_SHORT).show();
+                    validR = false;
+                }
             } else {
                 validR = true;
             }
@@ -233,10 +241,15 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
                 validL = true;
             }
         }
+        if (changeName.equals("name")) {
+            Intent intent = new Intent(MainActivity.this, SpielansichtActivity.class);
+            startActivity(intent);
+        }
     }
     @Override
     protected void onDestroy() {
         gameApplication.getRundenZaehler().removeListener(this);
+        gameApplication.getAlbum().removeListener(this);
         super.onDestroy();
     }
 }

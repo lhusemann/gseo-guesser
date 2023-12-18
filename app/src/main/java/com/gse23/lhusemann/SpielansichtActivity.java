@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
 import android.content.Context;
@@ -28,9 +27,7 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import com.google.android.material.snackbar.Snackbar;
-
 import org.osmdroid.api.IMapController;
 import org.osmdroid.config.Configuration;
 import org.osmdroid.config.IConfigurationProvider;
@@ -48,7 +45,6 @@ import org.osmdroid.views.overlay.Polyline;
  */
 public class SpielansichtActivity extends AppCompatActivity implements PropertyChangeListener {
     GameApplication gameApplication;
-    Album pics;
     Button nextButton;
     Button validButton;
     Button showButton;
@@ -80,7 +76,6 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
     TimerTask timerTask;
     Timer timer;
     Handler timerHandler = new Handler();
-    int anzahlBilder;
     int counter;
     boolean rundeVorbei = false;
     boolean vielleichtKeinWertEinloggen = false;
@@ -93,6 +88,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         gameApplication.setMarkerKoordinaten(new MarkerKoordinaten(0,0));
         gameApplication.getMarkerKoordinaten().addListener(this);
         gameApplication.getRundenZaehler().addListener(this);
+        gameApplication.getAlbum().addListener(this);
         gameApplication.setGesamtscore(new Gesamtscore(0));
         gameApplication.getGesamtscore().addListener(this);
         gameApplication.setPunkte(new Punkte(0));
@@ -126,9 +122,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         markerCorrect = new Marker(karte);
         noGuess = "Kein Guess abgegeben.";
         noDistance = "keine Schaetzung abgegeben";
-        folder = getIntent().getStringExtra("ausgewaehltesAlbum");
-        anzahlBilder = getIntent().getIntExtra("anzahlBilder", 0);
-        pics = new Album();
+        folder = gameApplication.getAlbum().getName();
         Log.i("Auswahl", "Das Album " + folder + " wurde ausgewaehlt.");
         try {
             this.addBilderInAlbum();
@@ -137,7 +131,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
             return;
             //Exceptionbehandlung für Nutzer passiert im catch von bilderLoggen() und getExifData()
         }
-        pics.mix();
+        gameApplication.getAlbum().mix();
         //NextButton
         nextButton.setOnClickListener(new View.OnClickListener()  {
             @Override
@@ -180,13 +174,13 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                         stopTimer();
                         String latOne = latitudeField.getText().toString();
                         String lonOne = longitudeField.getText().toString();
-                        String latTwo = pics.getBild(gameApplication.getRundenZaehler().getRunde() - 1).getLatitude().toString();
-                        String lonTwo = pics.getBild(gameApplication.getRundenZaehler().getRunde() - 1).getLongtitude().toString();
+                        String latTwo = gameApplication.getAlbum().getBild(gameApplication.getRundenZaehler().getRunde() - 1).getLatitude().toString();
+                        String lonTwo = gameApplication.getAlbum().getBild(gameApplication.getRundenZaehler().getRunde() - 1).getLongtitude().toString();
                         gameApplication.getMarkerKoordinaten().setLongitude(Double.parseDouble(lonOne));
                         gameApplication.getMarkerKoordinaten().setLatitude(Double.parseDouble(latOne));
                         double distance = Distanz.getDistance(gameApplication.getMarkerKoordinaten().getLatitude(),
-                                pics.getBild(gameApplication.getRundenZaehler().getRunde() - 1).getLatitude(), gameApplication.getMarkerKoordinaten().getLongitude(),
-                                pics.getBild(gameApplication.getRundenZaehler().getRunde() - 1).getLongtitude());
+                                gameApplication.getAlbum().getBild(gameApplication.getRundenZaehler().getRunde() - 1).getLatitude(), gameApplication.getMarkerKoordinaten().getLongitude(),
+                                gameApplication.getAlbum().getBild(gameApplication.getRundenZaehler().getRunde() - 1).getLongtitude());
                         Log.i("Distanz der Schaetzung", Formatierung.getUnit(distance));
                         String link = "https://www.openstreetmap.org/directions?engine=fossgis_valhalla_foot&route="
                                 + latOne + komma + lonOne + ";" + latTwo + komma + lonTwo;
@@ -224,13 +218,18 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                 }
             }
         });
-        //NextButton
+        //AufgebenButton
         aufgebenButton.setOnClickListener(new View.OnClickListener()  {
             @Override
             public void onClick(View button) {
                 AlertDialog.Builder back = new AlertDialog.Builder(SpielansichtActivity.this);
                 back.setMessage("Möchtest du das aktuelle Spiel wirklich beeenden?")
                         .setPositiveButton("Ja", (dialog, id) -> {
+                            gameApplication.getAlbum().reset();
+                            gameApplication.getRundenZaehler().setRunde(0);
+                            gameApplication.getRundenZaehler().setRundenlaenge(0);
+                            gameApplication.getRundenZaehler().setMaxRunde(0);
+                            gameApplication.getAlbum().reset();
                             stopTimer();
                             finish();
                         })
@@ -277,6 +276,10 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         AlertDialog.Builder back = new AlertDialog.Builder(SpielansichtActivity.this);
         back.setMessage("Möchtest du das aktuelle Spiel wirklich beeenden?")
                 .setPositiveButton("Ja", (dialog, id) -> {
+                    gameApplication.getAlbum().reset();
+                    gameApplication.getRundenZaehler().setRunde(0);
+                    gameApplication.getRundenZaehler().setRundenlaenge(0);
+                    gameApplication.getRundenZaehler().setMaxRunde(0);
                     stopTimer();
                     finish();
                 })
@@ -287,38 +290,37 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
     }
     //erstellt das Album aus allen Bilder des Ordners
     private void addBilderInAlbum() throws CorruptedExifDataException {
-        String[] paths = this.getPath();
+        String[] paths = this.getPath().toArray(new String[0]);
         for (int i = 0; i < paths.length; i++) {
+            Log.i("test","neuesBild");
             Bild aktuellesBild = new Bild(getNames()[i], getExifdata(paths[i], ExifInterface.TAG_IMAGE_DESCRIPTION),
                     getExifdata(paths[i], ExifInterface.TAG_GPS_LONGITUDE),
                     getExifdata(paths[i], ExifInterface.TAG_GPS_LATITUDE));
-            pics.addBild(aktuellesBild);
+            gameApplication.getAlbum().addBild(aktuellesBild);
         }
     }
     //gibt Path aller Bilder in einem Array wieder
-    private String[] getPath() {
-        String[] paths = new String[anzahlBilder];
-        int counter = 0;
+    private ArrayList<String> getPath() {
+        ArrayList<String> paths = new ArrayList<>();
         String vorPath = album + "/" + folder;
+        Log.i("test","bild suchen starten");
         for (String file : getFolderInhalt(vorPath)) {
             if (Bild.isImage(file)) {
-                paths[counter] = vorPath + "/" + file;
-                counter++;
+                Log.i("test","bild gefunden");
+                paths.add(vorPath + "/" + file);
             }
         }
         return paths;
     }
     //gibt Namen aller Bilder in einem Array wieder
     private String[] getNames() {
-        String[] paths = new String[anzahlBilder];
-        int counter = 0;
+        ArrayList<String> paths = new ArrayList<>();
         for (String file : getFolderInhalt(album + "/" + folder)) {
             if (Bild.isImage(file)) {
-                paths[counter] = file;
-                counter++;
+                paths.add(file);
             }
         }
-        return paths;
+        return paths.toArray(new String[0]);
     }
     //gibt Inhalt eines Ordner wieder ohne Fehlermeldung
     private String[] getFolderInhalt(String folder) {
@@ -352,7 +354,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
     //gibt alle Werte von allen Bildern aus
     private void bilderLoggen() throws NoImagesInAlbumException {
         try {
-            if (pics.isEmptyUndLogAll()) {
+            if (gameApplication.getAlbum().isEmptyUndLogAll()) {
                 throw new NoImagesInAlbumException(album);
             }
         } catch (NoImagesInAlbumException e) {
@@ -434,13 +436,14 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         }
         if (changeName.equals("RundenInc")) {
             stopTimer();
-            if ((int) propertyChangeEvent.getNewValue() <= gameApplication.getRundenZaehler().getMaxRunde()) {
+
+            if ((int) propertyChangeEvent.getNewValue() <= gameApplication.getRundenZaehler().getMaxRunde() && gameApplication.getAlbum().getSize() > 0) {
                 longitudeField.setText(null);
                 latitudeField.setText(null);
-                beschreibung.setText(pics.getBild((int) propertyChangeEvent.getNewValue()-1).getDescription());
+                beschreibung.setText(gameApplication.getAlbum().getBild((int) propertyChangeEvent.getNewValue()-1).getDescription());
                 bild.setImageDrawable(makeDrawable(album + "/" + folder + "/"
-                        + pics.getBild((int) propertyChangeEvent.getNewValue()-1).getName()));
-                pics.logExifNoDec((int) propertyChangeEvent.getNewValue()-1);
+                        + gameApplication.getAlbum().getBild((int) propertyChangeEvent.getNewValue()-1).getName()));
+                gameApplication.getAlbum().logExifNoDec((int) propertyChangeEvent.getNewValue()-1);
                 runde.setText("" + (int) propertyChangeEvent.getNewValue());
                 linkText.setText(noGuess);
                 linkText.setTextColor(Color.parseColor(normalColor));
@@ -461,8 +464,10 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                 rundeVorbei = false;
                 vielleichtKeinWertEinloggen = false;
             } else {
-                Intent intent = new Intent(SpielansichtActivity.this, EndActivity.class);
-                startActivity(intent);
+                if (gameApplication.getAlbum().getSize() > 0) {
+                    Intent intent = new Intent(SpielansichtActivity.this, EndActivity.class);
+                    startActivity(intent);
+                }
             }
         }
         if (changeName.equals("Punkte")) {
@@ -476,8 +481,8 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
             gameApplication.getGesamtscore().incGesamtscore((int) propertyChangeEvent.getNewValue());
             List<GeoPoint> geoPoints = new ArrayList<>();
             geoPoints.add(new GeoPoint(gameApplication.getMarkerKoordinaten().getLatitude(), gameApplication.getMarkerKoordinaten().getLongitude()));
-            geoPoints.add(new GeoPoint(pics.getBild(gameApplication.getRundenZaehler().getRunde()-1).
-                    getLatitude(), pics.getBild(gameApplication.getRundenZaehler().getRunde()-1).
+            geoPoints.add(new GeoPoint(gameApplication.getAlbum().getBild(gameApplication.getRundenZaehler().getRunde()-1).
+                    getLatitude(), gameApplication.getAlbum().getBild(gameApplication.getRundenZaehler().getRunde()-1).
                     getLongtitude()));
             nutzerMarker.setPosition(geoPoints.get(0));
             nutzerMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
@@ -502,6 +507,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         gameApplication.getRundenZaehler().removeListener(this);
         gameApplication.getGesamtscore().removeListener(this);
         gameApplication.getPunkte().removeListener(this);
+        gameApplication.getAlbum().removeListener(this);
         super.onDestroy();
     }
 }
