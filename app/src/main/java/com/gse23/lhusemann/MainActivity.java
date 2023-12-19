@@ -1,6 +1,5 @@
 package com.gse23.lhusemann;
 
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import android.content.Intent;
 import android.os.Bundle;
@@ -20,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import androidx.exifinterface.media.ExifInterface;
+import com.google.android.material.snackbar.Snackbar;
 
 /**
  * Das ist die MainActivity, die zuerst ausgeführt wird, wenn die App gestartet wird.
@@ -40,6 +40,7 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
     boolean validL;
     boolean ignoreCauseNoImage = false;
     int indexDownloaded = 0;
+    //Diese Methode wird beim Start ausgeführt
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -59,8 +60,7 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
         album = "albums";
         auswahlAdapter = new ArrayAdapter<>(this, androidx.appcompat.R.layout.support_simple_spinner_dropdown_item,auswahlmoeglichkeitenListe);
         spinner.setAdapter(auswahlAdapter);
-
-        //prüft ob etwas Ausgewaehlt ist
+        //wenn im Spinner etwas neues ausgewählt wird, wird hier damit umgegangen
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -86,17 +86,12 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
                 keineAuswahl = true;
             }
         });
-        //Wenn der Button gedrückt wird wird entweder eine Fehlernachricht ausgegeben oder das Spiel gestartet
+        //Wenn der Start-Button gedrückt wird wird entweder eine Fehlernachricht ausgegeben oder das Spiel gestartet
         startButton.setOnClickListener(new View.OnClickListener()  {
             @Override
             public void onClick(View button) {
                 if (keineAuswahl) {
-                    AlertDialog.Builder error = new AlertDialog.Builder(MainActivity.this);
-                    error.setMessage("Du hast keinen Ordner ausgewählt!")
-                            .setPositiveButton("Ok", (dialog, id) -> {})
-                            .setTitle("Error");
-                    AlertDialog alert = error.create();
-                    alert.show();
+                    Snackbar.make(button, "Du hast keinen Ordner ausgewählt!" , Snackbar.LENGTH_SHORT).show();
                 } else {
                     if (rundenAnzahl.getText().toString().equals("")) {
                         gameApplication.getRundenZaehler().setMaxRunde(Math.min(getImagesCount(gameApplication.getAlbum().getName()), 5));
@@ -118,6 +113,7 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
                 }
             }
         });
+        //Mit diesem Button gelangt man in die Downloadansicht
         downloadAnsichtButton.setOnClickListener(new View.OnClickListener()  {
             @Override
             public void onClick(View button) {
@@ -125,6 +121,7 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
                 startActivity(intent);
             }
         });
+        //Mit diesem Button wird der Spinner geupdated
         updateAnsichtButton.setOnClickListener(new View.OnClickListener()  {
             @Override
             public void onClick(View button) {
@@ -145,6 +142,7 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
         updateAnsichtButton.performClick();
         showAllImagesInAlbums();
     }
+    //Eine HilfsMethode, die die Alben aus dem internen Speicher zum Spinner hinzufügt
     private void addDownloads() {
         File downloadOrdner = new File(getFilesDir() + "/Album");
         if (downloadOrdner.exists() && downloadOrdner.isDirectory()) {
@@ -192,6 +190,7 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
         }
         return counter;
     }
+    //Wenn in einem Model eine Sache verändert wird, wird hier gesagt, was passieren soll
     @Override
     public void propertyChange(PropertyChangeEvent propertyChangeEvent) {
         String changeName = propertyChangeEvent.getPropertyName();
@@ -223,15 +222,16 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
             }
         }
     }
+    //Wenn die Activity neugeladen wird, sollen alle Werte in den Models zurückgesetzt werden
     @Override
     protected void onResume() {
         super.onResume();
-        gameApplication.getAlbum().reset();
         gameApplication.getRundenZaehler().setRunde(0);
         gameApplication.getRundenZaehler().setRundenlaenge(0);
         gameApplication.getRundenZaehler().setMaxRunde(-1);
         gameApplication.getAlbum().reset();
     }
+    //Wenn die Activity beeendet wird, müssen die Listener entfernt werden
     @Override
     protected void onDestroy() {
         gameApplication.getRundenZaehler().removeListener(this);

@@ -13,14 +13,14 @@ public class MarkerKoordinaten {
         this.support = new PropertyChangeSupport(this);
     }
     public void setLongitude(double longitude) {
-        this.support.firePropertyChange("Breitengrad", this.longitude, longitude);
+        this.support.firePropertyChange("Laengengrad", this.longitude, longitude);
         this.longitude = longitude;
     }
     public double getLongitude() {
         return longitude;
     }
     public void setLatitude(double latitude) {
-        this.support.firePropertyChange("Laengengrad", this.latitude, latitude);
+        this.support.firePropertyChange("Breitengrad", this.latitude, latitude);
         this.latitude = latitude;
     }
     public double getLatitude() {

@@ -1,16 +1,6 @@
 package com.gse23.lhusemann;
 
-import android.util.Log;
-import android.widget.ArrayAdapter;
-import android.widget.Toast;
-
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import java.io.IOException;
 
 public class AlbenListe {

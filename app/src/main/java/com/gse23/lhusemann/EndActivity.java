@@ -1,17 +1,18 @@
 package com.gse23.lhusemann;
 
 import androidx.appcompat.app.AppCompatActivity;
-
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
-
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 
+/**
+ * Das ist die EndActivity, die ausgeführt wird wenn ein Spiel beendet wurde
+ */
 public class EndActivity extends AppCompatActivity implements PropertyChangeListener {
     GameApplication gameApplication;
     TextView gesamtpunkte;
@@ -19,7 +20,7 @@ public class EndActivity extends AppCompatActivity implements PropertyChangeList
     TextView rundenScores;
     Button restart;
     Button mainMenu;
-
+    //Diese Methode wird beim Start ausgeführt
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -34,7 +35,7 @@ public class EndActivity extends AppCompatActivity implements PropertyChangeList
         mainMenu = findViewById(R.id.mainmenuButton);
         gesamtpunkte.setText(gameApplication.getGesamtscore().getStringGesamtscore());
         erstelleRundenScores();
-
+        //Das soll passieren, wenn auf Neustarten gedrückt wird
         restart.setOnClickListener(new View.OnClickListener()  {
             @Override
             public void onClick(View button) {
@@ -46,6 +47,7 @@ public class EndActivity extends AppCompatActivity implements PropertyChangeList
                 finish();
             }
         });
+        //Das soll passieren, wenn auf Startansicht gedrückt wird
         mainMenu.setOnClickListener(new View.OnClickListener()  {
             @Override
             public void onClick(View button) {
@@ -56,6 +58,7 @@ public class EndActivity extends AppCompatActivity implements PropertyChangeList
             }
         });
     }
+    //Hilffunktion, die den Score in jeder Runde darstellt
     private void erstelleRundenScores() {
         ArrayList<Integer> scores = gameApplication.getPunkte().giveScores();
         StringBuilder scoreTexte = new StringBuilder();
@@ -70,7 +73,7 @@ public class EndActivity extends AppCompatActivity implements PropertyChangeList
         halter.resetScores();
         gameApplication.setPunkte(halter);
     }
-
+    //Wenn in einem Model eine Sache verändert wird, wird hier gesagt, was passieren soll
     @Override
     public void propertyChange(PropertyChangeEvent propertyChangeEvent) {
         String changeName = propertyChangeEvent.getPropertyName();
@@ -78,6 +81,7 @@ public class EndActivity extends AppCompatActivity implements PropertyChangeList
 
         }
     }
+    //Wenn die Activity beeendet wird, müssen die Listener entfernt werden
     @Override
     protected void onDestroy() {
         gameApplication.getRundenZaehler().removeListener(this);

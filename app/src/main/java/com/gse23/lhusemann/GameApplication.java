@@ -8,6 +8,7 @@ public class GameApplication extends Application {
     private Gesamtscore score;
     private Punkte punkte;
     private Album album;
+    private Distanz distance;
     public MarkerKoordinaten getMarkerKoordinaten() {
         return markerK;
     }
@@ -37,5 +38,11 @@ public class GameApplication extends Application {
     }
     public void setAlbum(Album album) {
         this.album = album;
+    }
+    public Distanz getDistanz() {
+        return distance;
+    }
+    public void setDistanz(Distanz distance) {
+        this.distance = distance;
     }
 }

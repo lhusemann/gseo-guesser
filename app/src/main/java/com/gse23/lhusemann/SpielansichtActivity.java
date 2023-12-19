@@ -6,8 +6,6 @@ import androidx.exifinterface.media.ExifInterface;
 import androidx.preference.PreferenceManager;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
@@ -16,7 +14,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -41,7 +38,7 @@ import org.osmdroid.views.overlay.Marker;
 import org.osmdroid.views.overlay.Polyline;
 
 /**
- * Dies ist die Spielansicht
+ * Dies ist die Spielansicht, in der das Spiel gespielt wird
  */
 public class SpielansichtActivity extends AppCompatActivity implements PropertyChangeListener {
     GameApplication gameApplication;
@@ -79,7 +76,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
     int counter;
     boolean rundeVorbei = false;
     boolean vielleichtKeinWertEinloggen = false;
-
+    //Diese Methode wird beim Start ausgeführt
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -93,6 +90,8 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         gameApplication.getGesamtscore().addListener(this);
         gameApplication.setPunkte(new Punkte(0));
         gameApplication.getPunkte().addListener(this);
+        gameApplication.setDistanz(new Distanz(0.0));
+        gameApplication.getDistanz().addListener(this);
         bild = findViewById(R.id.bild);
         nextButton = findViewById(R.id.nextButton);
         aufgebenButton = findViewById(R.id.ffButton);
@@ -132,16 +131,18 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
             //Exceptionbehandlung für Nutzer passiert im catch von bilderLoggen() und getExifData()
         }
         gameApplication.getAlbum().mix();
-        //NextButton
+        //Dies soll passieren, wenn auf den Next-Button gedrückt wird
         nextButton.setOnClickListener(new View.OnClickListener()  {
             @Override
             public void onClick(View button) {
                 gameApplication.getRundenZaehler().incRunde();
-
+                gameApplication.getGesamtscore().incGesamtscore(gameApplication.getPunkte().getPunkte());
+                gameApplication.getPunkte().safePunkte();
+                gameApplication.getPunkte().reset();
+                gameApplication.getDistanz().resetDistance();
             }
         });
-        // folgendes passiert bei clicken auf die Map:
-        // koopiert von https://stackoverflow.com/questions/67850072/set-onclicklistener-for-mapview-using-open-street-map
+        // folgendes passiert bei clicken auf die Map
         karte.getOverlays().add(new MapEventsOverlay(new MapEventsReceiver() {
             @Override
             public boolean singleTapConfirmedHelper(GeoPoint p) {
@@ -151,6 +152,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                     nutzerMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
                     nutzerMarker.setTitle("Ihre Eingabe");
                     karte.getOverlays().add(nutzerMarker);
+                    karte.invalidate();
                 }
                 return false;
             }
@@ -160,9 +162,9 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                 return false;
             }
         }));
-        // da ich direkt bei einem Bild starten möchte drücke ich die next Taste einmal manuell.
+        // da ich direkt bei einem Bild starten möchte drücke ich die next Taste einmal manuell beim Start
         nextButton.performClick();
-        //validButton
+        //Das soll passieren wenn wir auf Bestätigen drücken
         validButton.setOnClickListener(new View.OnClickListener()  {
             @Override
             public void onClick(View button) {
@@ -178,17 +180,12 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                         String lonTwo = gameApplication.getAlbum().getBild(gameApplication.getRundenZaehler().getRunde() - 1).getLongtitude().toString();
                         gameApplication.getMarkerKoordinaten().setLongitude(Double.parseDouble(lonOne));
                         gameApplication.getMarkerKoordinaten().setLatitude(Double.parseDouble(latOne));
-                        double distance = Distanz.getDistance(gameApplication.getMarkerKoordinaten().getLatitude(),
-                                gameApplication.getAlbum().getBild(gameApplication.getRundenZaehler().getRunde() - 1).getLatitude(), gameApplication.getMarkerKoordinaten().getLongitude(),
-                                gameApplication.getAlbum().getBild(gameApplication.getRundenZaehler().getRunde() - 1).getLongtitude());
-                        Log.i("Distanz der Schaetzung", Formatierung.getUnit(distance));
-                        String link = "https://www.openstreetmap.org/directions?engine=fossgis_valhalla_foot&route="
-                                + latOne + komma + lonOne + ";" + latTwo + komma + lonTwo;
-                        Log.i("OpenStreetMaps-Link zur Schätzung", link);
-                        linkText.setText(link);
-                        linkText.setTextColor(Color.parseColor("#0000EE"));
-                        distanzText.setText(Formatierung.getUnit(distance));
-                        gameApplication.getPunkte().berechne(distance);
+                        gameApplication.getDistanz().calcDistance(gameApplication.getMarkerKoordinaten().getLatitude()
+                                , gameApplication.getAlbum().getBild(gameApplication.getRundenZaehler().getRunde() - 1).getLatitude()
+                                , gameApplication.getMarkerKoordinaten().getLongitude(), gameApplication.getAlbum()
+                                        .getBild(gameApplication.getRundenZaehler().getRunde() - 1).getLongtitude());
+                        gameApplication.getPunkte().berechne(gameApplication.getDistanz().getDistance());
+                        gameApplication.getGesamtscore().incGesamtscore(gameApplication.getPunkte().getPunkte());
                     } else {
                         if (!vielleichtKeinWertEinloggen) {
                             AlertDialog.Builder error = new AlertDialog.Builder(SpielansichtActivity.this);
@@ -204,7 +201,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                 }
             }
         });
-        //center/show Button
+        //Das soll passieren, wenn wir auf zentrieren drücken
         showButton.setOnClickListener(new View.OnClickListener()  {
             @Override
             public void onClick(View button) {
@@ -218,7 +215,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                 }
             }
         });
-        //AufgebenButton
+        //Das soll passieren, wenn wir auf Aufgeben drücken
         aufgebenButton.setOnClickListener(new View.OnClickListener()  {
             @Override
             public void onClick(View button) {
@@ -234,7 +231,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                 alert.show();
             }
         });
-    //link
+    //Das soll passieren, wenn wir auf Link drücken
         linkText.setOnClickListener(new View.OnClickListener()  {
             @Override
             public void onClick(View link) {
@@ -245,39 +242,32 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
             }
         });
     }
-
-
+    //Wenn die Activity neugeladen wird, soll die Karte noch funktionieren
     @Override
     protected void onResume() {
         super.onResume();
         karte.onResume();
     }
+    //Wenn die Activity neu aufgerufen wird durch einen neustart, sollen die Models zurückgesetzt werden
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         gameApplication.setPunkte(new Punkte(0));
         gameApplication.setMarkerKoordinaten(new MarkerKoordinaten(0,0));
+        gameApplication.setDistanz(new Distanz(0.0));
         //---------------------------------------------------------------------------------------musst du noch testen listener noch aktiv ist
         nextButton.performClick();
     }
+    //Wenn die Activity pausiert wird, soll die Karte pausiert werden
     @Override
     protected void onPause() {
         super.onPause();
         karte.onPause();
     }
-    //Zurücktaste
+    //Dies soll passieren wenn man die Von Android eingebaute zurücktaste verwendet. (Das selbe wie bei Aufgeben)
     @Override
     public void onBackPressed() {
-        AlertDialog.Builder back = new AlertDialog.Builder(SpielansichtActivity.this);
-        back.setMessage("Möchtest du das aktuelle Spiel wirklich beeenden?")
-                .setPositiveButton("Ja", (dialog, id) -> {
-                    stopTimer();
-                    finish();
-                })
-                .setNegativeButton("Nein", (dialog, id) -> {})
-                .setTitle("Zurück");
-        AlertDialog alert = back.create();
-        alert.show();
+        aufgebenButton.performClick();
     }
     //erstellt das Album aus allen Bilder des Ordners
     private void addBilderInAlbum() throws CorruptedExifDataException {
@@ -286,12 +276,12 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
             Bild aktuellesBild = new Bild(ReadExif.getNames(getApplicationContext(), gameApplication.getAlbum().getName(), gameApplication.getAlbum().isDownloaded())[i], ReadExif.getExifdata(paths[i], ExifInterface.TAG_IMAGE_DESCRIPTION, SpielansichtActivity.this, gameApplication.getAlbum().isDownloaded()),
                     ReadExif.getExifdata(paths[i], ExifInterface.TAG_GPS_LONGITUDE, SpielansichtActivity.this, gameApplication.getAlbum().isDownloaded()),
                     ReadExif.getExifdata(paths[i], ExifInterface.TAG_GPS_LATITUDE, SpielansichtActivity.this, gameApplication.getAlbum().isDownloaded()));
-            Log.i("bild",""+aktuellesBild.getName());
+            Log.i("bild","" + aktuellesBild.getName());
             gameApplication.getAlbum().addBild(aktuellesBild);
         }
     }
 
-    //gibt alle Werte von allen Bildern aus
+    //gibt alle Werte von allen Bildern des ausgewähltem Album aus
     private void bilderLoggen() throws NoImagesInAlbumException {
         try {
             if (gameApplication.getAlbum().isEmptyUndLogAll()) {
@@ -347,6 +337,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
 
         timer.schedule(timerTask, 1, 1000);
     }
+    //Wenn in einem Model eine Sache verändert wird, wird hier gesagt, was passieren soll
     @Override
     public void propertyChange(PropertyChangeEvent propertyChangeEvent) {
         String changeName = propertyChangeEvent.getPropertyName();
@@ -366,23 +357,19 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         }
         if (changeName.equals("RundenInc")) {
             stopTimer();
-
             if ((int) propertyChangeEvent.getNewValue() <= gameApplication.getRundenZaehler().getMaxRunde() && gameApplication.getAlbum().getSize() > 0) {
                 longitudeField.setText(null);
                 latitudeField.setText(null);
                 beschreibung.setText(gameApplication.getAlbum().getBild((int) propertyChangeEvent.getNewValue()-1).getDescription());
-                //bild.setImageDrawable(makeDrawable(album + "/" + folder + "/" + gameApplication.getAlbum().getBild((int) propertyChangeEvent.getNewValue()-1).getName()));
                 bild.setImageDrawable(gameApplication.getAlbum().getBild((int) propertyChangeEvent.getNewValue()-1).getDrawable(gameApplication.getAlbum().getName(), SpielansichtActivity.this, gameApplication.getAlbum().isDownloaded()));
                 gameApplication.getAlbum().logExifNoDec((int) propertyChangeEvent.getNewValue()-1);
                 runde.setText("" + (int) propertyChangeEvent.getNewValue());
                 linkText.setText(noGuess);
                 linkText.setTextColor(Color.parseColor(normalColor));
                 distanzText.setText(noDistance);
-                gameApplication.getGesamtscore().incGesamtscore(gameApplication.getPunkte().getPunkte());
-                gameApplication.getPunkte().safePunkte();
-                gameApplication.getPunkte().reset();
-                karte.getOverlays().remove(nutzerMarker);
                 karte.getOverlays().remove(markerCorrect);
+                karte.getOverlays().remove(nutzerMarker);
+                karte.getOverlays().remove(nutzerMarker);
                 karte.getOverlays().remove(line);
                 List<GeoPoint> weltKarte = new ArrayList<>();
                 weltKarte.add(new GeoPoint(85.0, 180.0));
@@ -408,7 +395,19 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         }
         if (changeName.equals("Berechnung")) {
             aktuellerScore.setText("" + (int) propertyChangeEvent.getNewValue());
-            gameApplication.getGesamtscore().incGesamtscore((int) propertyChangeEvent.getNewValue());
+        }
+        if (changeName.equals("DistanzCalc")) {
+            Log.i("Distanz der Schaetzung", Formatierung.getUnit((double) propertyChangeEvent.getNewValue()));
+            String link = "https://www.openstreetmap.org/directions?engine=fossgis_valhalla_foot&route="
+                    + gameApplication.getMarkerKoordinaten().getLatitude() + komma + gameApplication
+                    .getMarkerKoordinaten().getLongitude() + ";" + gameApplication.getAlbum().getBild(gameApplication
+                    .getRundenZaehler().getRunde() - 1).getLatitude() + komma + gameApplication.getAlbum()
+                    .getBild(gameApplication.getRundenZaehler().getRunde() - 1).getLongtitude();
+            Log.i("OpenStreetMaps-Link zur Schätzung", link);
+            linkText.setText(link);
+            linkText.setTextColor(Color.parseColor("#0000EE"));
+            distanzText.setText(Formatierung.getUnit((double) propertyChangeEvent.getNewValue()));
+
             List<GeoPoint> geoPoints = new ArrayList<>();
             geoPoints.add(new GeoPoint(gameApplication.getMarkerKoordinaten().getLatitude(), gameApplication.getMarkerKoordinaten().getLongitude()));
             geoPoints.add(new GeoPoint(gameApplication.getAlbum().getBild(gameApplication.getRundenZaehler().getRunde()-1).
@@ -425,12 +424,12 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
             line.setPoints(geoPoints);
             karte.getOverlays().add(line);
             karte.post(() -> {
-                karte.zoomToBoundingBox(BoundingBox.fromGeoPointsSafe(geoPoints), true);
+                karte.zoomToBoundingBox(BoundingBox.fromGeoPointsSafe(geoPoints).increaseByScale(1.5f), true);
             });
             rundeVorbei = true;
         }
     }
-
+    //Wenn die Activity beeendet wird, müssen die Listener entfernt werden
     @Override
     protected void onDestroy() {
         gameApplication.getMarkerKoordinaten().removeListener(this);
@@ -438,6 +437,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         gameApplication.getGesamtscore().removeListener(this);
         gameApplication.getPunkte().removeListener(this);
         gameApplication.getAlbum().removeListener(this);
+        gameApplication.getDistanz().removeListener(this);
         super.onDestroy();
     }
 }
