@@ -1,6 +1,11 @@
 package com.gse23.lhusemann;
 
+import android.app.Activity;
+import android.graphics.drawable.Drawable;
 import android.util.Log;
+
+import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * Das ist die Klasse Bild in die ich als Datenstruktur verwende.
@@ -11,11 +16,11 @@ public class Bild {
     double longtitude;
     double latitude;
     String komma = ",";
-    Bild(String pName, String pDescription, String pLongtitude, String pLatitude) {
-        name = pName;
-        description = pDescription;
-        longtitude = makeValue(pLongtitude);
-        latitude = makeValue(pLatitude);
+    Bild(String name, String description, String longtitude, String latitude) {
+        this.name = name;
+        this.description = description;
+        this.longtitude = makeValue(longtitude);
+        this.latitude = makeValue(latitude);
     }
     public String getName() {
         return name;
@@ -71,5 +76,19 @@ public class Bild {
     //prüft ob es sich um eine Bild-Datei handelt
     public static boolean isImage(String name) {
         return name.endsWith(".jpg") || name.endsWith(".png") || name.endsWith(".jpeg");
+    }
+    //macht ein File zu Drawable
+    public Drawable getDrawable(String album, Activity activity, boolean downloaded) {
+        if (downloaded) {
+            String filepath = activity.getFilesDir() + "/Album/" + album + "/" + name;
+            return Drawable.createFromPath(filepath);
+        } else {
+            String filepath = "albums/" + album + "/" + name;
+            try (InputStream in = activity.getAssets().open(filepath)) {
+                return Drawable.createFromStream(in, "src");
+            } catch (IOException e) {
+                return null;
+            }
+        }
     }
 }

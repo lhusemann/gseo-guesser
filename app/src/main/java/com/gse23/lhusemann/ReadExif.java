@@ -2,6 +2,8 @@ package com.gse23.lhusemann;
 
 import android.app.Activity;
 import android.content.Context;
+import android.util.Log;
+
 import androidx.exifinterface.media.ExifInterface;
 
 import java.io.File;
@@ -18,6 +20,7 @@ public final class ReadExif {
         ArrayList<String> paths = new ArrayList<>();
         if (downloaded) {
             String vorPath = ctx.getFilesDir() + "/Album/" + folder;
+
             for (String file : getFolderInhalt(vorPath, ctx, true)) {
                 if (Bild.isImage(file)) {
                     paths.add(vorPath + "/" + file);
@@ -56,9 +59,10 @@ public final class ReadExif {
         if (downloaded) {
             File albumOrdner = new File (folder);
             File[] albumArray = albumOrdner.listFiles();
+            Log.i("s",""+folder);
             String[] names = new String[albumArray.length];
             for (int i = 0; i<albumArray.length; i++) {
-                names[i] = folder + "/" + albumArray[i].getName();
+                names[i] = albumArray[i].getName();
             }
             return names;
         } else {
@@ -70,18 +74,31 @@ public final class ReadExif {
         }
     }
     //gibt Exifdaten zurück mit Hilfe der Klasse ReadExif
-    public static String getExifdata(String filepath, String exifTag, Activity activity) {
-        try (InputStream in =  activity.getAssets().open(filepath)) {
-            ExifInterface exifInterface = new ExifInterface(in);
-            String  exifData = exifInterface.getAttribute(exifTag);
-            if (exifData == null && !(exifTag.equals(ExifInterface.TAG_IMAGE_DESCRIPTION))) {
-                throw new CorruptedExifDataException(exifTag, filepath, activity);
-            } else {
-                return exifData;
+    public static String getExifdata(String filepath, String exifTag, Activity activity, boolean downloaded) {
+        if (downloaded) {
+            try {
+                ExifInterface exifInterface = new ExifInterface(filepath);
+                String exifData = exifInterface.getAttribute(exifTag);
+                if (exifData == null && !(exifTag.equals(ExifInterface.TAG_IMAGE_DESCRIPTION))) {
+                    throw new CorruptedExifDataException(exifTag, filepath, activity);
+                } else {
+                    return exifData;
+                }
+            } catch (CorruptedExifDataException | IOException e) {
+                return "";
             }
-        } catch (CorruptedExifDataException | IOException e) {
-
-            return "";
+        } else {
+            try (InputStream in = activity.getAssets().open(filepath)) {
+                ExifInterface exifInterface = new ExifInterface(in);
+                String exifData = exifInterface.getAttribute(exifTag);
+                if (exifData == null && !(exifTag.equals(ExifInterface.TAG_IMAGE_DESCRIPTION))) {
+                    throw new CorruptedExifDataException(exifTag, filepath, activity);
+                } else {
+                    return exifData;
+                }
+            } catch (CorruptedExifDataException | IOException e) {
+                return "";
+            }
         }
     }
 }

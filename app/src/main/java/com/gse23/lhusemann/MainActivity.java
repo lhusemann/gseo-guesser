@@ -24,7 +24,6 @@ import java.util.List;
 
 import androidx.exifinterface.media.ExifInterface;
 
-import com.google.android.material.snackbar.Snackbar;
 
 /**
  * Das ist die MainActivity, die zuerst ausgeführt wird, wenn die App gestartet wird.
@@ -116,7 +115,11 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
                         gameApplication.getRundenZaehler().setRundenlaenge(Integer.parseInt(rundenLaenge.getText().toString()));
                     }
                     if (validL && validR) {
-                        gameApplication.getAlbum().setName(spinner.getSelectedItem().toString());
+                        if (gameApplication.getAlbum().isDownloaded()) {
+                            gameApplication.getAlbum().setName((spinner.getSelectedItem().toString()).substring(0,(spinner.getSelectedItem().toString()).length()-18));
+                        } else {
+                            gameApplication.getAlbum().setName(spinner.getSelectedItem().toString());
+                        }
                     }
                 }
             }
@@ -245,9 +248,19 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
             }
         }
         if (changeName.equals("name")) {
+
             Intent intent = new Intent(MainActivity.this, SpielansichtActivity.class);
             startActivity(intent);
         }
+    }
+    @Override
+    protected void onResume() {
+        super.onResume();
+        gameApplication.getAlbum().reset();
+        gameApplication.getRundenZaehler().setRunde(0);
+        gameApplication.getRundenZaehler().setRundenlaenge(0);
+        gameApplication.getRundenZaehler().setMaxRunde(-1);
+        gameApplication.getAlbum().reset();
     }
     @Override
     protected void onDestroy() {

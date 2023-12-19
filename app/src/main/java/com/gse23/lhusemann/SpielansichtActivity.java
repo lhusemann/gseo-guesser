@@ -225,11 +225,6 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                 AlertDialog.Builder back = new AlertDialog.Builder(SpielansichtActivity.this);
                 back.setMessage("Möchtest du das aktuelle Spiel wirklich beeenden?")
                         .setPositiveButton("Ja", (dialog, id) -> {
-                            gameApplication.getAlbum().reset();
-                            gameApplication.getRundenZaehler().setRunde(0);
-                            gameApplication.getRundenZaehler().setRundenlaenge(0);
-                            gameApplication.getRundenZaehler().setMaxRunde(0);
-                            gameApplication.getAlbum().reset();
                             stopTimer();
                             finish();
                         })
@@ -276,10 +271,6 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         AlertDialog.Builder back = new AlertDialog.Builder(SpielansichtActivity.this);
         back.setMessage("Möchtest du das aktuelle Spiel wirklich beeenden?")
                 .setPositiveButton("Ja", (dialog, id) -> {
-                    gameApplication.getAlbum().reset();
-                    gameApplication.getRundenZaehler().setRunde(0);
-                    gameApplication.getRundenZaehler().setRundenlaenge(0);
-                    gameApplication.getRundenZaehler().setMaxRunde(0);
                     stopTimer();
                     finish();
                 })
@@ -292,9 +283,10 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
     private void addBilderInAlbum() throws CorruptedExifDataException {
         String[] paths = ReadExif.getPath(getApplicationContext(), gameApplication.getAlbum().getName(), gameApplication.getAlbum().isDownloaded()).toArray(new String[0]);
         for (int i = 0; i < paths.length; i++) {
-            Bild aktuellesBild = new Bild(ReadExif.getNames(getApplicationContext(), gameApplication.getAlbum().getName(), gameApplication.getAlbum().isDownloaded())[i], ReadExif.getExifdata(paths[i], ExifInterface.TAG_IMAGE_DESCRIPTION, SpielansichtActivity.this),
-                    ReadExif.getExifdata(paths[i], ExifInterface.TAG_GPS_LONGITUDE, SpielansichtActivity.this),
-                    ReadExif.getExifdata(paths[i], ExifInterface.TAG_GPS_LATITUDE, SpielansichtActivity.this));
+            Bild aktuellesBild = new Bild(ReadExif.getNames(getApplicationContext(), gameApplication.getAlbum().getName(), gameApplication.getAlbum().isDownloaded())[i], ReadExif.getExifdata(paths[i], ExifInterface.TAG_IMAGE_DESCRIPTION, SpielansichtActivity.this, gameApplication.getAlbum().isDownloaded()),
+                    ReadExif.getExifdata(paths[i], ExifInterface.TAG_GPS_LONGITUDE, SpielansichtActivity.this, gameApplication.getAlbum().isDownloaded()),
+                    ReadExif.getExifdata(paths[i], ExifInterface.TAG_GPS_LATITUDE, SpielansichtActivity.this, gameApplication.getAlbum().isDownloaded()));
+            Log.i("bild",""+aktuellesBild.getName());
             gameApplication.getAlbum().addBild(aktuellesBild);
         }
     }
@@ -315,16 +307,6 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
             AlertDialog alert = error.create();
             alert.show();
         }
-    }
-    //macht ein File zu Drawable
-    private Drawable makeDrawable(String filepath) {
-        Drawable erschaffen;
-        try (InputStream in =  getAssets().open(filepath)) {
-            erschaffen = Drawable.createFromStream(in, "src");
-        } catch (IOException e) {
-            return null;
-        }
-        return erschaffen;
     }
     //startet URL, ich habe dies Methode im Internet gefunden: https://www.youtube.com/watch?v=TU-yDCgpbZw
     private void openLink(String link) {
@@ -389,8 +371,8 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                 longitudeField.setText(null);
                 latitudeField.setText(null);
                 beschreibung.setText(gameApplication.getAlbum().getBild((int) propertyChangeEvent.getNewValue()-1).getDescription());
-                bild.setImageDrawable(makeDrawable(album + "/" + folder + "/"
-                        + gameApplication.getAlbum().getBild((int) propertyChangeEvent.getNewValue()-1).getName()));
+                //bild.setImageDrawable(makeDrawable(album + "/" + folder + "/" + gameApplication.getAlbum().getBild((int) propertyChangeEvent.getNewValue()-1).getName()));
+                bild.setImageDrawable(gameApplication.getAlbum().getBild((int) propertyChangeEvent.getNewValue()-1).getDrawable(gameApplication.getAlbum().getName(), SpielansichtActivity.this, gameApplication.getAlbum().isDownloaded()));
                 gameApplication.getAlbum().logExifNoDec((int) propertyChangeEvent.getNewValue()-1);
                 runde.setText("" + (int) propertyChangeEvent.getNewValue());
                 linkText.setText(noGuess);
