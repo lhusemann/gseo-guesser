@@ -136,7 +136,6 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
             @Override
             public void onClick(View button) {
                 gameApplication.getRundenZaehler().incRunde();
-                gameApplication.getGesamtscore().incGesamtscore(gameApplication.getPunkte().getPunkte());
                 gameApplication.getPunkte().safePunkte();
                 gameApplication.getPunkte().reset();
                 gameApplication.getDistanz().resetDistance();
