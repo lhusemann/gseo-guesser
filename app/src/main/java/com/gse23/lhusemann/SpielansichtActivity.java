@@ -76,13 +76,14 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
     int counter;
     boolean rundeVorbei = false;
     boolean vielleichtKeinWertEinloggen = false;
+    boolean firstSkip = true;
     //Diese Methode wird beim Start ausgeführt
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_spielansicht);
         gameApplication = (GameApplication) getApplication();
-        gameApplication.setMarkerKoordinaten(new MarkerKoordinaten(0,0));
+        gameApplication.setMarkerKoordinaten(new MarkerKoordinaten(200,200));
         gameApplication.getMarkerKoordinaten().addListener(this);
         gameApplication.getRundenZaehler().addListener(this);
         gameApplication.getAlbum().addListener(this);
@@ -128,7 +129,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
             this.bilderLoggen();
         } catch (CorruptedExifDataException | NoImagesInAlbumException e) {
             return;
-            //Exceptionbehandlung für Nutzer passiert im catch von bilderLoggen() und getExifData()
+            //Exceptionbehandlung für Nutzer passiert im catch von bilderLoggen() und getExifData()-----------------------------------------------------------------------
         }
         gameApplication.getAlbum().mix();
         //Dies soll passieren, wenn auf den Next-Button gedrückt wird
@@ -136,7 +137,9 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
             @Override
             public void onClick(View button) {
                 gameApplication.getRundenZaehler().incRunde();
-                gameApplication.getPunkte().safePunkte();
+                if (!firstSkip) {
+                    gameApplication.getPunkte().safePunkte();
+                }
                 gameApplication.getPunkte().reset();
                 gameApplication.getDistanz().resetDistance();
             }
@@ -163,6 +166,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         }));
         // da ich direkt bei einem Bild starten möchte drücke ich die next Taste einmal manuell beim Start
         nextButton.performClick();
+        firstSkip = false;
         //Das soll passieren wenn wir auf Bestätigen drücken
         validButton.setOnClickListener(new View.OnClickListener()  {
             @Override
@@ -251,11 +255,16 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
-        gameApplication.setPunkte(new Punkte(0));
-        gameApplication.setMarkerKoordinaten(new MarkerKoordinaten(0,0));
-        gameApplication.setDistanz(new Distanz(0.0));
-        //---------------------------------------------------------------------------------------musst du noch testen listener noch aktiv ist
+        // resette alles, glaube listener funktioniert noch, also mach nicht new. Passt auf die Lise auf am Ende und mach den start boolean wieder true und nach button click wieder false
+        gameApplication.getGesamtscore().setGesamtscore(0);
+        gameApplication.getPunkte().reset();
+        gameApplication.getPunkte().resetScores();
+        gameApplication.getMarkerKoordinaten().setLongitude(200);
+        gameApplication.getMarkerKoordinaten().setLatitude(200);
+        gameApplication.getDistanz().resetDistance();
+        firstSkip = true;
         nextButton.performClick();
+        firstSkip = false;
     }
     //Wenn die Activity pausiert wird, soll die Karte pausiert werden
     @Override
@@ -365,7 +374,6 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                 runde.setText("" + (int) propertyChangeEvent.getNewValue());
                 linkText.setText(noGuess);
                 linkText.setTextColor(Color.parseColor(normalColor));
-                distanzText.setText(noDistance);
                 karte.getOverlays().remove(markerCorrect);
                 karte.getOverlays().remove(nutzerMarker);
                 karte.getOverlays().remove(nutzerMarker);
@@ -426,6 +434,9 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                 karte.zoomToBoundingBox(BoundingBox.fromGeoPointsSafe(geoPoints).increaseByScale(1.5f), true);
             });
             rundeVorbei = true;
+        }
+        if (changeName.equals("resetDistanz")) {
+            distanzText.setText(noDistance);
         }
     }
     //Wenn die Activity beeendet wird, müssen die Listener entfernt werden
