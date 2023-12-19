@@ -39,6 +39,7 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
     boolean validR;
     boolean validL;
     boolean ignoreCauseNoImage = false;
+    boolean notResume = true;
     int indexDownloaded = 0;
     //Diese Methode wird beim Start ausgeführt
     @Override
@@ -195,30 +196,34 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
     public void propertyChange(PropertyChangeEvent propertyChangeEvent) {
         String changeName = propertyChangeEvent.getPropertyName();
         if (changeName.equals("maxRunde")) {
-            if ((int) propertyChangeEvent.getNewValue() > getImagesCount(gameApplication.getAlbum().getName()) && !ignoreCauseNoImage) {
-                Toast.makeText(this, "Rundenanzahl uebertrifft Bilder in Album!", Toast.LENGTH_SHORT).show();
-                validR = false;
-            } else if ((int) propertyChangeEvent.getNewValue() < 1) {
-                if (getImagesCount(gameApplication.getAlbum().getName()) == 0) {
-                    ignoreCauseNoImage = true;
-                } else {
-                    ignoreCauseNoImage = false;
-                    Toast.makeText(this, "Du musst min. eine Runde spielen!", Toast.LENGTH_SHORT).show();
+            if (notResume) {
+                if ((int) propertyChangeEvent.getNewValue() > getImagesCount(gameApplication.getAlbum().getName()) && !ignoreCauseNoImage) {
+                    Toast.makeText(this, "Rundenanzahl uebertrifft Bilder in Album!", Toast.LENGTH_SHORT).show();
                     validR = false;
+                } else if ((int) propertyChangeEvent.getNewValue() < 1) {
+                    if (getImagesCount(gameApplication.getAlbum().getName()) == 0) {
+                        ignoreCauseNoImage = true;
+                    } else {
+                        ignoreCauseNoImage = false;
+                        Toast.makeText(this, "Du musst min. eine Runde spielen!", Toast.LENGTH_SHORT).show();
+                        validR = false;
+                    }
+                } else {
+                    validR = true;
                 }
-            } else {
-                validR = true;
             }
         }
         if (changeName.equals("rundenlaenge")) {
-            if ((int) propertyChangeEvent.getNewValue() > 60) {
-                Toast.makeText(this, "Eine Runde kann maximal 60 Sekunden lang sein", Toast.LENGTH_SHORT).show();
-                validL = false;
-            } else if ((int) propertyChangeEvent.getNewValue() < 10) {
-                Toast.makeText(this, "Eine Runde muss mindestens 10 Sekunden lang sein", Toast.LENGTH_SHORT).show();
-                validL = false;
-            } else {
-                validL = true;
+            if (notResume) {
+                if ((int) propertyChangeEvent.getNewValue() > 60) {
+                    Toast.makeText(this, "Eine Runde kann maximal 60 Sekunden lang sein", Toast.LENGTH_SHORT).show();
+                    validL = false;
+                } else if ((int) propertyChangeEvent.getNewValue() < 10) {
+                    Toast.makeText(this, "Eine Runde muss mindestens 10 Sekunden lang sein", Toast.LENGTH_SHORT).show();
+                    validL = false;
+                } else {
+                    validL = true;
+                }
             }
         }
     }
@@ -226,10 +231,13 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
     @Override
     protected void onResume() {
         super.onResume();
+        notResume = false;
         gameApplication.getRundenZaehler().setRunde(0);
         gameApplication.getRundenZaehler().setRundenlaenge(0);
         gameApplication.getRundenZaehler().setMaxRunde(-1);
         gameApplication.getAlbum().reset();
+        spinner.setSelection(0, false);
+        notResume = true;
     }
     //Wenn die Activity beeendet wird, müssen die Listener entfernt werden
     @Override
