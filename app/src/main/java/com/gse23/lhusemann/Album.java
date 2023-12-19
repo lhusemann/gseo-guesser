@@ -36,7 +36,7 @@ public class Album {
         this.support.firePropertyChange("addBild", alt, album);
     }
     public Bild getBild(int index) {
-        if (album.size()>=index) {
+        if (album.size() >= index) {
             return album.get(index);
         } else {
             return null;
@@ -67,7 +67,7 @@ public class Album {
         this.downloaded = false;
     }
     public void logExif(int index) {
-        if (album.size()>=index) {
+        if (album.size() >= index) {
             album.get(index).logName();
             album.get(index).logDescription();
             album.get(index).logLongtitude();
@@ -75,7 +75,7 @@ public class Album {
         }
     }
     public void logExifNoDec(int index) {
-        if (album.size()>=index) {
+        if (album.size() >= index) {
             album.get(index).logName();
             album.get(index).logLongtitude();
             album.get(index).logLatitude();

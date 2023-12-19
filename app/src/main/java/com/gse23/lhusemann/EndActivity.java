@@ -65,7 +65,7 @@ public class EndActivity extends AppCompatActivity implements PropertyChangeList
         StringBuilder rundenText = new StringBuilder();
         for (int i = 0; i < scores.size(); i++) {
             scoreTexte.append(scores.get(i)).append("\n");
-            rundenText.append("Runde " + (i+1) + ": \n");
+            rundenText.append("Runde " + (i + 1) + ": \n");
         }
         rundenTexte.setText(rundenText);
         rundenScores.setText(scoreTexte);
@@ -76,10 +76,6 @@ public class EndActivity extends AppCompatActivity implements PropertyChangeList
     //Wenn in einem Model eine Sache verändert wird, wird hier gesagt, was passieren soll
     @Override
     public void propertyChange(PropertyChangeEvent propertyChangeEvent) {
-        String changeName = propertyChangeEvent.getPropertyName();
-        if (changeName.equals("nein")) {
-
-        }
     }
     //Wenn die Activity beeendet wird, müssen die Listener entfernt werden
     @Override

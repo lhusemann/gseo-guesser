@@ -25,6 +25,12 @@ import com.google.android.material.snackbar.Snackbar;
  * Das ist die MainActivity, die zuerst ausgeführt wird, wenn die App gestartet wird.
  */
 public class MainActivity extends AppCompatActivity implements PropertyChangeListener {
+    private static final int minSekunden = 10;
+    private static final int maxSekunden = 60;
+    private static final int sdtLaenge = 30;
+    private static final int sdtRunden = 5;
+    private static final int downloadedTag = 18;
+
     GameApplication gameApplication;
     Spinner spinner;
     Button startButton;
@@ -47,7 +53,7 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         gameApplication = (GameApplication) getApplication();
-        gameApplication.setRundezaehler(new Rundenzaehler(0,-1,0));
+        gameApplication.setRundezaehler(new Rundenzaehler(0, -1, 0));
         gameApplication.getRundenZaehler().addListener(this);
         gameApplication.setAlbum(new Album(""));
         gameApplication.getAlbum().addListener(this);
@@ -59,7 +65,8 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
         rundenLaenge = findViewById(R.id.rundenlaengeField);
         auswahlmoeglichkeitenListe = new ArrayList<>();
         album = "albums";
-        auswahlAdapter = new ArrayAdapter<>(this, androidx.appcompat.R.layout.support_simple_spinner_dropdown_item,auswahlmoeglichkeitenListe);
+        auswahlAdapter = new ArrayAdapter<>(this, androidx.appcompat.R.layout
+                .support_simple_spinner_dropdown_item, auswahlmoeglichkeitenListe);
         spinner.setAdapter(auswahlAdapter);
         //wenn im Spinner etwas neues ausgewählt wird, wird hier damit umgegangen
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -71,11 +78,12 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
                 } else {
                     gameApplication.getAlbum().setDownloaded(position > indexDownloaded);
                     if (gameApplication.getAlbum().isDownloaded()) {
-                        gameApplication.getAlbum().setName((spinner.getSelectedItem().toString()).substring(0, (spinner.getSelectedItem().toString()).length() - 18));
+                        gameApplication.getAlbum().setName((spinner.getSelectedItem().toString())
+                                .substring(0, (spinner.getSelectedItem().toString()).length() - downloadedTag));
                     } else {
                         gameApplication.getAlbum().setName((spinner.getSelectedItem().toString()));
                     }
-                    if (getImagesCount(gameApplication.getAlbum().getName())<5) {
+                    if (getImagesCount(gameApplication.getAlbum().getName()) < sdtRunden) {
                         rundenAnzahl.setHint("" + getImagesCount(gameApplication.getAlbum().getName()));
                     } else {
                         rundenAnzahl.setHint("5");
@@ -92,20 +100,23 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
             @Override
             public void onClick(View button) {
                 if (keineAuswahl) {
-                    Snackbar.make(button, "Du hast keinen Ordner ausgewählt!" , Snackbar.LENGTH_SHORT).show();
+                    Snackbar.make(button, "Du hast keinen Ordner ausgewählt!", Snackbar.LENGTH_SHORT).show();
                 } else {
                     if (rundenAnzahl.getText().toString().equals("")) {
-                        gameApplication.getRundenZaehler().setMaxRunde(Math.min(getImagesCount(gameApplication.getAlbum().getName()), 5));
+                        gameApplication.getRundenZaehler().setMaxRunde(Math.min(getImagesCount(gameApplication
+                                .getAlbum().getName()), sdtRunden));
                     } else {
-                        gameApplication.getRundenZaehler().setMaxRunde(Integer.parseInt(rundenAnzahl.getText().toString()));
+                        gameApplication.getRundenZaehler().setMaxRunde(Integer.parseInt(rundenAnzahl.getText()
+                                .toString()));
                     }
                     if (ignoreCauseNoImage) {
                         gameApplication.getRundenZaehler().setMaxRunde(2);
                     }
                     if (rundenLaenge.getText().toString().equals("")) {
-                        gameApplication.getRundenZaehler().setRundenlaenge(30);
+                        gameApplication.getRundenZaehler().setRundenlaenge(sdtLaenge);
                     } else {
-                        gameApplication.getRundenZaehler().setRundenlaenge(Integer.parseInt(rundenLaenge.getText().toString()));
+                        gameApplication.getRundenZaehler().setRundenlaenge(Integer.parseInt(rundenLaenge.getText()
+                                .toString()));
                     }
                     if (validL && validR) {
                         Intent intent = new Intent(MainActivity.this, SpielansichtActivity.class);
@@ -129,8 +140,10 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
                 auswahlAdapter.clear();
                 auswahlmoeglichkeitenListe.add("Kein Ordner ausgewaehlt");
                 try {
-                    if (getAssets().list(album) != null && ReadExif.getFolderInhalt(album, MainActivity.this, false).length > 0) {
-                        auswahlmoeglichkeitenListe.addAll(Arrays.asList(ReadExif.getFolderInhalt(album, MainActivity.this, false)));
+                    if (getAssets().list(album) != null && ReadExif.getFolderInhalt(album, MainActivity.this, false)
+                            .length > 0) {
+                        auswahlmoeglichkeitenListe.addAll(Arrays.asList(ReadExif.getFolderInhalt(album, MainActivity
+                                .this, false)));
                         indexDownloaded = ReadExif.getFolderInhalt(album, MainActivity.this, false).length;
                     }
                 } catch (IOException e) {
@@ -176,7 +189,7 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
         }
     }
     //gibt anzahl der Bilder in einem Ordner wieder
-    private int getImagesCount(String folder) { // folder ist nur der name des album!
+    private int getImagesCount(String folder) {
         int counter = 0;
         String vorPath;
         if (gameApplication.getAlbum().isDownloaded()) {
@@ -184,7 +197,8 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
         } else {
             vorPath = album + "/" + folder;
         }
-        for (String file : ReadExif.getFolderInhalt(vorPath, MainActivity.this, gameApplication.getAlbum().isDownloaded())) {
+        for (String file : ReadExif.getFolderInhalt(vorPath, MainActivity.this, gameApplication.getAlbum()
+                .isDownloaded())) {
             if (this.isImage(file)) {
                 counter++;
             }
@@ -197,7 +211,8 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
         String changeName = propertyChangeEvent.getPropertyName();
         if (changeName.equals("maxRunde")) {
             if (notResume) {
-                if ((int) propertyChangeEvent.getNewValue() > getImagesCount(gameApplication.getAlbum().getName()) && !ignoreCauseNoImage) {
+                if ((int) propertyChangeEvent.getNewValue() > getImagesCount(gameApplication.getAlbum().getName())
+                        && !ignoreCauseNoImage) {
                     Toast.makeText(this, "Rundenanzahl uebertrifft Bilder in Album!", Toast.LENGTH_SHORT).show();
                     validR = false;
                 } else if ((int) propertyChangeEvent.getNewValue() < 1) {
@@ -215,11 +230,12 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
         }
         if (changeName.equals("rundenlaenge")) {
             if (notResume) {
-                if ((int) propertyChangeEvent.getNewValue() > 60) {
+                if ((int) propertyChangeEvent.getNewValue() > maxSekunden) {
                     Toast.makeText(this, "Eine Runde kann maximal 60 Sekunden lang sein", Toast.LENGTH_SHORT).show();
                     validL = false;
-                } else if ((int) propertyChangeEvent.getNewValue() < 10) {
-                    Toast.makeText(this, "Eine Runde muss mindestens 10 Sekunden lang sein", Toast.LENGTH_SHORT).show();
+                } else if ((int) propertyChangeEvent.getNewValue() < minSekunden) {
+                    Toast.makeText(this, "Eine Runde muss mindestens 10 Sekunden lang sein", Toast.LENGTH_SHORT)
+                            .show();
                     validL = false;
                 } else {
                     validL = true;

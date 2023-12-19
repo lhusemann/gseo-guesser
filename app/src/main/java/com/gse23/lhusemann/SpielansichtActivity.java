@@ -41,6 +41,20 @@ import org.osmdroid.views.overlay.Polyline;
  * Dies ist die Spielansicht, in der das Spiel gespielt wird
  */
 public class SpielansichtActivity extends AppCompatActivity implements PropertyChangeListener {
+    private static final String album = "albums";
+    private static final String noGuess = "Kein Guess abgegeben.";
+    private static final String noDistance = "keine Schaetzung abgegeben";
+    private static final String komma = ",";
+    private static final String normalColor = "#808080";
+    private static final String hint = "Hinweis";
+    private static final String ok = "Ok";
+    private static final int lineBreite = 20;
+    private static final int sekunde = 1000;
+    private static final double weltBreite = 85.0;
+    private static final double weltLaenge = 180.0;
+    private static final float zoomWelt = 1.5f;
+    private static final String nutzerMarkName = "Ihre Eingabe";
+
     GameApplication gameApplication;
     Button nextButton;
     Button validButton;
@@ -63,13 +77,6 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
     Context context;
     IConfigurationProvider provider;
     String folder;
-    String album = "albums";
-    String noGuess;
-    String noDistance;
-    String komma = ",";
-    String normalColor = "#808080";
-    String hint = "Hinweis";
-    String ok = "Ok";
     TimerTask timerTask;
     Timer timer;
     Handler timerHandler = new Handler();
@@ -83,7 +90,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_spielansicht);
         gameApplication = (GameApplication) getApplication();
-        gameApplication.setMarkerKoordinaten(new MarkerKoordinaten(200,200));
+        gameApplication.setMarkerKoordinaten(new MarkerKoordinaten(0, 0));
         gameApplication.getMarkerKoordinaten().addListener(this);
         gameApplication.getRundenZaehler().addListener(this);
         gameApplication.getAlbum().addListener(this);
@@ -117,11 +124,9 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         line = new Polyline();
         Paint paint = line.getOutlinePaint();
         paint.setColor(Color.RED);
-        paint.setStrokeWidth(20);
+        paint.setStrokeWidth(lineBreite);
         nutzerMarker = new Marker(karte);
         markerCorrect = new Marker(karte);
-        noGuess = "Kein Guess abgegeben.";
-        noDistance = "keine Schaetzung abgegeben";
         folder = gameApplication.getAlbum().getName();
         Log.i("Auswahl", "Das Album " + folder + " wurde ausgewaehlt.");
         try {
@@ -147,12 +152,12 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         // folgendes passiert bei clicken auf die Map
         karte.getOverlays().add(new MapEventsOverlay(new MapEventsReceiver() {
             @Override
-            public boolean singleTapConfirmedHelper(GeoPoint p) {
+            public boolean singleTapConfirmedHelper(GeoPoint clickedP) {
                 if (!rundeVorbei) {
-                    gameApplication.getMarkerKoordinaten().setLatitude(p.getLatitude());
-                    gameApplication.getMarkerKoordinaten().setLongitude(p.getLongitude());
+                    gameApplication.getMarkerKoordinaten().setLatitude(clickedP.getLatitude());
+                    gameApplication.getMarkerKoordinaten().setLongitude(clickedP.getLongitude());
                     nutzerMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
-                    nutzerMarker.setTitle("Ihre Eingabe");
+                    nutzerMarker.setTitle(nutzerMarkName);
                     karte.getOverlays().add(nutzerMarker);
                     karte.invalidate();
                 }
@@ -160,7 +165,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
             }
 
             @Override
-            public boolean longPressHelper(GeoPoint p) {
+            public boolean longPressHelper(GeoPoint clickedP) {
                 return false;
             }
         }));
@@ -172,27 +177,31 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
             @Override
             public void onClick(View button) {
                 if (rundeVorbei) {
-                    Snackbar.make(button, "Runde vorbei!" , Snackbar.LENGTH_SHORT).show();
+                    Snackbar.make(button, "Runde vorbei!", Snackbar.LENGTH_SHORT).show();
                 } else {
                     if (Formatierung.isValidLongitude(longitudeField.getText().toString())
                             && Formatierung.isValidLatitude(latitudeField.getText().toString())) {
                         stopTimer();
                         String latOne = latitudeField.getText().toString();
                         String lonOne = longitudeField.getText().toString();
-                        String latTwo = gameApplication.getAlbum().getBild(gameApplication.getRundenZaehler().getRunde() - 1).getLatitude().toString();
-                        String lonTwo = gameApplication.getAlbum().getBild(gameApplication.getRundenZaehler().getRunde() - 1).getLongtitude().toString();
+                        String latTwo = gameApplication.getAlbum().getBild(gameApplication.getRundenZaehler()
+                                .getRunde() - 1).getLatitude().toString();
+                        String lonTwo = gameApplication.getAlbum().getBild(gameApplication.getRundenZaehler()
+                                .getRunde() - 1).getLongtitude().toString();
                         gameApplication.getMarkerKoordinaten().setLongitude(Double.parseDouble(lonOne));
                         gameApplication.getMarkerKoordinaten().setLatitude(Double.parseDouble(latOne));
-                        gameApplication.getDistanz().calcDistance(gameApplication.getMarkerKoordinaten().getLatitude()
-                                , gameApplication.getAlbum().getBild(gameApplication.getRundenZaehler().getRunde() - 1).getLatitude()
-                                , gameApplication.getMarkerKoordinaten().getLongitude(), gameApplication.getAlbum()
-                                        .getBild(gameApplication.getRundenZaehler().getRunde() - 1).getLongtitude());
+                        gameApplication.getDistanz().calcDistance(gameApplication.getMarkerKoordinaten()
+                                .getLatitude(), gameApplication.getAlbum().getBild(gameApplication.getRundenZaehler()
+                                        .getRunde() - 1).getLatitude(), gameApplication.getMarkerKoordinaten()
+                                .getLongitude(), gameApplication.getAlbum().getBild(gameApplication
+                                .getRundenZaehler().getRunde() - 1).getLongtitude());
                         gameApplication.getPunkte().berechne(gameApplication.getDistanz().getDistance());
                         gameApplication.getGesamtscore().incGesamtscore(gameApplication.getPunkte().getPunkte());
                     } else {
                         if (!vielleichtKeinWertEinloggen) {
                             AlertDialog.Builder error = new AlertDialog.Builder(SpielansichtActivity.this);
-                            error.setMessage("Die eingegebenen Werte sind nicht Valide! Der Längengrad darf nur zwischen"
+                            error.setMessage("Die eingegebenen Werte sind nicht Valide! Der Längengrad darf nur" +
+                                            " zwischen"
                                             + "-180 und +180, und der Breitengrad zwischen -90 und +90 liegen!")
                                     .setPositiveButton(ok, (dialog, id) -> {
                                     })
@@ -208,8 +217,8 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         showButton.setOnClickListener(new View.OnClickListener()  {
             @Override
             public void onClick(View button) {
-                //zeige markerkoords setzte marker maybe wiel da gezeigt wird und center halt
-                if (!latitudeField.getText().toString().equals("") || !longitudeField.getText().toString().equals("")) {
+                if (!latitudeField.getText().toString().equals("") || !longitudeField.getText().toString()
+                        .equals("")) {
                     double lati = Double.parseDouble(latitudeField.getText().toString());
                     double longi = Double.parseDouble(longitudeField.getText().toString());
                     IMapController mapController = karte.getController();
@@ -255,12 +264,11 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
-        // resette alles, glaube listener funktioniert noch, also mach nicht new. Passt auf die Lise auf am Ende und mach den start boolean wieder true und nach button click wieder false
         gameApplication.getGesamtscore().setGesamtscore(0);
         gameApplication.getPunkte().reset();
         gameApplication.getPunkte().resetScores();
-        gameApplication.getMarkerKoordinaten().setLongitude(200);
-        gameApplication.getMarkerKoordinaten().setLatitude(200);
+        gameApplication.getMarkerKoordinaten().setLongitude(0);
+        gameApplication.getMarkerKoordinaten().setLatitude(0);
         gameApplication.getDistanz().resetDistance();
         firstSkip = true;
         nextButton.performClick();
@@ -279,12 +287,17 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
     }
     //erstellt das Album aus allen Bilder des Ordners
     private void addBilderInAlbum() throws CorruptedExifDataException {
-        String[] paths = ReadExif.getPath(getApplicationContext(), gameApplication.getAlbum().getName(), gameApplication.getAlbum().isDownloaded()).toArray(new String[0]);
+        String[] paths = ReadExif.getPath(getApplicationContext(), gameApplication.getAlbum()
+                .getName(), gameApplication.getAlbum().isDownloaded()).toArray(new String[0]);
         for (int i = 0; i < paths.length; i++) {
-            Bild aktuellesBild = new Bild(ReadExif.getNames(getApplicationContext(), gameApplication.getAlbum().getName(), gameApplication.getAlbum().isDownloaded())[i], ReadExif.getExifdata(paths[i], ExifInterface.TAG_IMAGE_DESCRIPTION, SpielansichtActivity.this, gameApplication.getAlbum().isDownloaded()),
-                    ReadExif.getExifdata(paths[i], ExifInterface.TAG_GPS_LONGITUDE, SpielansichtActivity.this, gameApplication.getAlbum().isDownloaded()),
-                    ReadExif.getExifdata(paths[i], ExifInterface.TAG_GPS_LATITUDE, SpielansichtActivity.this, gameApplication.getAlbum().isDownloaded()));
-            Log.i("bild","" + aktuellesBild.getName());
+            Bild aktuellesBild = new Bild(ReadExif.getNames(getApplicationContext(), gameApplication.getAlbum()
+                    .getName(), gameApplication.getAlbum().isDownloaded())[i], ReadExif
+                    .getExifdata(paths[i], ExifInterface.TAG_IMAGE_DESCRIPTION, SpielansichtActivity
+                            .this, gameApplication.getAlbum().isDownloaded()),
+                    ReadExif.getExifdata(paths[i], ExifInterface.TAG_GPS_LONGITUDE, SpielansichtActivity
+                            .this, gameApplication.getAlbum().isDownloaded()),
+                    ReadExif.getExifdata(paths[i], ExifInterface.TAG_GPS_LATITUDE, SpielansichtActivity
+                            .this, gameApplication.getAlbum().isDownloaded()));
             gameApplication.getAlbum().addBild(aktuellesBild);
         }
     }
@@ -312,28 +325,29 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         startActivity(new Intent(Intent.ACTION_VIEW, uri));
     }
     //koopiert von https://stackoverflow.com/questions/10029831/how-do-you-use-a-timertask-to-run-a-thread
-    private void stopTimer(){
-        if(timer != null){
+    private void stopTimer() {
+        if (timer != null) {
             timer.cancel();
             timer.purge();
             counter = 0;
             timerText.setText("" + counter);
         }
     }
-    //KANNST DU IN EIGENE KLASSE MIT PROPERTYCHANGE MACHEN!!!!!!!!
+    //KANNST DU IN EIGENE KLASSE MIT PROPERTYCHANGE MACHEN!!!!!!!!--------------------------------------------------------------------------------------------------
     //koopiert von https://stackoverflow.com/questions/10029831/how-do-you-use-a-timertask-to-run-a-thread
-    private void startTimer(){
+    private void startTimer() {
         timer = new Timer();
         counter = gameApplication.getRundenZaehler().getRundenlaenge();
         timerTask = new TimerTask() {
             public void run() {
                 timerHandler.post(new Runnable() {
-                    public void run(){
+                    public void run() {
                         timerText.setText("" + counter);
                         counter--;
-                        if (counter<0) {
+                        if (counter < 0) {
                             stopTimer();
-                            Toast.makeText(SpielansichtActivity.this, "Die Zeit ist abgelaufen!", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(SpielansichtActivity.this, "Die Zeit ist abgelaufen!", Toast.LENGTH_SHORT)
+                                    .show();
                             vielleichtKeinWertEinloggen = true;
                             validButton.performClick();
                             rundeVorbei = true;
@@ -343,7 +357,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
             }
         };
 
-        timer.schedule(timerTask, 1, 1000);
+        timer.schedule(timerTask, 1, sekunde);
     }
     //Wenn in einem Model eine Sache verändert wird, wird hier gesagt, was passieren soll
     @Override
@@ -365,12 +379,16 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         }
         if (changeName.equals("RundenInc")) {
             stopTimer();
-            if ((int) propertyChangeEvent.getNewValue() <= gameApplication.getRundenZaehler().getMaxRunde() && gameApplication.getAlbum().getSize() > 0) {
+            if ((int) propertyChangeEvent.getNewValue() <= gameApplication.getRundenZaehler().getMaxRunde()
+                    && gameApplication.getAlbum().getSize() > 0) {
                 longitudeField.setText(null);
                 latitudeField.setText(null);
-                beschreibung.setText(gameApplication.getAlbum().getBild((int) propertyChangeEvent.getNewValue()-1).getDescription());
-                bild.setImageDrawable(gameApplication.getAlbum().getBild((int) propertyChangeEvent.getNewValue()-1).getDrawable(gameApplication.getAlbum().getName(), SpielansichtActivity.this, gameApplication.getAlbum().isDownloaded()));
-                gameApplication.getAlbum().logExifNoDec((int) propertyChangeEvent.getNewValue()-1);
+                beschreibung.setText(gameApplication.getAlbum().getBild((int) propertyChangeEvent.getNewValue() - 1)
+                        .getDescription());
+                bild.setImageDrawable(gameApplication.getAlbum().getBild((int) propertyChangeEvent.getNewValue() - 1)
+                        .getDrawable(gameApplication.getAlbum().getName(), SpielansichtActivity.this, gameApplication
+                                .getAlbum().isDownloaded()));
+                gameApplication.getAlbum().logExifNoDec((int) propertyChangeEvent.getNewValue() - 1);
                 runde.setText("" + (int) propertyChangeEvent.getNewValue());
                 linkText.setText(noGuess);
                 linkText.setTextColor(Color.parseColor(normalColor));
@@ -379,8 +397,8 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                 karte.getOverlays().remove(nutzerMarker);
                 karte.getOverlays().remove(line);
                 List<GeoPoint> weltKarte = new ArrayList<>();
-                weltKarte.add(new GeoPoint(85.0, 180.0));
-                weltKarte.add(new GeoPoint(-85.0, -180.0));
+                weltKarte.add(new GeoPoint(weltBreite, weltLaenge));
+                weltKarte.add(new GeoPoint(-weltBreite, -weltLaenge));
                 karte.post(() -> {
                     karte.zoomToBoundingBox(BoundingBox.fromGeoPointsSafe(weltKarte), false);
                 });
@@ -416,13 +434,14 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
             distanzText.setText(Formatierung.getUnit((double) propertyChangeEvent.getNewValue()));
 
             List<GeoPoint> geoPoints = new ArrayList<>();
-            geoPoints.add(new GeoPoint(gameApplication.getMarkerKoordinaten().getLatitude(), gameApplication.getMarkerKoordinaten().getLongitude()));
-            geoPoints.add(new GeoPoint(gameApplication.getAlbum().getBild(gameApplication.getRundenZaehler().getRunde()-1).
-                    getLatitude(), gameApplication.getAlbum().getBild(gameApplication.getRundenZaehler().getRunde()-1).
-                    getLongtitude()));
+            geoPoints.add(new GeoPoint(gameApplication.getMarkerKoordinaten().getLatitude(), gameApplication
+                    .getMarkerKoordinaten().getLongitude()));
+            geoPoints.add(new GeoPoint(gameApplication.getAlbum().getBild(gameApplication.getRundenZaehler()
+                    .getRunde() - 1).getLatitude(), gameApplication.getAlbum().getBild(gameApplication
+                            .getRundenZaehler().getRunde() - 1).getLongtitude()));
             nutzerMarker.setPosition(geoPoints.get(0));
             nutzerMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
-            nutzerMarker.setTitle("Ihre Eingabe");
+            nutzerMarker.setTitle(nutzerMarkName);
             karte.getOverlays().add(nutzerMarker);
             markerCorrect.setPosition(geoPoints.get(1));
             markerCorrect.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
@@ -431,7 +450,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
             line.setPoints(geoPoints);
             karte.getOverlays().add(line);
             karte.post(() -> {
-                karte.zoomToBoundingBox(BoundingBox.fromGeoPointsSafe(geoPoints).increaseByScale(1.5f), true);
+                karte.zoomToBoundingBox(BoundingBox.fromGeoPointsSafe(geoPoints).increaseByScale(zoomWelt), true);
             });
             rundeVorbei = true;
         }

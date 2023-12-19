@@ -29,6 +29,8 @@ import java.util.Objects;
  * Das ist die DownloadActivity, die ausgeführt wird wenn man auf Download in der MainActivity drückt
  */
 public class DownloadActivity extends AppCompatActivity {
+    private final static String internAlbumName = "/Album";
+
     Button anfrageButton;
     Button zurueckButton;
     Button downloadButton;
@@ -49,7 +51,7 @@ public class DownloadActivity extends AppCompatActivity {
         //Das passiert wenn man auf den Anfragen Button drückt
         anfrageButton.setOnClickListener(new View.OnClickListener()  {
             @Override
-            public void onClick(View button){
+            public void onClick(View button) {
                 final TextView urlText = findViewById(R.id.urlText);
                 final String url = Objects.requireNonNull(urlText.getText()).toString();
                 final StringRequest request = buildRequestAlbenListe(url);
@@ -60,7 +62,7 @@ public class DownloadActivity extends AppCompatActivity {
         //Das passiert wenn man auf den Zurück Button drückt
         zurueckButton.setOnClickListener(new View.OnClickListener()  {
             @Override
-            public void onClick(View button){
+            public void onClick(View button) {
                 AlertDialog.Builder back = new AlertDialog.Builder(DownloadActivity.this);
                 back.setMessage("Zum Hauptmenü zurückkehren?")
                         .setPositiveButton("Ja", (dialog, id) -> {
@@ -75,7 +77,7 @@ public class DownloadActivity extends AppCompatActivity {
         //Das passiert wenn man auf den Download Button drückt
         downloadButton.setOnClickListener(new View.OnClickListener()  {
             @Override
-            public void onClick(View button){
+            public void onClick(View button) {
                 if (!keineAuswahl) {
                     download();
                 } else {
@@ -92,8 +94,8 @@ public class DownloadActivity extends AppCompatActivity {
                 if (keineAuswahl) {
                     anzahlBilder.setText("0");
                 } else {
-                    Log.i("ausgewaehltes Album",spinner.getSelectedItem().toString());
-                    anzahlBilder.setText("" + listeAnAlben.getAlbums()[position-1].getNumImages());
+                    Log.i("ausgewaehltes Album", spinner.getSelectedItem().toString());
+                    anzahlBilder.setText("" + listeAnAlben.getAlbums()[position - 1].getNumImages());
                 }
             }
             @Override
@@ -117,7 +119,8 @@ public class DownloadActivity extends AppCompatActivity {
         };
         final Response.ErrorListener onError = error -> {
             spinner.setAdapter(new ArrayAdapter(this,
-                    androidx.appcompat.R.layout.support_simple_spinner_dropdown_item, new String[]{ "keine Alben vorhanden" }));
+                    androidx.appcompat.R.layout.support_simple_spinner_dropdown_item,
+                    new String[]{"keine Alben vorhanden" }));
             Toast.makeText(this, "Es konnte keine Verbindung zum Server aufgebaut werden!", Toast.LENGTH_SHORT).show();
         };
         return new StringRequest(Request.Method.GET, url, onResponse, onError);
@@ -134,7 +137,8 @@ public class DownloadActivity extends AppCompatActivity {
             }
         };
         final Response.ErrorListener onError = error -> {
-            Toast.makeText(this, "Es konnte keine Verbindung zu den Bildern, im Album hergestellt werden", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Es konnte keine Verbindung zu den Bildern, im Album hergestellt werden",
+                    Toast.LENGTH_SHORT).show();
         };
         return new StringRequest(Request.Method.GET, url, onResponse, onError);
     }
@@ -144,14 +148,14 @@ public class DownloadActivity extends AppCompatActivity {
         if (!albumFolder.exists()) {
             albumFolder.mkdirs();
         }
-        final File folder = new File(getFilesDir() + "/Album", serverAlbum.getName());
+        final File folder = new File(getFilesDir() + internAlbumName, serverAlbum.getName());
         if (folder.exists()) {
             AlertDialog.Builder uberschreib = new AlertDialog.Builder(this);
             uberschreib.setMessage("Ein Ordner mit diesem Namen existiert bereits. Soll dieser ueberschrieben werden?")
-                    .setPositiveButton("Ja", (dialog, id) -> {
+                    .setPositiveButton("Ok", (dialog, id) -> {
                         erstelleOrdnerUndBilder(serverAlbum, folder);
                     })
-                    .setNegativeButton("Abbruch", (dialog, id) -> {})
+                    .setNegativeButton("Nein", (dialog, id) -> {})
                     .setTitle("Überschreiben?");
             AlertDialog alert = uberschreib.create();
             alert.show();
@@ -165,14 +169,16 @@ public class DownloadActivity extends AppCompatActivity {
         for (int i = 0; i < serverAlbum.getImages().length; i++) {
             final String url = serverAlbum.getImages()[i].getLink();
             final String mimeType = serverAlbum.getImages()[i].getContentType();
-            String location = getFilesDir() + "/Album" + "/" + serverAlbum.getName() + "/" + serverAlbum.getImages()[i].getId() + getExtensionFromMimeType(mimeType);
+            String location = getFilesDir() + internAlbumName + "/" + serverAlbum.getName() + "/" + serverAlbum.getImages()[i]
+                    .getId() + getExtensionFromMimeType(mimeType);
             new Thread(new Runnable() {
                 @Override
                 public void run() {
                     try {
                         saveImage(url, location);
                     } catch (IOException e) {
-                        Toast.makeText(getApplicationContext(), "Bild konnte nicht geladen werden", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplicationContext(), "Bild konnte nicht geladen werden", Toast.LENGTH_SHORT)
+                                .show();
                     }
                 }
             }).start();
@@ -181,19 +187,20 @@ public class DownloadActivity extends AppCompatActivity {
     //Hilffunktion, die die ein einzelnes Bild erstellt
     // https://www.avajava.com/tutorials/lessons/how-do-i-save-an-image-from-a-url-to-a-file.html
     public void saveImage(String imageUrl, String destinationFile) throws IOException {
+        final int byteGroesse = 2048;
         URL url = new URL(imageUrl);
-        InputStream is = url.openStream();
-        OutputStream os = Files.newOutputStream(Paths.get(destinationFile));
+        InputStream inputStream = url.openStream();
+        OutputStream outputStream = Files.newOutputStream(Paths.get(destinationFile));
 
-        byte[] b = new byte[2048];
+        byte[] groesse = new byte[byteGroesse];
         int length;
 
-        while ((length = is.read(b)) != - 1) {
-            os.write(b, 0, length);
+        while ((length = inputStream.read(groesse)) != -1) {
+            outputStream.write(groesse, 0, length);
         }
 
-        is.close();
-        os.close();
+        inputStream.close();
+        outputStream.close();
     }
     //Hilffunktion, die den Typen des bilder ausgibt
     private String getExtensionFromMimeType(String mimeType) {

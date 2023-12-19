@@ -40,10 +40,10 @@ public class AlbenListe {
     }
 
     public String[] getNames() {
-        String[] names = new String[albums.length+1];
+        String[] names = new String[albums.length + 1];
         names[0] = "keine auswahl";
-        for(int i = 0; i< albums.length;i++) {
-            names[i+1] = albums[i].name;
+        for (int i = 0; i < albums.length; i++) {
+            names[i + 1] = albums[i].name;
         }
         return names;
     }

@@ -1,7 +1,6 @@
 package com.gse23.lhusemann;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.util.Log;
 import android.widget.Toast;
 

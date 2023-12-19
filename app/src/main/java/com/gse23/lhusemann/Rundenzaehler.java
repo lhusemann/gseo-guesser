@@ -19,7 +19,7 @@ public class Rundenzaehler {
         this.runde = runde;
     }
     public void incRunde() {
-        this.support.firePropertyChange("RundenInc", this.runde, runde+1);
+        this.support.firePropertyChange("RundenInc", this.runde, runde + 1);
         this.runde++;
     }
     public int getRunde() {

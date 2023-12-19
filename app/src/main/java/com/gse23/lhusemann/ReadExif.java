@@ -3,23 +3,23 @@ package com.gse23.lhusemann;
 import android.app.Activity;
 import android.content.Context;
 import android.util.Log;
-
 import androidx.exifinterface.media.ExifInterface;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 
 public final class ReadExif {
+    private static final int tagLaenge = 8;
+    private static final String internAlb = "/Album/";
     private ReadExif() {
     }
-    static String albumAssets = "albums";
+    private static String albumAssets = "albums";
 
     public static ArrayList<String> getPath(Context ctx, String folder, boolean downloaded) {
         ArrayList<String> paths = new ArrayList<>();
         if (downloaded) {
-            String vorPath = ctx.getFilesDir() + "/Album/" + folder;
+            String vorPath = ctx.getFilesDir() + internAlb + folder;
 
             for (String file : getFolderInhalt(vorPath, ctx, true)) {
                 if (Bild.isImage(file)) {
@@ -40,7 +40,7 @@ public final class ReadExif {
     public static String[] getNames(Context ctx, String folder, boolean downloaded) {
         ArrayList<String> paths = new ArrayList<>();
         if (downloaded) {
-            for (String file : getFolderInhalt(ctx.getFilesDir() + "/Album/" + folder, ctx, true)) {
+            for (String file : getFolderInhalt(ctx.getFilesDir() + internAlb + folder, ctx, true)) {
                 if (Bild.isImage(file)) {
                     paths.add(file);
                 }
@@ -57,11 +57,10 @@ public final class ReadExif {
     //gibt Inhalt eines Ordner wieder ohne Fehlermeldung
     public static String[] getFolderInhalt(String folder, Context ctx, boolean downloaded) {
         if (downloaded) {
-            File albumOrdner = new File (folder);
+            File albumOrdner = new File(folder);
             File[] albumArray = albumOrdner.listFiles();
-            Log.i("s",""+folder);
             String[] names = new String[albumArray.length];
-            for (int i = 0; i<albumArray.length; i++) {
+            for (int i = 0; i < albumArray.length; i++) {
                 names[i] = albumArray[i].getName();
             }
             return names;
@@ -111,9 +110,9 @@ public final class ReadExif {
             ExifInterface exifInterface = new ExifInterface(in);
             String exifData = exifInterface.getAttribute(exifTag);
             if (exifData == null) {
-                Log.i(exifTag.substring(8) + " nicht vorhanden","-");
+                Log.i(exifTag.substring(tagLaenge) + " nicht vorhanden", "-");
             } else {
-                Log.i(exifTag.substring(8) + " vorhanden",exifData);
+                Log.i(exifTag.substring(tagLaenge) + " vorhanden", exifData);
             }
         } catch (IOException ignored) {
         }

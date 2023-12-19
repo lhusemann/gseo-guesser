@@ -48,7 +48,7 @@ public class Punkte {
     public void resetScores() {
         ArrayList<Integer> oldListe = punkteListe;
         punkteListe.clear();
-        this.support.firePropertyChange("Punkte", oldListe,punkteListe);
+        this.support.firePropertyChange("PunkteListeReset", oldListe, punkteListe);
     }
     public void addListener(PropertyChangeListener listener) {
         support.addPropertyChangeListener(listener);
