@@ -12,18 +12,14 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
-
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
 import androidx.exifinterface.media.ExifInterface;
-
 
 /**
  * Das ist die MainActivity, die zuerst ausgeführt wird, wenn die App gestartet wird.
@@ -73,8 +69,13 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
                     rundenAnzahl.setHint("0");
                 } else {
                     gameApplication.getAlbum().setDownloaded(position > indexDownloaded);
-                    if (getImagesCount(spinner.getSelectedItem().toString())<5) {
-                        rundenAnzahl.setHint("" + getImagesCount(spinner.getSelectedItem().toString()));
+                    if (gameApplication.getAlbum().isDownloaded()) {
+                        gameApplication.getAlbum().setName((spinner.getSelectedItem().toString()).substring(0, (spinner.getSelectedItem().toString()).length() - 18));
+                    } else {
+                        gameApplication.getAlbum().setName((spinner.getSelectedItem().toString()));
+                    }
+                    if (getImagesCount(gameApplication.getAlbum().getName())<5) {
+                        rundenAnzahl.setHint("" + getImagesCount(gameApplication.getAlbum().getName()));
                     } else {
                         rundenAnzahl.setHint("5");
                     }
@@ -98,11 +99,7 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
                     alert.show();
                 } else {
                     if (rundenAnzahl.getText().toString().equals("")) {
-                        if (getImagesCount(spinner.getSelectedItem().toString())<5) {
-                            gameApplication.getRundenZaehler().setMaxRunde(getImagesCount(spinner.getSelectedItem().toString()));
-                        } else {
-                            gameApplication.getRundenZaehler().setMaxRunde(5);
-                        }
+                        gameApplication.getRundenZaehler().setMaxRunde(Math.min(getImagesCount(gameApplication.getAlbum().getName()), 5));
                     } else {
                         gameApplication.getRundenZaehler().setMaxRunde(Integer.parseInt(rundenAnzahl.getText().toString()));
                     }
@@ -115,11 +112,8 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
                         gameApplication.getRundenZaehler().setRundenlaenge(Integer.parseInt(rundenLaenge.getText().toString()));
                     }
                     if (validL && validR) {
-                        if (gameApplication.getAlbum().isDownloaded()) {
-                            gameApplication.getAlbum().setName((spinner.getSelectedItem().toString()).substring(0,(spinner.getSelectedItem().toString()).length()-18));
-                        } else {
-                            gameApplication.getAlbum().setName(spinner.getSelectedItem().toString());
-                        }
+                        Intent intent = new Intent(MainActivity.this, SpielansichtActivity.class);
+                        startActivity(intent);
                     }
                 }
             }
@@ -137,13 +131,12 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
                 auswahlAdapter.clear();
                 auswahlmoeglichkeitenListe.add("Kein Ordner ausgewaehlt");
                 try {
-                    if (getAssets().list(album) == null || getFolderInhalt(album).length < 1) {
-                    } else {
-                        auswahlmoeglichkeitenListe.addAll(Arrays.asList(getFolderInhalt(album)));
-                        indexDownloaded = getFolderInhalt(album).length;
+                    if (getAssets().list(album) != null && ReadExif.getFolderInhalt(album, MainActivity.this, false).length > 0) {
+                        auswahlmoeglichkeitenListe.addAll(Arrays.asList(ReadExif.getFolderInhalt(album, MainActivity.this, false)));
+                        indexDownloaded = ReadExif.getFolderInhalt(album, MainActivity.this, false).length;
                     }
                 } catch (IOException e) {
-                    throw new RuntimeException(e);
+                    return;
                 }
                 addDownloads();
                 auswahlAdapter.notifyDataSetChanged();
@@ -165,52 +158,34 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
             }
         }
     }
-    //gibt Inhalt eines Ordner wieder ohne Fehlermeldung
-    private String[] getFolderInhalt(String folder) {
-        try {
-            return getAssets().list(folder);
-        } catch (IOException e) {
-            return new String[0];
-        }
-    }
     //prüft ob es sich um eine Bild-Datei handelt
     private boolean isImage(String name) {
         return name.endsWith(".jpg") || name.endsWith(".png") || name.endsWith(".jpeg");
     }
-    //gibt alle Bilder mit Exif-Daten im Log aus
+    //gibt alle Bilder mit Exif-Daten der Alben in Assets-Ordner im Log aus
     private void showAllImagesInAlbums() {
-        for (String folder : this.getFolderInhalt(album)) {
-            for (String file : getFolderInhalt(album + "/" + folder)) {
+        for (String folder : ReadExif.getFolderInhalt(album, MainActivity.this, false)) {
+            for (String file : ReadExif.getFolderInhalt(album + "/" + folder, MainActivity.this, false)) {
                 if (this.isImage(file)) {
                     String path = album + "/" + folder + "/" + file;
                     Log.i("Foto-Pfad", "Im Ordner " + folder + " liegt das Foto: " + file);
-                    Log.i("Laengengrad", this.getExifdata(path, ExifInterface.TAG_GPS_LONGITUDE));
-                    Log.i("Breitengrad", this.getExifdata(path, ExifInterface.TAG_GPS_LATITUDE));
-                    Log.i("Beschreibung", this.getExifdata(path, ExifInterface.TAG_IMAGE_DESCRIPTION));
+                    ReadExif.logExifAssets(path, ExifInterface.TAG_GPS_LONGITUDE, MainActivity.this);
+                    ReadExif.logExifAssets(path, ExifInterface.TAG_GPS_LATITUDE, MainActivity.this);
+                    ReadExif.logExifAssets(path, ExifInterface.TAG_IMAGE_DESCRIPTION, MainActivity.this);
                 }
             }
         }
     }
-    //gibt Exifdaten aus
-    private String getExifdata(String filepath, String exifTag) {
-        try (InputStream in =  getAssets().open(filepath)) {
-            ExifInterface exifInterface = new ExifInterface(in);
-            if (exifInterface.getAttribute(exifTag) == null) {
-                return "nicht vorhanden";
-            } else {
-                return exifInterface.getAttribute(exifTag);
-            }
-        } catch (IOException e) {
-            return "Das öffnen des InputsStreams hat nicht funktioniert";
-        }
-    }
     //gibt anzahl der Bilder in einem Ordner wieder
-    private int getImagesCount(String folder) {
+    private int getImagesCount(String folder) { // folder ist nur der name des album!
         int counter = 0;
-        if (album == null || folder == null) {
-            return 0;
+        String vorPath;
+        if (gameApplication.getAlbum().isDownloaded()) {
+            vorPath = getFilesDir() + "/Album/" + folder;
+        } else {
+            vorPath = album + "/" + folder;
         }
-        for (String file : getFolderInhalt(album + "/" + folder)) {
+        for (String file : ReadExif.getFolderInhalt(vorPath, MainActivity.this, gameApplication.getAlbum().isDownloaded())) {
             if (this.isImage(file)) {
                 counter++;
             }
@@ -221,11 +196,11 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
     public void propertyChange(PropertyChangeEvent propertyChangeEvent) {
         String changeName = propertyChangeEvent.getPropertyName();
         if (changeName.equals("maxRunde")) {
-            if ((int) propertyChangeEvent.getNewValue() > getImagesCount(spinner.getSelectedItem().toString()) && !ignoreCauseNoImage) {
+            if ((int) propertyChangeEvent.getNewValue() > getImagesCount(gameApplication.getAlbum().getName()) && !ignoreCauseNoImage) {
                 Toast.makeText(this, "Rundenanzahl uebertrifft Bilder in Album!", Toast.LENGTH_SHORT).show();
                 validR = false;
             } else if ((int) propertyChangeEvent.getNewValue() < 1) {
-                if (getImagesCount(spinner.getSelectedItem().toString()) == 0) {
+                if (getImagesCount(gameApplication.getAlbum().getName()) == 0) {
                     ignoreCauseNoImage = true;
                 } else {
                     ignoreCauseNoImage = false;
@@ -246,11 +221,6 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
             } else {
                 validL = true;
             }
-        }
-        if (changeName.equals("name")) {
-
-            Intent intent = new Intent(MainActivity.this, SpielansichtActivity.class);
-            startActivity(intent);
         }
     }
     @Override

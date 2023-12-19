@@ -55,7 +55,7 @@ public final class ReadExif {
         return paths.toArray(new String[0]);
     }
     //gibt Inhalt eines Ordner wieder ohne Fehlermeldung
-    private static String[] getFolderInhalt(String folder, Context ctx, boolean downloaded) {
+    public static String[] getFolderInhalt(String folder, Context ctx, boolean downloaded) {
         if (downloaded) {
             File albumOrdner = new File (folder);
             File[] albumArray = albumOrdner.listFiles();
@@ -82,7 +82,11 @@ public final class ReadExif {
                 if (exifData == null && !(exifTag.equals(ExifInterface.TAG_IMAGE_DESCRIPTION))) {
                     throw new CorruptedExifDataException(exifTag, filepath, activity);
                 } else {
-                    return exifData;
+                    if (exifData == null) {
+                        return "";
+                    } else {
+                        return exifData;
+                    }
                 }
             } catch (CorruptedExifDataException | IOException e) {
                 return "";
@@ -99,6 +103,19 @@ public final class ReadExif {
             } catch (CorruptedExifDataException | IOException e) {
                 return "";
             }
+        }
+    }
+    //Da in MS0 gefordert war, die Exifdaten im Assetsordner auszugeben ohne exceptions zuwerfen, mache ich das hier
+    public static void logExifAssets(String filepath, String exifTag, Activity activity) {
+        try (InputStream in = activity.getAssets().open(filepath)) {
+            ExifInterface exifInterface = new ExifInterface(in);
+            String exifData = exifInterface.getAttribute(exifTag);
+            if (exifData == null) {
+                Log.i(exifTag.substring(8) + " nicht vorhanden","-");
+            } else {
+                Log.i(exifTag.substring(8) + " vorhanden",exifData);
+            }
+        } catch (IOException ignored) {
         }
     }
 }
