@@ -1,6 +1,7 @@
 package com.gse23.lhusemann;
 
 import android.app.Application;
+import java.util.concurrent.ExecutorService;
 
 public class GameApplication extends Application {
     private MarkerKoordinaten markerK;
@@ -9,6 +10,7 @@ public class GameApplication extends Application {
     private Punkte punkte;
     private Album album;
     private Distanz distance;
+    private ExecutorService service;
     public MarkerKoordinaten getMarkerKoordinaten() {
         return markerK;
     }
@@ -44,5 +46,11 @@ public class GameApplication extends Application {
     }
     public void setDistanz(Distanz distance) {
         this.distance = distance;
+    }
+    public ExecutorService getService() {
+        return service;
+    }
+    public void setService (ExecutorService service) {
+        this.service = service;
     }
 }

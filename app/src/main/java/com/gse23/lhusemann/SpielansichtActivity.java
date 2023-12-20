@@ -134,7 +134,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
             this.bilderLoggen();
         } catch (CorruptedExifDataException | NoImagesInAlbumException e) {
             return;
-            //Exceptionbehandlung für Nutzer passiert im catch von bilderLoggen() und getExifData()-----------------------------------------------------------------------
+            //Exceptionbehandlung für Nutzer passiert in den Exceptions selbst
         }
         gameApplication.getAlbum().mix();
         //Dies soll passieren, wenn auf den Next-Button gedrückt wird

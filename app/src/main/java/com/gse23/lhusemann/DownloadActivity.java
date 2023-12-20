@@ -24,13 +24,16 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Objects;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Das ist die DownloadActivity, die ausgeführt wird wenn man auf Download in der MainActivity drückt
  */
 public class DownloadActivity extends AppCompatActivity {
     private static final String INTERNERALBUMNAME = "/Album";
-
+    GameApplication gameApplication;
     Button anfrageButton;
     Button zurueckButton;
     Button downloadButton;
@@ -43,20 +46,20 @@ public class DownloadActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_download);
+        gameApplication = (GameApplication) getApplication();
         anfrageButton = findViewById(R.id.anfrageButton);
         spinner = findViewById(R.id.spinnerDownload);
         anzahlBilder = findViewById(R.id.anzahlBilderText);
         zurueckButton = findViewById(R.id.backButton);
         downloadButton = findViewById(R.id.downloadButton);
+        gameApplication.setService(Executors.newSingleThreadExecutor());
         //Das passiert wenn man auf den Anfragen Button drückt
         anfrageButton.setOnClickListener(new View.OnClickListener()  {
             @Override
             public void onClick(View button) {
                 final TextView urlText = findViewById(R.id.urlText);
                 final String url = Objects.requireNonNull(urlText.getText()).toString();
-                final StringRequest request = buildRequestAlbenListe(url);
-                final RequestQueue queue = Volley.newRequestQueue(DownloadActivity.this);
-                queue.add(request);
+                buildRequestAlbenListe(url);
             }
         });
         //Das passiert wenn man auf den Zurück Button drückt
@@ -106,24 +109,47 @@ public class DownloadActivity extends AppCompatActivity {
     }
     //maybe Loading anzeige während es läd?
     //Hilffunktion, die die Alben Liste in listeAnAlben schreibt
-    public StringRequest buildRequestAlbenListe(final String url) {
-        final Response.Listener<String> onResponse = response -> {
-            listeAnAlben = AlbenListe.fromJson(response);
-            if (listeAnAlben == null) {
-                Toast.makeText(this, "Unter dieser Adresse befindet sich keine Albenliste", Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(this, listeAnAlben.getMessage(), Toast.LENGTH_SHORT).show();
-                spinner.setAdapter(new ArrayAdapter(this,
-                        androidx.appcompat.R.layout.support_simple_spinner_dropdown_item, listeAnAlben.getNames()));
+    public void buildRequestAlbenListe(final String url) {
+        gameApplication.getService().execute(new Runnable() {
+            @Override
+            public void run() {
+                final Response.Listener<String> onResponse = response -> {
+                    listeAnAlben = AlbenListe.fromJson(response);
+                    if (listeAnAlben == null) {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(DownloadActivity.this, "Unter dieser Adresse befindet sich keine Albenliste", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    } else {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(DownloadActivity.this, listeAnAlben.getMessage(), Toast
+                                        .LENGTH_SHORT).show();
+                                spinner.setAdapter(new ArrayAdapter(DownloadActivity.this, androidx.appcompat.R.layout
+                                        .support_simple_spinner_dropdown_item, listeAnAlben.getNames()));
+                            }
+                        });
+                    }
+                };
+                final Response.ErrorListener onError = error -> {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            spinner.setAdapter(new ArrayAdapter(DownloadActivity.this,
+                                    androidx.appcompat.R.layout.support_simple_spinner_dropdown_item,
+                                    new String[]{"keine Alben vorhanden"}));
+                            Toast.makeText(DownloadActivity.this, "Es konnte keine Verbindung zum Server aufgebaut werden!", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                };
+                final StringRequest request = new StringRequest(Request.Method.GET, url, onResponse, onError);
+                final RequestQueue queue = Volley.newRequestQueue(DownloadActivity.this);
+                queue.add(request);
             }
-        };
-        final Response.ErrorListener onError = error -> {
-            spinner.setAdapter(new ArrayAdapter(this,
-                    androidx.appcompat.R.layout.support_simple_spinner_dropdown_item,
-                    new String[]{"keine Alben vorhanden" }));
-            Toast.makeText(this, "Es konnte keine Verbindung zum Server aufgebaut werden!", Toast.LENGTH_SHORT).show();
-        };
-        return new StringRequest(Request.Method.GET, url, onResponse, onError);
+        });
     }
     //Hilffunktion, die die Anfrage zu den einzelnen Server-Alben macht
     public StringRequest buildRequestImages(final String url) {
@@ -170,18 +196,22 @@ public class DownloadActivity extends AppCompatActivity {
             final String url = serverAlbum.getImages()[i].getLink();
             final String mimeType = serverAlbum.getImages()[i].getContentType();
             String location = getFilesDir() + INTERNERALBUMNAME + "/" + serverAlbum.getName() + "/" + serverAlbum
-                    .getImages()[i].getId() + getExtensionFromMimeType(mimeType);
-            new Thread(new Runnable() {
+                    .getImages()[i].getId() + getMimeType(mimeType);
+            gameApplication.getService().execute(new Runnable() {
                 @Override
                 public void run() {
                     try {
                         saveImage(url, location);
                     } catch (IOException e) {
-                        Toast.makeText(getApplicationContext(), "Bild konnte nicht geladen werden", Toast.LENGTH_SHORT)
-                                .show();
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(getApplicationContext(), "Bild konnte nicht geladen werden", Toast.LENGTH_SHORT).show();
+                            }
+                        });
                     }
                 }
-            }).start();
+            });
         }
     }
     //Hilffunktion, die die ein einzelnes Bild erstellt
@@ -203,7 +233,7 @@ public class DownloadActivity extends AppCompatActivity {
         outputStream.close();
     }
     //Hilffunktion, die den Typen des bilder ausgibt
-    private String getExtensionFromMimeType(String mimeType) {
+    private String getMimeType(String mimeType) {
         if (mimeType.equals("image/jpeg")) {
             return ".jpeg";
         } else if (mimeType.equals("image/png")) {
