@@ -30,12 +30,8 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
     private static final int SDTLAENGE = 30;
     private static final int SDTRUNDEN = 5;
     private static final int DOWNLOADTAG = 18;
-
     GameApplication gameApplication;
     Spinner spinner;
-    Button startButton;
-    Button downloadAnsichtButton;
-    Button updateAnsichtButton;
     EditText rundenAnzahl;
     EditText rundenLaenge;
     String album;
@@ -58,9 +54,6 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
         gameApplication.setAlbum(new Album(""));
         gameApplication.getAlbum().addListener(this);
         spinner = findViewById(R.id.spinner);
-        startButton = findViewById(R.id.startButton);
-        downloadAnsichtButton = findViewById(R.id.downloadViewButton);
-        updateAnsichtButton = findViewById(R.id.updateViewButton);
         rundenAnzahl = findViewById(R.id.rundenanzahlField);
         rundenLaenge = findViewById(R.id.rundenlaengeField);
         auswahlmoeglichkeitenListe = new ArrayList<>();
@@ -95,6 +88,7 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
                 keineAuswahl = true;
             }
         });
+        Button startButton = findViewById(R.id.startButton);
         //Wenn der Start-Button gedrückt wird wird entweder eine Fehlernachricht ausgegeben oder das Spiel gestartet
         startButton.setOnClickListener(new View.OnClickListener()  {
             @Override
@@ -125,6 +119,7 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
                 }
             }
         });
+        Button downloadAnsichtButton = findViewById(R.id.downloadViewButton);
         //Mit diesem Button gelangt man in die Downloadansicht
         downloadAnsichtButton.setOnClickListener(new View.OnClickListener()  {
             @Override
@@ -133,6 +128,7 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
                 startActivity(intent);
             }
         });
+        Button updateAnsichtButton = findViewById(R.id.updateViewButton);
         //Mit diesem Button wird der Spinner geupdated
         updateAnsichtButton.setOnClickListener(new View.OnClickListener()  {
             @Override

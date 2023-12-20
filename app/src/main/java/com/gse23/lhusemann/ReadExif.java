@@ -10,7 +10,6 @@ import java.io.InputStream;
 import java.util.ArrayList;
 
 public final class ReadExif {
-    private static final int TAGLAENGE = 8;
     private static final String INTERNALB = "/Album/";
     private static final String ALBUMASSETS = "albums";
     private ReadExif() {
@@ -105,6 +104,7 @@ public final class ReadExif {
     }
     //Da in MS0 gefordert war, die Exifdaten im Assetsordner auszugeben ohne exceptions zuwerfen, mache ich das hier
     public static void logExifAssets(String filepath, String exifTag, Activity activity) {
+        final int TAGLAENGE = 8;
         try (InputStream in = activity.getAssets().open(filepath)) {
             ExifInterface exifInterface = new ExifInterface(in);
             String exifData = exifInterface.getAttribute(exifTag);

@@ -41,12 +41,8 @@ import org.osmdroid.views.overlay.Polyline;
  * Dies ist die Spielansicht, in der das Spiel gespielt wird
  */
 public class SpielansichtActivity extends AppCompatActivity implements PropertyChangeListener {
-    private static final String ALBUM = "albums";
     private static final String NOGUESS = "Kein Guess abgegeben.";
-    private static final String NODISTANCE = "keine Schaetzung abgegeben";
     private static final String KOMMA = ",";
-    private static final String NORMALCOLOR = "#808080";
-    private static final String OK = "Ok";
     private static final int LINEBREITE = 20;
     private static final int SEKUNDE = 1000;
     private static final double WELTBREITE = 85.0;
@@ -57,7 +53,6 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
     GameApplication gameApplication;
     Button nextButton;
     Button validButton;
-    Button showButton;
     Button aufgebenButton;
     ImageView bild;
     EditText longitudeField;
@@ -78,7 +73,6 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
     String folder;
     TimerTask timerTask;
     Timer timer;
-    Handler timerHandler = new Handler();
     int counter;
     boolean rundeVorbei = false;
     boolean vielleichtKeinWertEinloggen = false;
@@ -105,7 +99,6 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         longitudeField = findViewById(R.id.longitudeField);
         latitudeField = findViewById(R.id.latitudeField);
         validButton = findViewById(R.id.validButton);
-        showButton = findViewById(R.id.showButton);
         linkText = findViewById(R.id.link);
         distanzText = findViewById(R.id.textSchaetzung);
         beschreibung = findViewById(R.id.beschreibungID);
@@ -181,8 +174,10 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                     if (Formatierung.isValidLongitude(longitudeField.getText().toString())
                             && Formatierung.isValidLatitude(latitudeField.getText().toString())) {
                         stopTimer();
-                        gameApplication.getMarkerKoordinaten().setLongitude(Double.parseDouble(longitudeField.getText().toString()));
-                        gameApplication.getMarkerKoordinaten().setLatitude(Double.parseDouble(latitudeField.getText().toString()));
+                        gameApplication.getMarkerKoordinaten().setLongitude(Double.parseDouble(longitudeField
+                                .getText().toString()));
+                        gameApplication.getMarkerKoordinaten().setLatitude(Double.parseDouble(latitudeField
+                                .getText().toString()));
                         gameApplication.getDistanz().calcDistance(gameApplication.getMarkerKoordinaten()
                                 .getLatitude(), gameApplication.getAlbum().getBild(gameApplication.getRundenZaehler()
                                         .getRunde() - 1).getLatitude(), gameApplication.getMarkerKoordinaten()
@@ -196,7 +191,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                             error.setMessage("Die eingegebenen Werte sind nicht Valide! Der Längengrad darf nur"
                                             + " zwischen" + "-180 und +180, und der Breitengrad zwischen -90 "
                                             + "und +90 liegen!")
-                                    .setPositiveButton(OK, (dialog, id) -> {
+                                    .setPositiveButton("ok", (dialog, id) -> {
                                     })
                                     .setTitle("Error");
                             AlertDialog alert = error.create();
@@ -206,6 +201,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                 }
             }
         });
+        Button showButton = findViewById(R.id.showButton);
         //Das soll passieren, wenn wir auf zentrieren drücken
         showButton.setOnClickListener(new View.OnClickListener()  {
             @Override
@@ -299,7 +295,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
     private void bilderLoggen() throws NoImagesInAlbumException {
         try {
             if (gameApplication.getAlbum().isEmptyUndLogAll()) {
-                throw new NoImagesInAlbumException(ALBUM, SpielansichtActivity.this);
+                throw new NoImagesInAlbumException(gameApplication.getAlbum().getName(), SpielansichtActivity.this);
             }
         } catch (NoImagesInAlbumException e) {
             return;
@@ -321,6 +317,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
     }
     //koopiert von https://stackoverflow.com/questions/10029831/how-do-you-use-a-timertask-to-run-a-thread
     private void startTimer() {
+        Handler timerHandler = new Handler();
         timer = new Timer();
         counter = gameApplication.getRundenZaehler().getRundenlaenge();
         timerTask = new TimerTask() {
@@ -375,7 +372,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                 gameApplication.getAlbum().logExifNoDec((int) propertyChangeEvent.getNewValue() - 1);
                 runde.setText("" + (int) propertyChangeEvent.getNewValue());
                 linkText.setText(NOGUESS);
-                linkText.setTextColor(Color.parseColor(NORMALCOLOR));
+                linkText.setTextColor(Color.parseColor("#808080"));
                 karte.getOverlays().remove(markerCorrect);
                 karte.getOverlays().remove(nutzerMarker);
                 karte.getOverlays().remove(nutzerMarker);
@@ -439,7 +436,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
             rundeVorbei = true;
         }
         if (changeName.equals("resetDistanz")) {
-            distanzText.setText(NODISTANCE);
+            distanzText.setText("keine Schaetzung abgegeben");
         }
     }
     //Wenn die Activity beeendet wird, müssen die Listener entfernt werden

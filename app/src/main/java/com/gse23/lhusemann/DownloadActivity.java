@@ -36,12 +36,8 @@ public class DownloadActivity extends AppCompatActivity {
     private static final int FIXEDTHREADPOOL = 10;
     private static final String INTERNERALBUMNAME = "/Album";
     GameApplication gameApplication;
-    Button anfrageButton;
-    Button zurueckButton;
-    Button downloadButton;
     Spinner spinner;
     Boolean keineAuswahl = true;
-    TextView anzahlBilder;
     AlbenListe listeAnAlben;
     List<String> auswahlmoeglichkeitenListe;
     ArrayAdapter<String> auswahlAdapter;
@@ -51,17 +47,14 @@ public class DownloadActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_download);
         gameApplication = (GameApplication) getApplication();
-        anfrageButton = findViewById(R.id.anfrageButton);
         spinner = findViewById(R.id.spinnerDownload);
-        anzahlBilder = findViewById(R.id.anzahlBilderText);
-        zurueckButton = findViewById(R.id.backButton);
-        downloadButton = findViewById(R.id.downloadButton);
         gameApplication.setService(Executors.newFixedThreadPool(FIXEDTHREADPOOL));
         auswahlmoeglichkeitenListe = new ArrayList<>();
         auswahlmoeglichkeitenListe.add("Keine Auswahl");
         auswahlAdapter = new ArrayAdapter<>(this, androidx.appcompat.R.layout
                 .support_simple_spinner_dropdown_item, auswahlmoeglichkeitenListe);
         spinner.setAdapter(auswahlAdapter);
+        Button anfrageButton = findViewById(R.id.anfrageButton);
         //Das passiert wenn man auf den Anfragen Button drückt
         anfrageButton.setOnClickListener(new View.OnClickListener()  {
             @Override
@@ -71,6 +64,7 @@ public class DownloadActivity extends AppCompatActivity {
                 buildRequestAlbenListe(url);
             }
         });
+        Button zurueckButton = findViewById(R.id.backButton);
         //Das passiert wenn man auf den Zurück Button drückt
         zurueckButton.setOnClickListener(new View.OnClickListener()  {
             @Override
@@ -86,6 +80,7 @@ public class DownloadActivity extends AppCompatActivity {
                 alert.show();
             }
         });
+        Button downloadButton = findViewById(R.id.downloadButton);
         //Das passiert wenn man auf den Download Button drückt
         downloadButton.setOnClickListener(new View.OnClickListener()  {
             @Override
@@ -101,6 +96,7 @@ public class DownloadActivity extends AppCompatActivity {
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                TextView anzahlBilder = findViewById(R.id.anzahlBilderText);
                 keineAuswahl = position == 0;
                 positionSpinner = position;
                 if (keineAuswahl) {

@@ -15,11 +15,6 @@ import java.util.ArrayList;
  */
 public class EndActivity extends AppCompatActivity implements PropertyChangeListener {
     GameApplication gameApplication;
-    TextView gesamtpunkte;
-    TextView rundenTexte;
-    TextView rundenScores;
-    Button restart;
-    Button mainMenu;
     //Diese Methode wird beim Start ausgeführt
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,13 +23,10 @@ public class EndActivity extends AppCompatActivity implements PropertyChangeList
         gameApplication = (GameApplication) getApplication();
         gameApplication.getRundenZaehler().addListener(this);
         gameApplication.getGesamtscore().addListener(this);
-        gesamtpunkte = findViewById(R.id.gesPunkteID);
-        rundenTexte = findViewById(R.id.rundenText);
-        rundenScores = findViewById(R.id.rundenScores);
-        restart = findViewById(R.id.restartButton);
-        mainMenu = findViewById(R.id.mainmenuButton);
+        TextView gesamtpunkte = findViewById(R.id.gesPunkteID);
         gesamtpunkte.setText(gameApplication.getGesamtscore().getStringGesamtscore());
         erstelleRundenScores();
+        Button restart = findViewById(R.id.restartButton);
         //Das soll passieren, wenn auf Neustarten gedrückt wird
         restart.setOnClickListener(new View.OnClickListener()  {
             @Override
@@ -47,6 +39,7 @@ public class EndActivity extends AppCompatActivity implements PropertyChangeList
                 finish();
             }
         });
+        Button mainMenu = findViewById(R.id.mainmenuButton);
         //Das soll passieren, wenn auf Startansicht gedrückt wird
         mainMenu.setOnClickListener(new View.OnClickListener()  {
             @Override
@@ -61,6 +54,8 @@ public class EndActivity extends AppCompatActivity implements PropertyChangeList
     //Hilffunktion, die den Score in jeder Runde darstellt
     private void erstelleRundenScores() {
         ArrayList<Integer> scores = gameApplication.getPunkte().giveScores();
+        TextView rundenTexte = findViewById(R.id.rundenText);
+        TextView rundenScores = findViewById(R.id.rundenScores);
         StringBuilder scoreTexte = new StringBuilder();
         StringBuilder rundenText = new StringBuilder();
         for (int i = 0; i < scores.size(); i++) {
