@@ -41,19 +41,19 @@ import org.osmdroid.views.overlay.Polyline;
  * Dies ist die Spielansicht, in der das Spiel gespielt wird
  */
 public class SpielansichtActivity extends AppCompatActivity implements PropertyChangeListener {
-    private static final String album = "albums";
-    private static final String noGuess = "Kein Guess abgegeben.";
-    private static final String noDistance = "keine Schaetzung abgegeben";
-    private static final String komma = ",";
-    private static final String normalColor = "#808080";
-    private static final String hint = "Hinweis";
-    private static final String ok = "Ok";
-    private static final int lineBreite = 20;
-    private static final int sekunde = 1000;
-    private static final double weltBreite = 85.0;
-    private static final double weltLaenge = 180.0;
-    private static final float zoomWelt = 1.5f;
-    private static final String nutzerMarkName = "Ihre Eingabe";
+    private static final String ALBUM = "albums";
+    private static final String NOGUESS = "Kein Guess abgegeben.";
+    private static final String NODISTANCE = "keine Schaetzung abgegeben";
+    private static final String KOMMA = ",";
+    private static final String NORMALCOLOR = "#808080";
+    private static final String HINT = "Hinweis";
+    private static final String OK = "Ok";
+    private static final int LINEBREITE = 20;
+    private static final int SEKUNDE = 1000;
+    private static final double WELTBREITE = 85.0;
+    private static final double WELTLAENGE = 180.0;
+    private static final float ZOOMWELT = 1.5f;
+    private static final String NUTZERMARKNAME = "Ihre Eingabe";
 
     GameApplication gameApplication;
     Button nextButton;
@@ -124,7 +124,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         line = new Polyline();
         Paint paint = line.getOutlinePaint();
         paint.setColor(Color.RED);
-        paint.setStrokeWidth(lineBreite);
+        paint.setStrokeWidth(LINEBREITE);
         nutzerMarker = new Marker(karte);
         markerCorrect = new Marker(karte);
         folder = gameApplication.getAlbum().getName();
@@ -157,7 +157,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                     gameApplication.getMarkerKoordinaten().setLatitude(clickedP.getLatitude());
                     gameApplication.getMarkerKoordinaten().setLongitude(clickedP.getLongitude());
                     nutzerMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
-                    nutzerMarker.setTitle(nutzerMarkName);
+                    nutzerMarker.setTitle(NUTZERMARKNAME);
                     karte.getOverlays().add(nutzerMarker);
                     karte.invalidate();
                 }
@@ -201,9 +201,9 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                         if (!vielleichtKeinWertEinloggen) {
                             AlertDialog.Builder error = new AlertDialog.Builder(SpielansichtActivity.this);
                             error.setMessage("Die eingegebenen Werte sind nicht Valide! Der Längengrad darf nur" +
-                                            " zwischen"
-                                            + "-180 und +180, und der Breitengrad zwischen -90 und +90 liegen!")
-                                    .setPositiveButton(ok, (dialog, id) -> {
+                                            " zwischen" + "-180 und +180, und der Breitengrad zwischen -90 " +
+                                            "und +90 liegen!")
+                                    .setPositiveButton(OK, (dialog, id) -> {
                                     })
                                     .setTitle("Error");
                             AlertDialog alert = error.create();
@@ -247,7 +247,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         linkText.setOnClickListener(new View.OnClickListener()  {
             @Override
             public void onClick(View link) {
-                if (!linkText.getText().equals(noGuess)) {
+                if (!linkText.getText().equals(NOGUESS)) {
                     linkText.setTextColor(Color.parseColor("#551A8B"));
                     openLink(linkText.getText().toString());
                 }
@@ -306,17 +306,10 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
     private void bilderLoggen() throws NoImagesInAlbumException {
         try {
             if (gameApplication.getAlbum().isEmptyUndLogAll()) {
-                throw new NoImagesInAlbumException(album);
+                throw new NoImagesInAlbumException(ALBUM, SpielansichtActivity.this);
             }
         } catch (NoImagesInAlbumException e) {
-            AlertDialog.Builder error = new AlertDialog.Builder(SpielansichtActivity.this);
-            error.setMessage("Keine Bilder im ausgewaehltem Album vorhanden. Kehre auf Startansicht zurück")
-                    .setPositiveButton(ok, (dialog, id) -> {
-                        this.finish();
-                    })
-                    .setTitle(hint);
-            AlertDialog alert = error.create();
-            alert.show();
+            return;
         }
     }
     //startet URL, ich habe dies Methode im Internet gefunden: https://www.youtube.com/watch?v=TU-yDCgpbZw
@@ -357,7 +350,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
             }
         };
 
-        timer.schedule(timerTask, 1, sekunde);
+        timer.schedule(timerTask, 1, SEKUNDE);
     }
     //Wenn in einem Model eine Sache verändert wird, wird hier gesagt, was passieren soll
     @Override
@@ -390,15 +383,15 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                                 .getAlbum().isDownloaded()));
                 gameApplication.getAlbum().logExifNoDec((int) propertyChangeEvent.getNewValue() - 1);
                 runde.setText("" + (int) propertyChangeEvent.getNewValue());
-                linkText.setText(noGuess);
-                linkText.setTextColor(Color.parseColor(normalColor));
+                linkText.setText(NOGUESS);
+                linkText.setTextColor(Color.parseColor(NORMALCOLOR));
                 karte.getOverlays().remove(markerCorrect);
                 karte.getOverlays().remove(nutzerMarker);
                 karte.getOverlays().remove(nutzerMarker);
                 karte.getOverlays().remove(line);
                 List<GeoPoint> weltKarte = new ArrayList<>();
-                weltKarte.add(new GeoPoint(weltBreite, weltLaenge));
-                weltKarte.add(new GeoPoint(-weltBreite, -weltLaenge));
+                weltKarte.add(new GeoPoint(WELTBREITE, WELTLAENGE));
+                weltKarte.add(new GeoPoint(-WELTBREITE, -WELTLAENGE));
                 karte.post(() -> {
                     karte.zoomToBoundingBox(BoundingBox.fromGeoPointsSafe(weltKarte), false);
                 });
@@ -424,9 +417,9 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         if (changeName.equals("DistanzCalc")) {
             Log.i("Distanz der Schaetzung", Formatierung.getUnit((double) propertyChangeEvent.getNewValue()));
             String link = "https://www.openstreetmap.org/directions?engine=fossgis_valhalla_foot&route="
-                    + gameApplication.getMarkerKoordinaten().getLatitude() + komma + gameApplication
+                    + gameApplication.getMarkerKoordinaten().getLatitude() + KOMMA + gameApplication
                     .getMarkerKoordinaten().getLongitude() + ";" + gameApplication.getAlbum().getBild(gameApplication
-                    .getRundenZaehler().getRunde() - 1).getLatitude() + komma + gameApplication.getAlbum()
+                    .getRundenZaehler().getRunde() - 1).getLatitude() + KOMMA + gameApplication.getAlbum()
                     .getBild(gameApplication.getRundenZaehler().getRunde() - 1).getLongtitude();
             Log.i("OpenStreetMaps-Link zur Schätzung", link);
             linkText.setText(link);
@@ -441,7 +434,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                             .getRundenZaehler().getRunde() - 1).getLongtitude()));
             nutzerMarker.setPosition(geoPoints.get(0));
             nutzerMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
-            nutzerMarker.setTitle(nutzerMarkName);
+            nutzerMarker.setTitle(NUTZERMARKNAME);
             karte.getOverlays().add(nutzerMarker);
             markerCorrect.setPosition(geoPoints.get(1));
             markerCorrect.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
@@ -450,12 +443,12 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
             line.setPoints(geoPoints);
             karte.getOverlays().add(line);
             karte.post(() -> {
-                karte.zoomToBoundingBox(BoundingBox.fromGeoPointsSafe(geoPoints).increaseByScale(zoomWelt), true);
+                karte.zoomToBoundingBox(BoundingBox.fromGeoPointsSafe(geoPoints).increaseByScale(ZOOMWELT), true);
             });
             rundeVorbei = true;
         }
         if (changeName.equals("resetDistanz")) {
-            distanzText.setText(noDistance);
+            distanzText.setText(NODISTANCE);
         }
     }
     //Wenn die Activity beeendet wird, müssen die Listener entfernt werden

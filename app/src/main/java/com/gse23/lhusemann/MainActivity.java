@@ -25,11 +25,11 @@ import com.google.android.material.snackbar.Snackbar;
  * Das ist die MainActivity, die zuerst ausgeführt wird, wenn die App gestartet wird.
  */
 public class MainActivity extends AppCompatActivity implements PropertyChangeListener {
-    private static final int minSekunden = 10;
-    private static final int maxSekunden = 60;
-    private static final int sdtLaenge = 30;
-    private static final int sdtRunden = 5;
-    private static final int downloadedTag = 18;
+    private static final int MINSEKUNDEN = 10;
+    private static final int MAXSEKUNDEN = 60;
+    private static final int SDTLAENGE = 30;
+    private static final int SDTRUNDEN = 5;
+    private static final int DOWNLOADTAG = 18;
 
     GameApplication gameApplication;
     Spinner spinner;
@@ -79,11 +79,11 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
                     gameApplication.getAlbum().setDownloaded(position > indexDownloaded);
                     if (gameApplication.getAlbum().isDownloaded()) {
                         gameApplication.getAlbum().setName((spinner.getSelectedItem().toString())
-                                .substring(0, (spinner.getSelectedItem().toString()).length() - downloadedTag));
+                                .substring(0, (spinner.getSelectedItem().toString()).length() - DOWNLOADTAG));
                     } else {
                         gameApplication.getAlbum().setName((spinner.getSelectedItem().toString()));
                     }
-                    if (getImagesCount(gameApplication.getAlbum().getName()) < sdtRunden) {
+                    if (getImagesCount(gameApplication.getAlbum().getName()) < SDTRUNDEN) {
                         rundenAnzahl.setHint("" + getImagesCount(gameApplication.getAlbum().getName()));
                     } else {
                         rundenAnzahl.setHint("5");
@@ -104,7 +104,7 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
                 } else {
                     if (rundenAnzahl.getText().toString().equals("")) {
                         gameApplication.getRundenZaehler().setMaxRunde(Math.min(getImagesCount(gameApplication
-                                .getAlbum().getName()), sdtRunden));
+                                .getAlbum().getName()), SDTRUNDEN));
                     } else {
                         gameApplication.getRundenZaehler().setMaxRunde(Integer.parseInt(rundenAnzahl.getText()
                                 .toString()));
@@ -113,7 +113,7 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
                         gameApplication.getRundenZaehler().setMaxRunde(2);
                     }
                     if (rundenLaenge.getText().toString().equals("")) {
-                        gameApplication.getRundenZaehler().setRundenlaenge(sdtLaenge);
+                        gameApplication.getRundenZaehler().setRundenlaenge(SDTLAENGE);
                     } else {
                         gameApplication.getRundenZaehler().setRundenlaenge(Integer.parseInt(rundenLaenge.getText()
                                 .toString()));
@@ -230,10 +230,10 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
         }
         if (changeName.equals("rundenlaenge")) {
             if (notResume) {
-                if ((int) propertyChangeEvent.getNewValue() > maxSekunden) {
+                if ((int) propertyChangeEvent.getNewValue() > MAXSEKUNDEN) {
                     Toast.makeText(this, "Eine Runde kann maximal 60 Sekunden lang sein", Toast.LENGTH_SHORT).show();
                     validL = false;
-                } else if ((int) propertyChangeEvent.getNewValue() < minSekunden) {
+                } else if ((int) propertyChangeEvent.getNewValue() < MINSEKUNDEN) {
                     Toast.makeText(this, "Eine Runde muss mindestens 10 Sekunden lang sein", Toast.LENGTH_SHORT)
                             .show();
                     validL = false;

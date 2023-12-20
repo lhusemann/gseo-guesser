@@ -29,7 +29,7 @@ import java.util.Objects;
  * Das ist die DownloadActivity, die ausgeführt wird wenn man auf Download in der MainActivity drückt
  */
 public class DownloadActivity extends AppCompatActivity {
-    private final static String internAlbumName = "/Album";
+    private static final String INTERNERALBUMNAME = "/Album";
 
     Button anfrageButton;
     Button zurueckButton;
@@ -148,7 +148,7 @@ public class DownloadActivity extends AppCompatActivity {
         if (!albumFolder.exists()) {
             albumFolder.mkdirs();
         }
-        final File folder = new File(getFilesDir() + internAlbumName, serverAlbum.getName());
+        final File folder = new File(getFilesDir() + INTERNERALBUMNAME, serverAlbum.getName());
         if (folder.exists()) {
             AlertDialog.Builder uberschreib = new AlertDialog.Builder(this);
             uberschreib.setMessage("Ein Ordner mit diesem Namen existiert bereits. Soll dieser ueberschrieben werden?")
@@ -169,8 +169,8 @@ public class DownloadActivity extends AppCompatActivity {
         for (int i = 0; i < serverAlbum.getImages().length; i++) {
             final String url = serverAlbum.getImages()[i].getLink();
             final String mimeType = serverAlbum.getImages()[i].getContentType();
-            String location = getFilesDir() + internAlbumName + "/" + serverAlbum.getName() + "/" + serverAlbum.getImages()[i]
-                    .getId() + getExtensionFromMimeType(mimeType);
+            String location = getFilesDir() + INTERNERALBUMNAME + "/" + serverAlbum.getName() + "/" + serverAlbum
+                    .getImages()[i].getId() + getExtensionFromMimeType(mimeType);
             new Thread(new Runnable() {
                 @Override
                 public void run() {

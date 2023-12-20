@@ -10,16 +10,15 @@ import java.io.InputStream;
 import java.util.ArrayList;
 
 public final class ReadExif {
-    private static final int tagLaenge = 8;
-    private static final String internAlb = "/Album/";
+    private static final int TAGLAENGE = 8;
+    private static final String INTERNALB = "/Album/";
+    private static String ALBUMASSETS = "albums";
     private ReadExif() {
     }
-    private static String albumAssets = "albums";
-
     public static ArrayList<String> getPath(Context ctx, String folder, boolean downloaded) {
         ArrayList<String> paths = new ArrayList<>();
         if (downloaded) {
-            String vorPath = ctx.getFilesDir() + internAlb + folder;
+            String vorPath = ctx.getFilesDir() + INTERNALB + folder;
 
             for (String file : getFolderInhalt(vorPath, ctx, true)) {
                 if (Bild.isImage(file)) {
@@ -27,7 +26,7 @@ public final class ReadExif {
                 }
             }
         } else {
-            String vorPath = albumAssets + "/" + folder;
+            String vorPath = ALBUMASSETS + "/" + folder;
             for (String file : getFolderInhalt(vorPath, ctx, false)) {
                 if (Bild.isImage(file)) {
                     paths.add(vorPath + "/" + file);
@@ -40,13 +39,13 @@ public final class ReadExif {
     public static String[] getNames(Context ctx, String folder, boolean downloaded) {
         ArrayList<String> paths = new ArrayList<>();
         if (downloaded) {
-            for (String file : getFolderInhalt(ctx.getFilesDir() + internAlb + folder, ctx, true)) {
+            for (String file : getFolderInhalt(ctx.getFilesDir() + INTERNALB + folder, ctx, true)) {
                 if (Bild.isImage(file)) {
                     paths.add(file);
                 }
             }
         } else {
-            for (String file : getFolderInhalt(albumAssets + "/" + folder, ctx, false)) {
+            for (String file : getFolderInhalt(ALBUMASSETS + "/" + folder, ctx, false)) {
                 if (Bild.isImage(file)) {
                     paths.add(file);
                 }
@@ -110,9 +109,9 @@ public final class ReadExif {
             ExifInterface exifInterface = new ExifInterface(in);
             String exifData = exifInterface.getAttribute(exifTag);
             if (exifData == null) {
-                Log.i(exifTag.substring(tagLaenge) + " nicht vorhanden", "-");
+                Log.i(exifTag.substring(TAGLAENGE) + " nicht vorhanden", "-");
             } else {
-                Log.i(exifTag.substring(tagLaenge) + " vorhanden", exifData);
+                Log.i(exifTag.substring(TAGLAENGE) + " vorhanden", exifData);
             }
         } catch (IOException ignored) {
         }
