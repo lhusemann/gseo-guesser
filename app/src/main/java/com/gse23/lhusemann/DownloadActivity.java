@@ -252,8 +252,13 @@ public class DownloadActivity extends AppCompatActivity {
     }
     //Hilffunktion, um den download zu starten
     private void download() {
-        final StringRequest request = buildRequestImages(listeAnAlben.getAlbums()[positionSpinner - 1].getLink());
-        final RequestQueue queue = Volley.newRequestQueue(DownloadActivity.this);
-        queue.add(request);
+        gameApplication.getService().execute(new Runnable() {
+            @Override
+            public void run() {
+                final StringRequest request = buildRequestImages(listeAnAlben.getAlbums()[positionSpinner - 1].getLink());
+                final RequestQueue queue = Volley.newRequestQueue(DownloadActivity.this);
+                queue.add(request);
+            }
+        });
     }
 }
