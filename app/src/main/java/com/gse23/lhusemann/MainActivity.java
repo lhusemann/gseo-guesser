@@ -201,7 +201,10 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
         }
         return counter;
     }
-    //Wenn in einem Model eine Sache verändert wird, wird hier gesagt, was passieren soll
+    // Da Ordner mit weniger als einem Bild nicht mehr erkannt werden würden (US13), umgehe ich dies hier manuell für
+    // den Beweis der NoImageException der Nacharbeit von US02. Hatte Max dafür angesprochen und er meinte, dass es
+    // okay ist für diese Nacharbeit, jedoch soll ich es danach wieder "vernünftig" machen.
+    // Wenn in einem Modell eine Sache verändert wird, wird hier gesagt, was passieren soll
     @Override
     public void propertyChange(PropertyChangeEvent propertyChangeEvent) {
         String changeName = propertyChangeEvent.getPropertyName();
