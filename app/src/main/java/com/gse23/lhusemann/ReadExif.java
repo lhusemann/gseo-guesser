@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Objects;
 
 public final class ReadExif {
     private static final String INTERNALB = "/Album/";
@@ -83,7 +84,7 @@ public final class ReadExif {
                     if (exifData == null) {
                         return "";
                     } else {
-                        return exifData;
+                        return vorzeichen(exifInterface, exifTag) + exifData;
                     }
                 }
             } catch (CorruptedExifDataException | IOException e) {
@@ -103,6 +104,26 @@ public final class ReadExif {
             }
         }
     }
+    //prueft ob es sich um ein negatives vorzeichen handelt
+    private static String vorzeichen(ExifInterface exifInterface, String exifTag) {
+        if (exifTag.equals(ExifInterface.TAG_GPS_LONGITUDE)) {
+            if (Objects.equals(exifInterface.getAttribute(ExifInterface.TAG_GPS_LONGITUDE_REF), "W")) {
+                return "-";
+            }
+            if (Objects.equals(exifInterface.getAttribute(ExifInterface.TAG_GPS_LONGITUDE_REF), "E")) {
+                return "";
+            }
+        } else if (exifTag.equals(ExifInterface.TAG_GPS_LATITUDE)) {
+            if (Objects.equals(exifInterface.getAttribute(ExifInterface.TAG_GPS_LATITUDE_REF), "S")) {
+                return "-";
+            }
+            if (Objects.equals(exifInterface.getAttribute(ExifInterface.TAG_GPS_LATITUDE_REF), "N")) {
+                return "";
+            }
+        }
+        return "";
+    }
+
     //Da in MS0 gefordert war, die Exifdaten im Assetsordner auszugeben ohne exceptions zuwerfen, mache ich das hier
     public static void logExifAssets(String filepath, String exifTag, Activity activity) {
         try (InputStream in = activity.getAssets().open(filepath)) {

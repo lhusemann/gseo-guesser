@@ -52,7 +52,7 @@ public class Bild {
     //macht die String zu verwendbaren Double
     private double helperMakeValue(String tag) {
         StringBuilder valueAsString = new StringBuilder();
-        for (int i = 0; i < tag.length() && Character.isDigit(tag.charAt(i)); i++) {
+        for (int i = 0; i < tag.length() && (Character.isDigit(tag.charAt(i)) || tag.charAt(i) == '-') ; i++) {
             valueAsString.append(tag.charAt(i));
         }
         if (valueAsString.length() == 0) {
