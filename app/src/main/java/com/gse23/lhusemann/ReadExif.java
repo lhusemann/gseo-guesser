@@ -14,6 +14,7 @@ public final class ReadExif {
     private static final String INTERNALB = "/Album/";
     private static final String ALBUMASSETS = "albums";
     private static final int TAGLAENGE = 3;
+    private static final String BINDESTRICH = "-";
     private ReadExif() {
     }
     public static ArrayList<String> getPath(Context ctx, String folder, boolean downloaded) {
@@ -106,17 +107,16 @@ public final class ReadExif {
     }
     //prueft ob es sich um ein negatives vorzeichen handelt
     private static String vorzeichen(ExifInterface exifInterface, String exifTag) {
-        final String negativ = "-";
         if (exifTag.equals(ExifInterface.TAG_GPS_LONGITUDE)) {
             if (Objects.equals(exifInterface.getAttribute(ExifInterface.TAG_GPS_LONGITUDE_REF), "W")) {
-                return negativ;
+                return BINDESTRICH;
             }
             if (Objects.equals(exifInterface.getAttribute(ExifInterface.TAG_GPS_LONGITUDE_REF), "E")) {
                 return "";
             }
         } else if (exifTag.equals(ExifInterface.TAG_GPS_LATITUDE)) {
             if (Objects.equals(exifInterface.getAttribute(ExifInterface.TAG_GPS_LATITUDE_REF), "S")) {
-                return negativ;
+                return BINDESTRICH;
             }
             if (Objects.equals(exifInterface.getAttribute(ExifInterface.TAG_GPS_LATITUDE_REF), "N")) {
                 return "";
@@ -131,7 +131,7 @@ public final class ReadExif {
             ExifInterface exifInterface = new ExifInterface(in);
             String exifData = exifInterface.getAttribute(exifTag);
             if (exifData == null) {
-                Log.i(exifTag.substring(TAGLAENGE) + " nicht vorhanden", "-");
+                Log.i(exifTag.substring(TAGLAENGE) + " nicht vorhanden", BINDESTRICH);
             } else {
                 Log.i(exifTag.substring(TAGLAENGE) + " vorhanden", exifData);
             }
