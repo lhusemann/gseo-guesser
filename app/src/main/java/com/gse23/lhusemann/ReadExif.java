@@ -2,7 +2,6 @@ package com.gse23.lhusemann;
 
 import android.app.Activity;
 import android.content.Context;
-import android.nfc.Tag;
 import android.util.Log;
 import androidx.exifinterface.media.ExifInterface;
 import java.io.File;
