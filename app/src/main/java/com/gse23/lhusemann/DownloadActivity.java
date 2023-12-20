@@ -16,6 +16,8 @@ import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -32,14 +34,13 @@ import java.util.concurrent.Executors;
 /**
  * Das ist die DownloadActivity, die ausgeführt wird wenn man auf Download in der MainActivity drückt
  */
-public class DownloadActivity extends AppCompatActivity {
+public class DownloadActivity extends AppCompatActivity implements PropertyChangeListener {
     private static final int FIXEDTHREADPOOL = 10;
     private static final String INTERNERALBUMNAME = "/Album";
     GameApplication gameApplication;
     Spinner spinner;
     Boolean keineAuswahl = true;
-    AlbenListe listeAnAlben;
-    List<String> auswahlmoeglichkeitenListe;
+    List<String> auswahlmoeglichkeitenListe = new ArrayList<>();
     ArrayAdapter<String> auswahlAdapter;
     int positionSpinner = 0;
     @Override
@@ -49,7 +50,6 @@ public class DownloadActivity extends AppCompatActivity {
         gameApplication = (GameApplication) getApplication();
         spinner = findViewById(R.id.spinnerDownload);
         gameApplication.setService(Executors.newFixedThreadPool(FIXEDTHREADPOOL));
-        auswahlmoeglichkeitenListe = new ArrayList<>();
         auswahlmoeglichkeitenListe.add("Keine Auswahl");
         auswahlAdapter = new ArrayAdapter<>(this, androidx.appcompat.R.layout
                 .support_simple_spinner_dropdown_item, auswahlmoeglichkeitenListe);
@@ -60,8 +60,13 @@ public class DownloadActivity extends AppCompatActivity {
             @Override
             public void onClick(View button) {
                 final TextView urlText = findViewById(R.id.urlText);
-                final String url = Objects.requireNonNull(urlText.getText()).toString();
-                buildRequestAlbenListe(url);
+                if (urlText.getText().toString().equals("") || urlText.getText() == null) {
+                    resetSpinner();
+                    Toast.makeText(getApplicationContext(), "Keine URL eingegeben!", Toast.LENGTH_SHORT).show();
+                } else {
+                    final String url = Objects.requireNonNull(urlText.getText()).toString();
+                    buildRequestAlbenListe(url);
+                }
             }
         });
         Button zurueckButton = findViewById(R.id.backButton);
@@ -103,7 +108,8 @@ public class DownloadActivity extends AppCompatActivity {
                     anzahlBilder.setText("0");
                 } else {
                     Log.i("ausgewaehltes Album", spinner.getSelectedItem().toString());
-                    anzahlBilder.setText("" + listeAnAlben.getAlbums()[position - 1].getNumImages());
+                    anzahlBilder.setText("" + gameApplication.getAlbenListe().getAlbums()[position - 1]
+                            .getNumImages());
                 }
             }
             @Override
@@ -112,30 +118,31 @@ public class DownloadActivity extends AppCompatActivity {
             }
         });
     }
-    //maybe Loading anzeige während es läd?
     //Hilffunktion, die die Alben Liste in listeAnAlben schreibt
     public void buildRequestAlbenListe(final String url) {
         gameApplication.getService().execute(new Runnable() {
             @Override
             public void run() {
                 final Response.Listener<String> onResponse = response -> {
-                    listeAnAlben = AlbenListe.fromJson(response);
-                    if (listeAnAlben == null) {
+                    gameApplication.setAlbenListe(AlbenListe.fromJson(response));
+                    if (gameApplication.getAlbenListe() == null) {
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
                                 Toast.makeText(DownloadActivity.this, "Unter dieser Adresse befindet sich keine "
                                         + "Albenliste", Toast.LENGTH_SHORT).show();
+                                resetSpinner();
                             }
                         });
                     } else {
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                Toast.makeText(DownloadActivity.this, listeAnAlben.getMessage(), Toast
-                                        .LENGTH_SHORT).show();
+                                Toast.makeText(DownloadActivity.this, gameApplication.getAlbenListe()
+                                        .getMessage(), Toast.LENGTH_SHORT).show();
                                 auswahlAdapter.clear();
-                                auswahlmoeglichkeitenListe.addAll(Arrays.asList(listeAnAlben.getNames()));
+                                auswahlmoeglichkeitenListe.addAll(Arrays.asList(gameApplication.getAlbenListe()
+                                        .getNames()));
                                 auswahlAdapter.notifyDataSetChanged();
                             }
                         });
@@ -145,6 +152,7 @@ public class DownloadActivity extends AppCompatActivity {
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
+                            resetSpinner();
                             Toast.makeText(DownloadActivity.this, "Es konnte keine Verbindung zum Server "
                                     + "aufgebaut werden!", Toast.LENGTH_SHORT).show();
                         }
@@ -253,11 +261,24 @@ public class DownloadActivity extends AppCompatActivity {
         gameApplication.getService().execute(new Runnable() {
             @Override
             public void run() {
-                final StringRequest request = buildRequestImages(listeAnAlben.getAlbums()[positionSpinner - 1]
-                        .getLink());
+                final StringRequest request = buildRequestImages(gameApplication.getAlbenListe()
+                        .getAlbums()[positionSpinner - 1].getLink());
                 final RequestQueue queue = Volley.newRequestQueue(DownloadActivity.this);
                 queue.add(request);
             }
         });
+    }
+    public void resetSpinner() {
+        auswahlAdapter.clear();
+        auswahlmoeglichkeitenListe.add("Keine Auswahl");
+        auswahlAdapter.notifyDataSetChanged();
+    }
+    @Override
+    public void propertyChange(PropertyChangeEvent propertyChangeEvent) {
+
+    }
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
     }
 }
