@@ -23,6 +23,9 @@ import java.io.OutputStream;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
@@ -41,6 +44,8 @@ public class DownloadActivity extends AppCompatActivity {
     Boolean keineAuswahl = true;
     TextView anzahlBilder;
     AlbenListe listeAnAlben;
+    List<String> auswahlmoeglichkeitenListe;
+    ArrayAdapter<String> auswahlAdapter;
     int positionSpinner = 0;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,7 +57,12 @@ public class DownloadActivity extends AppCompatActivity {
         anzahlBilder = findViewById(R.id.anzahlBilderText);
         zurueckButton = findViewById(R.id.backButton);
         downloadButton = findViewById(R.id.downloadButton);
-        gameApplication.setService(Executors.newSingleThreadExecutor());
+        gameApplication.setService(Executors.newFixedThreadPool(10));
+        auswahlmoeglichkeitenListe = new ArrayList<>();
+        auswahlmoeglichkeitenListe.add("Keine Auswahl");
+        auswahlAdapter = new ArrayAdapter<>(this, androidx.appcompat.R.layout
+                .support_simple_spinner_dropdown_item, auswahlmoeglichkeitenListe);
+        spinner.setAdapter(auswahlAdapter);
         //Das passiert wenn man auf den Anfragen Button drückt
         anfrageButton.setOnClickListener(new View.OnClickListener()  {
             @Override
@@ -128,8 +138,9 @@ public class DownloadActivity extends AppCompatActivity {
                             public void run() {
                                 Toast.makeText(DownloadActivity.this, listeAnAlben.getMessage(), Toast
                                         .LENGTH_SHORT).show();
-                                spinner.setAdapter(new ArrayAdapter(DownloadActivity.this, androidx.appcompat.R.layout
-                                        .support_simple_spinner_dropdown_item, listeAnAlben.getNames()));
+                                auswahlAdapter.clear();
+                                auswahlmoeglichkeitenListe.addAll(Arrays.asList(listeAnAlben.getNames()));
+                                auswahlAdapter.notifyDataSetChanged();
                             }
                         });
                     }
@@ -138,9 +149,6 @@ public class DownloadActivity extends AppCompatActivity {
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            spinner.setAdapter(new ArrayAdapter(DownloadActivity.this,
-                                    androidx.appcompat.R.layout.support_simple_spinner_dropdown_item,
-                                    new String[]{"keine Alben vorhanden"}));
                             Toast.makeText(DownloadActivity.this, "Es konnte keine Verbindung zum Server aufgebaut werden!", Toast.LENGTH_SHORT).show();
                         }
                     });
