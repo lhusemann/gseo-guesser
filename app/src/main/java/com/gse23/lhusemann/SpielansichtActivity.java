@@ -298,7 +298,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                 throw new NoImagesInAlbumException(gameApplication.getAlbum().getName(), SpielansichtActivity.this);
             }
         } catch (NoImagesInAlbumException e) {
-            return;
+            stopTimer();
         }
     }
     //startet URL, ich habe dies Methode im Internet gefunden: https://www.youtube.com/watch?v=TU-yDCgpbZw
@@ -448,6 +448,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         gameApplication.getPunkte().removeListener(this);
         gameApplication.getAlbum().removeListener(this);
         gameApplication.getDistanz().removeListener(this);
+        stopTimer();
         super.onDestroy();
     }
 }

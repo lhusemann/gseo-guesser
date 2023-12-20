@@ -2,6 +2,7 @@ package com.gse23.lhusemann;
 
 import android.app.Activity;
 import android.content.Context;
+import android.nfc.Tag;
 import android.util.Log;
 import androidx.exifinterface.media.ExifInterface;
 import java.io.File;
@@ -12,6 +13,7 @@ import java.util.ArrayList;
 public final class ReadExif {
     private static final String INTERNALB = "/Album/";
     private static final String ALBUMASSETS = "albums";
+    private static final int TAGLAENGE = 3;
     private ReadExif() {
     }
     public static ArrayList<String> getPath(Context ctx, String folder, boolean downloaded) {
@@ -77,7 +79,7 @@ public final class ReadExif {
                 ExifInterface exifInterface = new ExifInterface(filepath);
                 String exifData = exifInterface.getAttribute(exifTag);
                 if (exifData == null && !(exifTag.equals(ExifInterface.TAG_IMAGE_DESCRIPTION))) {
-                    throw new CorruptedExifDataException(exifTag, filepath, activity);
+                    throw new CorruptedExifDataException(exifTag.substring(TAGLAENGE), filepath, activity);
                 } else {
                     if (exifData == null) {
                         return "";
@@ -93,7 +95,7 @@ public final class ReadExif {
                 ExifInterface exifInterface = new ExifInterface(in);
                 String exifData = exifInterface.getAttribute(exifTag);
                 if (exifData == null && !(exifTag.equals(ExifInterface.TAG_IMAGE_DESCRIPTION))) {
-                    throw new CorruptedExifDataException(exifTag, filepath, activity);
+                    throw new CorruptedExifDataException(exifTag.substring(TAGLAENGE), filepath, activity);
                 } else {
                     return exifData;
                 }
@@ -104,7 +106,6 @@ public final class ReadExif {
     }
     //Da in MS0 gefordert war, die Exifdaten im Assetsordner auszugeben ohne exceptions zuwerfen, mache ich das hier
     public static void logExifAssets(String filepath, String exifTag, Activity activity) {
-        final int TAGLAENGE = 8;
         try (InputStream in = activity.getAssets().open(filepath)) {
             ExifInterface exifInterface = new ExifInterface(in);
             String exifData = exifInterface.getAttribute(exifTag);
