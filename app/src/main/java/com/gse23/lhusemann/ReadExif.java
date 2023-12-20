@@ -12,7 +12,7 @@ import java.util.ArrayList;
 public final class ReadExif {
     private static final int TAGLAENGE = 8;
     private static final String INTERNALB = "/Album/";
-    private static String ALBUMASSETS = "albums";
+    private static final String ALBUMASSETS = "albums";
     private ReadExif() {
     }
     public static ArrayList<String> getPath(Context ctx, String folder, boolean downloaded) {

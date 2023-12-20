@@ -27,14 +27,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
  * Das ist die DownloadActivity, die ausgeführt wird wenn man auf Download in der MainActivity drückt
  */
 public class DownloadActivity extends AppCompatActivity {
+    private static final int FIXEDTHREADPOOL = 10;
     private static final String INTERNERALBUMNAME = "/Album";
     GameApplication gameApplication;
     Button anfrageButton;
@@ -57,7 +56,7 @@ public class DownloadActivity extends AppCompatActivity {
         anzahlBilder = findViewById(R.id.anzahlBilderText);
         zurueckButton = findViewById(R.id.backButton);
         downloadButton = findViewById(R.id.downloadButton);
-        gameApplication.setService(Executors.newFixedThreadPool(10));
+        gameApplication.setService(Executors.newFixedThreadPool(FIXEDTHREADPOOL));
         auswahlmoeglichkeitenListe = new ArrayList<>();
         auswahlmoeglichkeitenListe.add("Keine Auswahl");
         auswahlAdapter = new ArrayAdapter<>(this, androidx.appcompat.R.layout
@@ -129,7 +128,8 @@ public class DownloadActivity extends AppCompatActivity {
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                Toast.makeText(DownloadActivity.this, "Unter dieser Adresse befindet sich keine Albenliste", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(DownloadActivity.this, "Unter dieser Adresse befindet sich keine "
+                                        + "Albenliste", Toast.LENGTH_SHORT).show();
                             }
                         });
                     } else {
@@ -149,7 +149,8 @@ public class DownloadActivity extends AppCompatActivity {
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            Toast.makeText(DownloadActivity.this, "Es konnte keine Verbindung zum Server aufgebaut werden!", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(DownloadActivity.this, "Es konnte keine Verbindung zum Server "
+                                    + "aufgebaut werden!", Toast.LENGTH_SHORT).show();
                         }
                     });
                 };
@@ -214,7 +215,8 @@ public class DownloadActivity extends AppCompatActivity {
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                Toast.makeText(getApplicationContext(), "Bild konnte nicht geladen werden", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(getApplicationContext(), "Bild konnte nicht geladen werden",
+                                        Toast.LENGTH_SHORT).show();
                             }
                         });
                     }
@@ -255,7 +257,8 @@ public class DownloadActivity extends AppCompatActivity {
         gameApplication.getService().execute(new Runnable() {
             @Override
             public void run() {
-                final StringRequest request = buildRequestImages(listeAnAlben.getAlbums()[positionSpinner - 1].getLink());
+                final StringRequest request = buildRequestImages(listeAnAlben.getAlbums()[positionSpinner - 1]
+                        .getLink());
                 final RequestQueue queue = Volley.newRequestQueue(DownloadActivity.this);
                 queue.add(request);
             }

@@ -46,7 +46,6 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
     private static final String NODISTANCE = "keine Schaetzung abgegeben";
     private static final String KOMMA = ",";
     private static final String NORMALCOLOR = "#808080";
-    private static final String HINT = "Hinweis";
     private static final String OK = "Ok";
     private static final int LINEBREITE = 20;
     private static final int SEKUNDE = 1000;
@@ -182,14 +181,8 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                     if (Formatierung.isValidLongitude(longitudeField.getText().toString())
                             && Formatierung.isValidLatitude(latitudeField.getText().toString())) {
                         stopTimer();
-                        String latOne = latitudeField.getText().toString();
-                        String lonOne = longitudeField.getText().toString();
-                        String latTwo = gameApplication.getAlbum().getBild(gameApplication.getRundenZaehler()
-                                .getRunde() - 1).getLatitude().toString();
-                        String lonTwo = gameApplication.getAlbum().getBild(gameApplication.getRundenZaehler()
-                                .getRunde() - 1).getLongtitude().toString();
-                        gameApplication.getMarkerKoordinaten().setLongitude(Double.parseDouble(lonOne));
-                        gameApplication.getMarkerKoordinaten().setLatitude(Double.parseDouble(latOne));
+                        gameApplication.getMarkerKoordinaten().setLongitude(Double.parseDouble(longitudeField.getText().toString()));
+                        gameApplication.getMarkerKoordinaten().setLatitude(Double.parseDouble(latitudeField.getText().toString()));
                         gameApplication.getDistanz().calcDistance(gameApplication.getMarkerKoordinaten()
                                 .getLatitude(), gameApplication.getAlbum().getBild(gameApplication.getRundenZaehler()
                                         .getRunde() - 1).getLatitude(), gameApplication.getMarkerKoordinaten()
@@ -200,9 +193,9 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                     } else {
                         if (!vielleichtKeinWertEinloggen) {
                             AlertDialog.Builder error = new AlertDialog.Builder(SpielansichtActivity.this);
-                            error.setMessage("Die eingegebenen Werte sind nicht Valide! Der Längengrad darf nur" +
-                                            " zwischen" + "-180 und +180, und der Breitengrad zwischen -90 " +
-                                            "und +90 liegen!")
+                            error.setMessage("Die eingegebenen Werte sind nicht Valide! Der Längengrad darf nur"
+                                            + " zwischen" + "-180 und +180, und der Breitengrad zwischen -90 "
+                                            + "und +90 liegen!")
                                     .setPositiveButton(OK, (dialog, id) -> {
                                     })
                                     .setTitle("Error");
@@ -326,7 +319,6 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
             timerText.setText("" + counter);
         }
     }
-    //KANNST DU IN EIGENE KLASSE MIT PROPERTYCHANGE MACHEN!!!!!!!!--------------------------------------------------------------------------------------------------
     //koopiert von https://stackoverflow.com/questions/10029831/how-do-you-use-a-timertask-to-run-a-thread
     private void startTimer() {
         timer = new Timer();
@@ -349,7 +341,6 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                 });
             }
         };
-
         timer.schedule(timerTask, 1, SEKUNDE);
     }
     //Wenn in einem Model eine Sache verändert wird, wird hier gesagt, was passieren soll

@@ -50,7 +50,7 @@ public class GameApplication extends Application {
     public ExecutorService getService() {
         return service;
     }
-    public void setService (ExecutorService service) {
+    public void setService(ExecutorService service) {
         this.service = service;
     }
 }
