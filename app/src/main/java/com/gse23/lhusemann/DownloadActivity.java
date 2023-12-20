@@ -37,6 +37,7 @@ import java.util.concurrent.Executors;
 public class DownloadActivity extends AppCompatActivity implements PropertyChangeListener {
     private static final int FIXEDTHREADPOOL = 10;
     private static final String INTERNERALBUMNAME = "/Album";
+    private static final String KEINEAUSWAHL = "Keine Auswahl";
     GameApplication gameApplication;
     Spinner spinner;
     Boolean keineAuswahl = true;
@@ -50,7 +51,7 @@ public class DownloadActivity extends AppCompatActivity implements PropertyChang
         gameApplication = (GameApplication) getApplication();
         spinner = findViewById(R.id.spinnerDownload);
         gameApplication.setService(Executors.newFixedThreadPool(FIXEDTHREADPOOL));
-        auswahlmoeglichkeitenListe.add("Keine Auswahl");
+        auswahlmoeglichkeitenListe.add(KEINEAUSWAHL);
         auswahlAdapter = new ArrayAdapter<>(this, androidx.appcompat.R.layout
                 .support_simple_spinner_dropdown_item, auswahlmoeglichkeitenListe);
         spinner.setAdapter(auswahlAdapter);
@@ -270,7 +271,7 @@ public class DownloadActivity extends AppCompatActivity implements PropertyChang
     }
     public void resetSpinner() {
         auswahlAdapter.clear();
-        auswahlmoeglichkeitenListe.add("Keine Auswahl");
+        auswahlmoeglichkeitenListe.add(KEINEAUSWAHL);
         auswahlAdapter.notifyDataSetChanged();
     }
     @Override

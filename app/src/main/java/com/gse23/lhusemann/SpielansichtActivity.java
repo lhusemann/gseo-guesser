@@ -48,7 +48,6 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
     private static final double WELTBREITE = 85.0;
     private static final double WELTLAENGE = 180.0;
     private static final float ZOOMWELT = 1.5f;
-    private static final String NUTZERMARKNAME = "Ihre Eingabe";
 
     GameApplication gameApplication;
     Button nextButton;
@@ -118,6 +117,8 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         paint.setColor(Color.RED);
         paint.setStrokeWidth(LINEBREITE);
         nutzerMarker = new Marker(karte);
+        nutzerMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
+        nutzerMarker.setTitle("Ihre Eingabe");
         markerCorrect = new Marker(karte);
         folder = gameApplication.getAlbum().getName();
         Log.i("Auswahl", "Das Album " + folder + " wurde ausgewaehlt.");
@@ -148,8 +149,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                 if (!rundeVorbei) {
                     gameApplication.getMarkerKoordinaten().setLatitude(clickedP.getLatitude());
                     gameApplication.getMarkerKoordinaten().setLongitude(clickedP.getLongitude());
-                    nutzerMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
-                    nutzerMarker.setTitle(NUTZERMARKNAME);
+                    karte.getOverlays().remove(nutzerMarker);
                     karte.getOverlays().add(nutzerMarker);
                     karte.invalidate();
                 }
@@ -375,7 +375,6 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                 linkText.setTextColor(Color.parseColor("#808080"));
                 karte.getOverlays().remove(markerCorrect);
                 karte.getOverlays().remove(nutzerMarker);
-                karte.getOverlays().remove(nutzerMarker);
                 karte.getOverlays().remove(line);
                 List<GeoPoint> weltKarte = new ArrayList<>();
                 weltKarte.add(new GeoPoint(WELTBREITE, WELTLAENGE));
@@ -421,8 +420,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                     .getRunde() - 1).getLatitude(), gameApplication.getAlbum().getBild(gameApplication
                             .getRundenZaehler().getRunde() - 1).getLongtitude()));
             nutzerMarker.setPosition(geoPoints.get(0));
-            nutzerMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
-            nutzerMarker.setTitle(NUTZERMARKNAME);
+            karte.getOverlays().remove(nutzerMarker);
             karte.getOverlays().add(nutzerMarker);
             markerCorrect.setPosition(geoPoints.get(1));
             markerCorrect.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
