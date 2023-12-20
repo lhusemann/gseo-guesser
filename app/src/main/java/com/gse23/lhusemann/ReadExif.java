@@ -106,16 +106,17 @@ public final class ReadExif {
     }
     //prueft ob es sich um ein negatives vorzeichen handelt
     private static String vorzeichen(ExifInterface exifInterface, String exifTag) {
+        final String negativ = "-";
         if (exifTag.equals(ExifInterface.TAG_GPS_LONGITUDE)) {
             if (Objects.equals(exifInterface.getAttribute(ExifInterface.TAG_GPS_LONGITUDE_REF), "W")) {
-                return "-";
+                return negativ;
             }
             if (Objects.equals(exifInterface.getAttribute(ExifInterface.TAG_GPS_LONGITUDE_REF), "E")) {
                 return "";
             }
         } else if (exifTag.equals(ExifInterface.TAG_GPS_LATITUDE)) {
             if (Objects.equals(exifInterface.getAttribute(ExifInterface.TAG_GPS_LATITUDE_REF), "S")) {
-                return "-";
+                return negativ;
             }
             if (Objects.equals(exifInterface.getAttribute(ExifInterface.TAG_GPS_LATITUDE_REF), "N")) {
                 return "";
