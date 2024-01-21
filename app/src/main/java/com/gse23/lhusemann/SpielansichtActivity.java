@@ -8,6 +8,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
 import android.content.Context;
@@ -75,7 +76,6 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
     int counter;
     boolean rundeVorbei = false;
     boolean vielleichtKeinWertEinloggen = false;
-    boolean firstSkip = true;
     //Diese Methode wird beim Start ausgeführt
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -92,6 +92,8 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         gameApplication.getPunkte().addListener(this);
         gameApplication.setDistanz(new Distanz(0.0));
         gameApplication.getDistanz().addListener(this);
+        gameApplication.setGame(new Game());
+        gameApplication.getGame().addListener(this);
         bild = findViewById(R.id.bild);
         nextButton = findViewById(R.id.nextButton);
         aufgebenButton = findViewById(R.id.ffButton);
@@ -135,9 +137,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
             @Override
             public void onClick(View button) {
                 gameApplication.getRundenZaehler().incRunde();
-                if (!firstSkip) {
-                    gameApplication.getPunkte().safePunkte();
-                }
+                gameApplication.getPunkte().safePunkte();
                 gameApplication.getPunkte().reset();
                 gameApplication.getDistanz().resetDistance();
             }
@@ -146,13 +146,9 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         karte.getOverlays().add(new MapEventsOverlay(new MapEventsReceiver() {
             @Override
             public boolean singleTapConfirmedHelper(GeoPoint clickedP) {
-                if (!rundeVorbei) {
-                    gameApplication.getMarkerKoordinaten().setLatitude(clickedP.getLatitude());
-                    gameApplication.getMarkerKoordinaten().setLongitude(clickedP.getLongitude());
-                    karte.getOverlays().remove(nutzerMarker);
-                    karte.getOverlays().add(nutzerMarker);
-                    karte.invalidate();
-                }
+                gameApplication.getMarkerKoordinaten().setLatitude(clickedP.getLatitude());
+                gameApplication.getMarkerKoordinaten().setLongitude(clickedP.getLongitude());
+                gameApplication.getGame().mapClick();
                 return false;
             }
 
@@ -161,9 +157,6 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                 return false;
             }
         }));
-        // da ich direkt bei einem Bild starten möchte drücke ich die next Taste einmal manuell beim Start
-        nextButton.performClick();
-        firstSkip = false;
         //Das soll passieren wenn wir auf Bestätigen drücken
         validButton.setOnClickListener(new View.OnClickListener()  {
             @Override
@@ -259,9 +252,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         gameApplication.getMarkerKoordinaten().setLongitude(0);
         gameApplication.getMarkerKoordinaten().setLatitude(0);
         gameApplication.getDistanz().resetDistance();
-        firstSkip = true;
-        nextButton.performClick();
-        firstSkip = false;
+        gameApplication.getGame().restart();
     }
     //Wenn die Activity pausiert wird, soll die Karte pausiert werden
     @Override
@@ -436,6 +427,25 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         if (changeName.equals("resetDistanz")) {
             distanzText.setText("keine Schaetzung abgegeben");
         }
+        if (changeName.equals("start")) {
+            gameApplication.getRundenZaehler().incRunde();
+            gameApplication.getPunkte().reset();
+            gameApplication.getDistanz().resetDistance();
+        }
+        if (changeName.equals("NewMarkCheck")) {
+            karte.getOverlays().remove(nutzerMarker);
+            karte.getOverlays().add(nutzerMarker);
+            karte.invalidate();
+        }
+        if (changeName.equals("log")) {
+            Log.i("Hinweis",(String) propertyChangeEvent.getNewValue());
+        }
+        if (changeName.equals("snackbar")) {
+            View currentView = getCurrentFocus();
+            if (currentView != null) {
+                Snackbar.make(currentView, (String) propertyChangeEvent.getNewValue(), Snackbar.LENGTH_SHORT).show();
+            }
+        }
     }
     //Wenn die Activity beeendet wird, müssen die Listener entfernt werden
     @Override
@@ -446,6 +456,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         gameApplication.getPunkte().removeListener(this);
         gameApplication.getAlbum().removeListener(this);
         gameApplication.getDistanz().removeListener(this);
+        gameApplication.getGame().removeListener(this);
         stopTimer();
         super.onDestroy();
     }

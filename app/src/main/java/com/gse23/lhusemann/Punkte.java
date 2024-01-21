@@ -24,7 +24,7 @@ public class Punkte {
         } else {
             punkte = (int) ((int) (maxPoints / Math.log(maxDistance / minDistance)) * Math.log(maxDistance / distanz));
         }
-        this.support.firePropertyChange("Berechnung", punkteDavor, punkte);
+        this.support.firePropertyChange("NewMarkCheck", punkteDavor, punkte);
         return punkte;
     }
     public int getPunkte() {

@@ -12,6 +12,7 @@ public class GameApplication extends Application {
     private Distanz distance;
     private ExecutorService service;
     private AlbenListe albenListe;
+    private Game spiel;
     public MarkerKoordinaten getMarkerKoordinaten() {
         return markerK;
     }
@@ -59,5 +60,11 @@ public class GameApplication extends Application {
     }
     public void setAlbenListe(AlbenListe albenListe) {
         this.albenListe = albenListe;
+    }
+    public Game getGame() {
+        return spiel;
+    }
+    public void setGame(Game spiel) {
+        this.spiel = spiel;
     }
 }
