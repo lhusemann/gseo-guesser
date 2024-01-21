@@ -27,23 +27,15 @@ public final class Formatierung {
         return number / kilometer >= 1;
     }
     //prüft ob valider Laengengrad
-    public static boolean isValidLongitude(String longitude) {
-        if (longitude == null || longitude.equals("")) {
-            return false;
-        }
-        double zahl = Double.parseDouble(longitude);
+    public static boolean isValidLongitude(double longitude) {
         final double min = -180.0;
         final double max = 180.0;
-        return min <= zahl && zahl <= max;
+        return min <= longitude && longitude <= max;
     }
     //prüft ob valider Breitengrad
-    public static boolean isValidLatitude(String latitude) {
-        if (latitude == null || latitude.equals("")) {
-            return false;
-        }
-        double zahl = Double.parseDouble(latitude);
+    public static boolean isValidLatitude(double latitude) {
         final double min = -90;
         final double max = 90;
-        return min <= zahl && zahl <= max;
+        return min <= latitude && latitude <= max;
     }
 }
