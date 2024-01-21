@@ -12,8 +12,9 @@ public class Game {
     Timer timer;
     int counter;
     boolean rundeVorbei = false;
-    boolean vielleichtKeinWertEinloggen = false;
+    boolean zeitAbgelaufen = false;
     boolean firstSkip = true;
+    private static final String NOGUESS = "Kein Guess abgegeben.";
     Game() {
         this.support = new PropertyChangeSupport(this);
     }
@@ -32,11 +33,18 @@ public class Game {
             this.support.firePropertyChange("NewMarkCheck", false, true);
         }
     }
-    public void validClick() {
+    public void validClick(double longitude, double latitude) {
         if (rundeVorbei) {
             this.support.firePropertyChange("snackbar", "", "Runde vorbei!");
         } else {
-
+            if (Formatierung.isValidLongitude(longitude) && Formatierung.isValidLatitude(latitude)) {
+                this.support.firePropertyChange("valid", false, true);
+            } else {
+                if (!zeitAbgelaufen) {
+                    this.support.firePropertyChange("snackbar", "", "Die eingegebenen Werte sind nicht Valide! Der" +
+                            " Längengrad darf nur zwischen -180 und +180, und der Breitengrad zwischen -90 und +90 liegen!");
+                }
+            }
         }
     }
     public void center() {
@@ -45,10 +53,19 @@ public class Game {
     public void aufgeben() {
 
     }
-    public void linkClick() {
-
+    public void linkClick(String link) {
+        if (!link.equals(NOGUESS)) {
+            this.support.firePropertyChange("linkClick", false, "#551A8B");
+        }
     }
-
+    public void zeitVorbei() {
+        zeitAbgelaufen = true;
+        this.support.firePropertyChange("valid", false, true);
+        rundeVorbei(true);
+    }
+    public void rundeVorbei(boolean vorbei) {
+        rundeVorbei = vorbei;
+    }
 
     public void addListener(PropertyChangeListener listener) {
         support.addPropertyChangeListener(listener);

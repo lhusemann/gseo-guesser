@@ -13,6 +13,7 @@ public class GameApplication extends Application {
     private ExecutorService service;
     private AlbenListe albenListe;
     private Game spiel;
+    private RoundTimer timer;
     public MarkerKoordinaten getMarkerKoordinaten() {
         return markerK;
     }
@@ -66,5 +67,11 @@ public class GameApplication extends Application {
     }
     public void setGame(Game spiel) {
         this.spiel = spiel;
+    }
+    public RoundTimer getTimer() {
+        return timer;
+    }
+    public void setTimer(RoundTimer timer) {
+        this.timer = timer;
     }
 }

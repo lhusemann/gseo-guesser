@@ -45,7 +45,6 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
     private static final String NOGUESS = "Kein Guess abgegeben.";
     private static final String KOMMA = ",";
     private static final int LINEBREITE = 20;
-    private static final int SEKUNDE = 1000;
     private static final double WELTBREITE = 85.0;
     private static final double WELTLAENGE = 180.0;
     private static final float ZOOMWELT = 1.5f;
@@ -55,8 +54,8 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
     Button validButton;
     Button aufgebenButton;
     ImageView bild;
-    EditText longitudeField;
-    EditText latitudeField;
+    TextView longitudeField;
+    TextView latitudeField;
     TextView linkText;
     TextView distanzText;
     TextView aktuellerScore;
@@ -94,6 +93,8 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         gameApplication.getDistanz().addListener(this);
         gameApplication.setGame(new Game());
         gameApplication.getGame().addListener(this);
+        gameApplication.setTimer(new RoundTimer(gameApplication.getRundenZaehler().getRundenlaenge()));
+        gameApplication.getTimer().addListener(this);
         bild = findViewById(R.id.bild);
         nextButton = findViewById(R.id.nextButton);
         aufgebenButton = findViewById(R.id.ffButton);
@@ -161,37 +162,8 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         validButton.setOnClickListener(new View.OnClickListener()  {
             @Override
             public void onClick(View button) {
-                if (rundeVorbei) {
-                    Snackbar.make(button, "Runde vorbei!", Snackbar.LENGTH_SHORT).show();
-                } else {
-                    if (Formatierung.isValidLongitude(longitudeField.getText().toString())
-                            && Formatierung.isValidLatitude(latitudeField.getText().toString())) {
-                        stopTimer();
-                        gameApplication.getMarkerKoordinaten().setLongitude(Double.parseDouble(longitudeField
-                                .getText().toString()));
-                        gameApplication.getMarkerKoordinaten().setLatitude(Double.parseDouble(latitudeField
-                                .getText().toString()));
-                        gameApplication.getDistanz().calcDistance(gameApplication.getMarkerKoordinaten()
-                                .getLatitude(), gameApplication.getAlbum().getBild(gameApplication.getRundenZaehler()
-                                        .getRunde() - 1).getLatitude(), gameApplication.getMarkerKoordinaten()
-                                .getLongitude(), gameApplication.getAlbum().getBild(gameApplication
-                                .getRundenZaehler().getRunde() - 1).getLongtitude());
-                        gameApplication.getPunkte().berechne(gameApplication.getDistanz().getDistance());
-                        gameApplication.getGesamtscore().incGesamtscore(gameApplication.getPunkte().getPunkte());
-                    } else {
-                        if (!vielleichtKeinWertEinloggen) {
-                            AlertDialog.Builder error = new AlertDialog.Builder(SpielansichtActivity.this);
-                            error.setMessage("Die eingegebenen Werte sind nicht Valide! Der Längengrad darf nur"
-                                            + " zwischen" + "-180 und +180, und der Breitengrad zwischen -90 "
-                                            + "und +90 liegen!")
-                                    .setPositiveButton("ok", (dialog, id) -> {
-                                    })
-                                    .setTitle("Error");
-                            AlertDialog alert = error.create();
-                            alert.show();
-                        }
-                    }
-                }
+                gameApplication.getGame().validClick(gameApplication.getMarkerKoordinaten().getLongitude(),
+                        gameApplication.getMarkerKoordinaten().getLatitude());
             }
         });
         Button showButton = findViewById(R.id.showButton);
@@ -199,14 +171,8 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         showButton.setOnClickListener(new View.OnClickListener()  {
             @Override
             public void onClick(View button) {
-                if (!latitudeField.getText().toString().equals("") || !longitudeField.getText().toString()
-                        .equals("")) {
-                    double lati = Double.parseDouble(latitudeField.getText().toString());
-                    double longi = Double.parseDouble(longitudeField.getText().toString());
                     IMapController mapController = karte.getController();
-                    nutzerMarker.setPosition(new GeoPoint(lati, longi));
                     mapController.setCenter(nutzerMarker.getPosition());
-                }
             }
         });
         //Das soll passieren, wenn wir auf Aufgeben drücken
@@ -216,7 +182,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                 AlertDialog.Builder back = new AlertDialog.Builder(SpielansichtActivity.this);
                 back.setMessage("Möchtest du das aktuelle Spiel wirklich beeenden?")
                         .setPositiveButton("Ja", (dialog, id) -> {
-                            stopTimer();
+                            gameApplication.getTimer().stopTimer();
                             finish();
                         })
                         .setNegativeButton("Abbruch", (dialog, id) -> {})
@@ -229,10 +195,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         linkText.setOnClickListener(new View.OnClickListener()  {
             @Override
             public void onClick(View link) {
-                if (!linkText.getText().equals(NOGUESS)) {
-                    linkText.setTextColor(Color.parseColor("#551A8B"));
-                    openLink(linkText.getText().toString());
-                }
+                gameApplication.getGame().linkClick(linkText.getText().toString());
             }
         });
     }
@@ -289,7 +252,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                 throw new NoImagesInAlbumException(gameApplication.getAlbum().getName(), SpielansichtActivity.this);
             }
         } catch (NoImagesInAlbumException e) {
-            stopTimer();
+            gameApplication.getTimer().stopTimer();
         }
     }
     //startet URL, ich habe dies Methode im Internet gefunden: https://www.youtube.com/watch?v=TU-yDCgpbZw
@@ -297,40 +260,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         Uri uri = Uri.parse(link);
         startActivity(new Intent(Intent.ACTION_VIEW, uri));
     }
-    //koopiert von https://stackoverflow.com/questions/10029831/how-do-you-use-a-timertask-to-run-a-thread
-    private void stopTimer() {
-        if (timer != null) {
-            timer.cancel();
-            timer.purge();
-            counter = 0;
-            timerText.setText("" + counter);
-        }
-    }
-    //koopiert von https://stackoverflow.com/questions/10029831/how-do-you-use-a-timertask-to-run-a-thread
-    private void startTimer() {
-        Handler timerHandler = new Handler();
-        timer = new Timer();
-        counter = gameApplication.getRundenZaehler().getRundenlaenge();
-        timerTask = new TimerTask() {
-            public void run() {
-                timerHandler.post(new Runnable() {
-                    public void run() {
-                        timerText.setText("" + counter);
-                        counter--;
-                        if (counter < 0) {
-                            stopTimer();
-                            Toast.makeText(SpielansichtActivity.this, "Die Zeit ist abgelaufen!", Toast.LENGTH_SHORT)
-                                    .show();
-                            vielleichtKeinWertEinloggen = true;
-                            validButton.performClick();
-                            rundeVorbei = true;
-                        }
-                    }
-                });
-            }
-        };
-        timer.schedule(timerTask, 1, SEKUNDE);
-    }
+
     //Wenn in einem Model eine Sache verändert wird, wird hier gesagt, was passieren soll
     @Override
     public void propertyChange(PropertyChangeEvent propertyChangeEvent) {
@@ -350,7 +280,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
             Log.i("Breitengrad des gesetzen Markers", wertAlsString);
         }
         if (changeName.equals("RundenInc")) {
-            stopTimer();
+            gameApplication.getTimer().stopTimer();
             if ((int) propertyChangeEvent.getNewValue() <= gameApplication.getRundenZaehler().getMaxRunde()
                     && gameApplication.getAlbum().getSize() > 0) {
                 longitudeField.setText(null);
@@ -446,7 +376,28 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                 Snackbar.make(currentView, (String) propertyChangeEvent.getNewValue(), Snackbar.LENGTH_SHORT).show();
             }
         }
+        if (changeName.equals("ChangeTimer")) {
+            timerText.setText("" +  (int) propertyChangeEvent.getNewValue());
+        }
+        if (changeName.equals("ZeitVorbei")) {
+            gameApplication.getGame().zeitVorbei();
+        }
+        if (changeName.equals("valid")) {
+            gameApplication.getTimer().stopTimer();
+            gameApplication.getDistanz().calcDistance(gameApplication.getMarkerKoordinaten()
+                    .getLatitude(), gameApplication.getAlbum().getBild(gameApplication.getRundenZaehler()
+                    .getRunde() - 1).getLatitude(), gameApplication.getMarkerKoordinaten()
+                    .getLongitude(), gameApplication.getAlbum().getBild(gameApplication
+                    .getRundenZaehler().getRunde() - 1).getLongtitude());
+            gameApplication.getPunkte().berechne(gameApplication.getDistanz().getDistance());
+            gameApplication.getGesamtscore().incGesamtscore(gameApplication.getPunkte().getPunkte());
+        }
+        if (changeName.equals("linkClick")) {
+            linkText.setTextColor(Color.parseColor((String) propertyChangeEvent.getNewValue()));
+            openLink(linkText.getText().toString());
+        }
     }
+
     //Wenn die Activity beeendet wird, müssen die Listener entfernt werden
     @Override
     protected void onDestroy() {
@@ -457,7 +408,8 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         gameApplication.getAlbum().removeListener(this);
         gameApplication.getDistanz().removeListener(this);
         gameApplication.getGame().removeListener(this);
-        stopTimer();
+        gameApplication.getTimer().removeListener(this);
+        gameApplication.getTimer().stopTimer();
         super.onDestroy();
     }
 }
