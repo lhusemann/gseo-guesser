@@ -1,5 +1,7 @@
 package com.gse23.lhusemann;
 
+import android.util.Log;
+
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.ArrayList;
@@ -31,9 +33,8 @@ public class Album {
         return album.size();
     }
     public void addBild(Bild neu) {
-        ArrayList<Bild> alt = new ArrayList<>(album);
         album.add(neu);
-        this.support.firePropertyChange("addBild", alt, album);
+        this.support.firePropertyChange("albumErweitert", null, neu);
     }
     public Bild getBild(int index) {
         if (album.size() >= index) {
@@ -47,15 +48,10 @@ public class Album {
         Collections.shuffle(album);
         this.support.firePropertyChange("mix", alt, album);
     }
-    public boolean isEmptyUndLogAll() throws NoImagesInAlbumException {
-            if (album.isEmpty()) {
-                return true;
-            } else {
-                for (int i = 0; i < album.size(); i++) {
-                    this.logExif(i);
-                }
-                return false;
-            }
+    public void logAll() {
+        for (int i = 0; i < album.size(); i++) {
+            this.logExif(i);
+        }
     }
     public void reset() {
         this.support.firePropertyChange("nameReset", this.name, "");

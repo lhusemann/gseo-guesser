@@ -6,6 +6,8 @@ import androidx.exifinterface.media.ExifInterface;
 import androidx.preference.PreferenceManager;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -69,12 +71,6 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
     Polyline line;
     Context context;
     IConfigurationProvider provider;
-    String folder;
-    TimerTask timerTask;
-    Timer timer;
-    int counter;
-    boolean rundeVorbei = false;
-    boolean vielleichtKeinWertEinloggen = false;
     //Diese Methode wird beim Start ausgeführt
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -123,12 +119,11 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         nutzerMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
         nutzerMarker.setTitle("Ihre Eingabe");
         markerCorrect = new Marker(karte);
-        folder = gameApplication.getAlbum().getName();
-        Log.i("Auswahl", "Das Album " + folder + " wurde ausgewaehlt.");
+        Log.i("Auswahl", "Das Album " + gameApplication.getAlbum().getName() + " wurde ausgewaehlt.");
         try {
             this.addBilderInAlbum();
-            this.bilderLoggen();
-        } catch (CorruptedExifDataException | NoImagesInAlbumException e) {
+            gameApplication.getAlbum().logAll();
+        } catch (CorruptedExifDataException e) {
             return;
             //Exceptionbehandlung für Nutzer passiert in den Exceptions selbst
         }
@@ -198,6 +193,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                 gameApplication.getGame().linkClick(linkText.getText().toString());
             }
         });
+        gameApplication.getGame().start();
     }
     //Wenn die Activity neugeladen wird, soll die Karte noch funktionieren
     @Override
@@ -215,7 +211,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         gameApplication.getMarkerKoordinaten().setLongitude(0);
         gameApplication.getMarkerKoordinaten().setLatitude(0);
         gameApplication.getDistanz().resetDistance();
-        gameApplication.getGame().restart();
+        gameApplication.getGame().start();
     }
     //Wenn die Activity pausiert wird, soll die Karte pausiert werden
     @Override
@@ -230,38 +226,62 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
     }
     //erstellt das Album aus allen Bilder des Ordners
     private void addBilderInAlbum() throws CorruptedExifDataException {
-        String[] paths = ReadExif.getPath(getApplicationContext(), gameApplication.getAlbum()
-                .getName(), gameApplication.getAlbum().isDownloaded()).toArray(new String[0]);
-        for (int i = 0; i < paths.length; i++) {
-            Bild aktuellesBild = new Bild(ReadExif.getNames(getApplicationContext(), gameApplication.getAlbum()
-                    .getName(), gameApplication.getAlbum().isDownloaded())[i], ReadExif
-                    .getExifdata(paths[i], ExifInterface.TAG_IMAGE_DESCRIPTION, SpielansichtActivity
-                            .this, gameApplication.getAlbum().isDownloaded()),
-                    ReadExif.getExifdata(paths[i], ExifInterface.TAG_GPS_LONGITUDE, SpielansichtActivity
-                            .this, gameApplication.getAlbum().isDownloaded()),
-                    ReadExif.getExifdata(paths[i], ExifInterface.TAG_GPS_LATITUDE, SpielansichtActivity
-                            .this, gameApplication.getAlbum().isDownloaded()));
-            gameApplication.getAlbum().addBild(aktuellesBild);
-        }
-    }
-
-    //gibt alle Werte von allen Bildern des ausgewähltem Album aus
-    private void bilderLoggen() throws NoImagesInAlbumException {
-        try {
-            if (gameApplication.getAlbum().isEmptyUndLogAll()) {
-                throw new NoImagesInAlbumException(gameApplication.getAlbum().getName(), SpielansichtActivity.this);
-            }
-        } catch (NoImagesInAlbumException e) {
-            gameApplication.getTimer().stopTimer();
-        }
+        gameApplication.getGame().checkBilder(gameApplication.getAlbum().isDownloaded(),
+                gameApplication.getAlbum().getName());
     }
     //startet URL, ich habe dies Methode im Internet gefunden: https://www.youtube.com/watch?v=TU-yDCgpbZw
     private void openLink(String link) {
         Uri uri = Uri.parse(link);
         startActivity(new Intent(Intent.ACTION_VIEW, uri));
     }
+    //gibt ein Array von Ordnern/Dateien an bestimmer Stelle aus
+    private String[] getAssetsInt(String folder) {
+        try {
+            return getAssets().list("albums/" + folder);
+        } catch (IOException e) {
+            return new String[0];
+        }
+    }
+    //gibt Exifdaten zurück mit Hilfe der Klasse ReadExif
+    public void addBildD(String file) {
+        try {
+            ExifInterface exifInterface = new ExifInterface(getFilesDir() + "/Album/" + gameApplication.getAlbum().getName() + "/" + file);
+            addBild(exifInterface, file);
+        } catch (IOException e) {
+            Toast.makeText(getApplicationContext(), "Fehler beim Lesen eines Bildes!", Toast.LENGTH_SHORT).show();
+            finish();
+        }
+        }
+    public void addBildI(String file) {
+        try (InputStream in = getAssets().open("albums/" + gameApplication.getAlbum().getName() + "/" + file)) {
+            ExifInterface exifInterface = new ExifInterface(in);
+            addBild(exifInterface, file);
+        } catch (IOException e) {
+            Toast.makeText(this, "Fehler beim Lesen eines Bildes!", Toast.LENGTH_SHORT).show();
+            finish();
+        }
+    }
+    public void addBild(ExifInterface exifInterface, String file) {
+        String description = exifInterface.getAttribute(ExifInterface.TAG_IMAGE_DESCRIPTION);
+        float[] koords = new float[2];
+        try {
+            double latitude;
+            double longitude;
+            if (exifInterface.getLatLong(koords)) {
+                latitude = (double) koords[0];
+                longitude = (double) koords[1];
+            } else {
+                throw new CorruptedExifDataException();
+            }
+            gameApplication.getAlbum().addBild(new Bild(file, description, longitude, latitude));
+        } catch (CorruptedExifDataException e) {
+            Log.i("CorruptedExifDataException", "Koordinaten konnten in der Datei " + file + " nicht gefunden werden.");
+            Toast.makeText(this, "Koordinaten konnten in der Datei " + file + " nicht gefunden werden.", Toast.LENGTH_SHORT).show();
+            finish();
+        }
+    }
 
-    //Wenn in einem Model eine Sache verändert wird, wird hier gesagt, was passieren soll
+        //Wenn in einem Model eine Sache verändert wird, wird hier gesagt, was passieren soll
     @Override
     public void propertyChange(PropertyChangeEvent propertyChangeEvent) {
         String changeName = propertyChangeEvent.getPropertyName();
@@ -303,9 +323,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                 karte.post(() -> {
                     karte.zoomToBoundingBox(BoundingBox.fromGeoPointsSafe(weltKarte), false);
                 });
-                startTimer();
-                rundeVorbei = false;
-                vielleichtKeinWertEinloggen = false;
+                //gameApplication.getTimer().startTimer();----------------------------------------------------------------------
             } else {
                 if (gameApplication.getAlbum().getSize() > 0) {
                     Intent intent = new Intent(SpielansichtActivity.this, EndActivity.class);
@@ -352,7 +370,6 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
             karte.post(() -> {
                 karte.zoomToBoundingBox(BoundingBox.fromGeoPointsSafe(geoPoints).increaseByScale(ZOOMWELT), true);
             });
-            rundeVorbei = true;
         }
         if (changeName.equals("resetDistanz")) {
             distanzText.setText("keine Schaetzung abgegeben");
@@ -395,6 +412,23 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         if (changeName.equals("linkClick")) {
             linkText.setTextColor(Color.parseColor((String) propertyChangeEvent.getNewValue()));
             openLink(linkText.getText().toString());
+        }
+        if (changeName.equals("isDownloaded")) {
+            gameApplication.getGame().forAddBilderLocation(getFilesDir() + "/Album/" + propertyChangeEvent.getNewValue(), (String) propertyChangeEvent.getNewValue(), gameApplication.getAlbum().isDownloaded());
+        }
+        if (changeName.equals("isInternal")) {
+            gameApplication.getGame().forAddBilderWithName(getAssetsInt((String) propertyChangeEvent.getNewValue()), (String) propertyChangeEvent.getNewValue(), gameApplication.getAlbum().isDownloaded());
+        }
+        if (changeName.equals("addBild")) {
+            addBildI((String) propertyChangeEvent.getNewValue());
+        }
+        if (changeName.equals("addBildD")) {
+            addBildD((String) propertyChangeEvent.getNewValue());
+        }
+        if (changeName.equals("noImagesException")) {
+            Log.i("NoImagesInAlbumException", propertyChangeEvent.getNewValue() + " hat keine Bilddateien enthalten.");
+            Toast.makeText(this, "Keine Bilder im ausgewaehltem Album vorhanden.", Toast.LENGTH_SHORT).show();
+            finish();
         }
     }
 

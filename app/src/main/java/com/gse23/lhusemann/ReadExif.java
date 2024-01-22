@@ -80,7 +80,7 @@ public final class ReadExif {
                 ExifInterface exifInterface = new ExifInterface(filepath);
                 String exifData = exifInterface.getAttribute(exifTag);
                 if (exifData == null && !(exifTag.equals(ExifInterface.TAG_IMAGE_DESCRIPTION))) {
-                    throw new CorruptedExifDataException(exifTag.substring(TAGLAENGE), filepath, activity);
+                    throw new CorruptedExifDataException();
                 } else {
                     if (exifData == null) {
                         return "";
@@ -96,7 +96,7 @@ public final class ReadExif {
                 ExifInterface exifInterface = new ExifInterface(in);
                 String exifData = exifInterface.getAttribute(exifTag);
                 if (exifData == null && !(exifTag.equals(ExifInterface.TAG_IMAGE_DESCRIPTION))) {
-                    throw new CorruptedExifDataException(exifTag.substring(TAGLAENGE), filepath, activity);
+                    throw new CorruptedExifDataException();
                 } else {
                     return exifData;
                 }

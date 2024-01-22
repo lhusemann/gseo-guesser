@@ -25,7 +25,7 @@ public class RoundTimer {
         }
     }
     //Basiert auf https://stackoverflow.com/questions/10029831/how-do-you-use-a-timertask-to-run-a-thread
-    private void startTimer() {
+    public void startTimer() {
         timer = new Timer();
         counter = time;
         timerTask = new TimerTask() {
