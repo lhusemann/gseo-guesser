@@ -22,12 +22,13 @@ public class Distanz {
                 * havHelper(deltaLon);
         final double radErde = 6371008.7;
         distance = 2.0 * radErde * Math.asin(Math.sqrt(haversine));
-        this.support.firePropertyChange("DistanzCalc", distanzDavor, distance);
+        String wertInKModerM = Formatierung.getUnit(distance);
+        this.support.firePropertyChange("DistanzCalc", Double.toString(distanzDavor), wertInKModerM);
     }
     public void resetDistance() {
         double distanzDavor = this.distance;
         distance = 0.0;
-        this.support.firePropertyChange("resetDistanz", distanzDavor, distanzDavor);
+        this.support.firePropertyChange("resetDistanz", distanzDavor, distance);
     }
     //rechnet von degree in radians um
     private Double getRadians(Double degree) {
