@@ -125,14 +125,14 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
             gameApplication.getAlbum().logAll();
         } catch (CorruptedExifDataException e) {
             return;
-            //Exceptionbehandlung für Nutzer passiert in den Exceptions selbst
+            //-------------------------------------------------------------------------------------------------------
         }
         gameApplication.getAlbum().mix();
         //Dies soll passieren, wenn auf den Next-Button gedrückt wird
         nextButton.setOnClickListener(new View.OnClickListener()  {
             @Override
             public void onClick(View button) {
-                gameApplication.getRundenZaehler().incRunde();
+                gameApplication.getRundenZaehler().incRunde(gameApplication.getAlbum().getSize());
                 gameApplication.getPunkte().safePunkte();
                 gameApplication.getPunkte().reset();
                 gameApplication.getDistanz().resetDistance();
@@ -142,9 +142,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         karte.getOverlays().add(new MapEventsOverlay(new MapEventsReceiver() {
             @Override
             public boolean singleTapConfirmedHelper(GeoPoint clickedP) {
-                gameApplication.getMarkerKoordinaten().setLatitude(clickedP.getLatitude());
-                gameApplication.getMarkerKoordinaten().setLongitude(clickedP.getLongitude());
-                gameApplication.getGame().mapClick();
+                gameApplication.getGame().mapClick(clickedP.getLatitude(), clickedP.getLongitude());
                 return false;
             }
 
@@ -193,7 +191,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                 gameApplication.getGame().linkClick(linkText.getText().toString());
             }
         });
-        gameApplication.getGame().start();
+        start();
     }
     //Wenn die Activity neugeladen wird, soll die Karte noch funktionieren
     @Override
@@ -211,7 +209,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         gameApplication.getMarkerKoordinaten().setLongitude(0);
         gameApplication.getMarkerKoordinaten().setLatitude(0);
         gameApplication.getDistanz().resetDistance();
-        gameApplication.getGame().start();
+        start();
     }
     //Wenn die Activity pausiert wird, soll die Karte pausiert werden
     @Override
@@ -280,8 +278,12 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
             finish();
         }
     }
+    public void start() {
+        gameApplication.getRundenZaehler().incRunde(gameApplication.getAlbum().getSize());
+        gameApplication.getPunkte().reset();
+        gameApplication.getDistanz().resetDistance();
+    }
 
-        //Wenn in einem Model eine Sache verändert wird, wird hier gesagt, was passieren soll
     @Override
     public void propertyChange(PropertyChangeEvent propertyChangeEvent) {
         String changeName = propertyChangeEvent.getPropertyName();
@@ -299,37 +301,36 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
             latitudeField.setText(wertAlsString);
             Log.i("Breitengrad des gesetzen Markers", wertAlsString);
         }
+        if (changeName.equals("BildInc")) {
+            beschreibung.setText(gameApplication.getAlbum().getBild((int) propertyChangeEvent.getNewValue())
+                    .getDescription());
+            bild.setImageDrawable(gameApplication.getAlbum().getBild((int) propertyChangeEvent.getNewValue())
+                    .getDrawable(gameApplication.getAlbum().getName(), SpielansichtActivity.this, gameApplication
+                            .getAlbum().isDownloaded()));
+            gameApplication.getAlbum().logExifNoDec((int) propertyChangeEvent.getNewValue());
+        }
         if (changeName.equals("RundenInc")) {
             gameApplication.getTimer().stopTimer();
-            if ((int) propertyChangeEvent.getNewValue() <= gameApplication.getRundenZaehler().getMaxRunde()
-                    && gameApplication.getAlbum().getSize() > 0) {
-                longitudeField.setText(null);
-                latitudeField.setText(null);
-                beschreibung.setText(gameApplication.getAlbum().getBild((int) propertyChangeEvent.getNewValue() - 1)
-                        .getDescription());
-                bild.setImageDrawable(gameApplication.getAlbum().getBild((int) propertyChangeEvent.getNewValue() - 1)
-                        .getDrawable(gameApplication.getAlbum().getName(), SpielansichtActivity.this, gameApplication
-                                .getAlbum().isDownloaded()));
-                gameApplication.getAlbum().logExifNoDec((int) propertyChangeEvent.getNewValue() - 1);
-                runde.setText("" + (int) propertyChangeEvent.getNewValue());
-                linkText.setText(NOGUESS);
-                linkText.setTextColor(Color.parseColor("#808080"));
-                karte.getOverlays().remove(markerCorrect);
-                karte.getOverlays().remove(nutzerMarker);
-                karte.getOverlays().remove(line);
-                List<GeoPoint> weltKarte = new ArrayList<>();
-                weltKarte.add(new GeoPoint(WELTBREITE, WELTLAENGE));
-                weltKarte.add(new GeoPoint(-WELTBREITE, -WELTLAENGE));
-                karte.post(() -> {
-                    karte.zoomToBoundingBox(BoundingBox.fromGeoPointsSafe(weltKarte), false);
-                });
-                //gameApplication.getTimer().startTimer();----------------------------------------------------------------------
-            } else {
-                if (gameApplication.getAlbum().getSize() > 0) {
-                    Intent intent = new Intent(SpielansichtActivity.this, EndActivity.class);
-                    startActivity(intent);
-                }
-            }
+            longitudeField.setText(null);
+            latitudeField.setText(null);
+            runde.setText("" + (int) propertyChangeEvent.getNewValue());
+            linkText.setText(NOGUESS);
+            linkText.setTextColor(Color.parseColor("#808080"));
+            karte.getOverlays().remove(markerCorrect);
+            karte.getOverlays().remove(nutzerMarker);
+            karte.getOverlays().remove(line);
+            List<GeoPoint> weltKarte = new ArrayList<>();
+            weltKarte.add(new GeoPoint(WELTBREITE, WELTLAENGE));
+            weltKarte.add(new GeoPoint(-WELTBREITE, -WELTLAENGE));
+            karte.post(() -> {
+                karte.zoomToBoundingBox(BoundingBox.fromGeoPointsSafe(weltKarte), false);
+            });
+            //gameApplication.getTimer().startTimer();----------------------------------------------------------------------
+            gameApplication.getGame().rundeVorbei(false);
+        }
+        if (changeName.equals("goEndScreen")) {
+        Intent intent = new Intent(SpielansichtActivity.this, EndActivity.class);
+        startActivity(intent);
         }
         if (changeName.equals("Punkte")) {
             aktuellerScore.setText("" + ((int) propertyChangeEvent.getNewValue()));
@@ -341,7 +342,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
             aktuellerScore.setText("" + (int) propertyChangeEvent.getNewValue());
         }
         if (changeName.equals("DistanzCalc")) {
-            Log.i("Distanz der Schaetzung", Formatierung.getUnit((double) propertyChangeEvent.getNewValue()));
+            Log.i("Distanz der Schaetzung", (String) propertyChangeEvent.getNewValue());
             String link = "https://www.openstreetmap.org/directions?engine=fossgis_valhalla_foot&route="
                     + gameApplication.getMarkerKoordinaten().getLatitude() + KOMMA + gameApplication
                     .getMarkerKoordinaten().getLongitude() + ";" + gameApplication.getAlbum().getBild(gameApplication
@@ -350,7 +351,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
             Log.i("OpenStreetMaps-Link zur Schätzung", link);
             linkText.setText(link);
             linkText.setTextColor(Color.parseColor("#0000EE"));
-            distanzText.setText(Formatierung.getUnit((double) propertyChangeEvent.getNewValue()));
+            distanzText.setText((String) propertyChangeEvent.getNewValue());
 
             List<GeoPoint> geoPoints = new ArrayList<>();
             geoPoints.add(new GeoPoint(gameApplication.getMarkerKoordinaten().getLatitude(), gameApplication
@@ -374,10 +375,11 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         if (changeName.equals("resetDistanz")) {
             distanzText.setText("keine Schaetzung abgegeben");
         }
-        if (changeName.equals("start")) {
-            gameApplication.getRundenZaehler().incRunde();
-            gameApplication.getPunkte().reset();
-            gameApplication.getDistanz().resetDistance();
+        if (changeName.equals("correctLatitude")) {
+            gameApplication.getMarkerKoordinaten().setLatitude((double) propertyChangeEvent.getNewValue());
+        }
+        if (changeName.equals("correctLongitude")) {
+            gameApplication.getMarkerKoordinaten().setLongitude((double) propertyChangeEvent.getNewValue());
         }
         if (changeName.equals("NewMarkCheck")) {
             karte.getOverlays().remove(nutzerMarker);
@@ -397,7 +399,8 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
             timerText.setText("" +  (int) propertyChangeEvent.getNewValue());
         }
         if (changeName.equals("ZeitVorbei")) {
-            gameApplication.getGame().zeitVorbei();
+            gameApplication.getGame().zeitAbgelaufen();
+            validButton.performClick();
         }
         if (changeName.equals("valid")) {
             gameApplication.getTimer().stopTimer();

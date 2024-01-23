@@ -18,9 +18,16 @@ public class Rundenzaehler {
         this.support.firePropertyChange("Runde", this.runde, runde);
         this.runde = runde;
     }
-    public void incRunde() {
-        this.support.firePropertyChange("RundenInc", this.runde, runde + 1);
-        this.runde++;
+    public void incRunde(int albumSize) {
+        if (albumSize > 0) {
+            if (runde + 1 <= maxRunde) {
+                this.support.firePropertyChange("BildInc", this.runde-1, runde);
+                this.support.firePropertyChange("RundenInc", this.runde, runde + 1);
+            } else {
+                this.support.firePropertyChange("goEndScreen", this.runde, runde + 1);
+            }
+            this.runde++;
+        }
     }
     public int getRunde() {
         return runde;

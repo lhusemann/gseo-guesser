@@ -19,11 +19,10 @@ public class Game {
     Game() {
         this.support = new PropertyChangeSupport(this);
     }
-    public void start() {
-            this.support.firePropertyChange("start", true, false);
-    }
-    public void mapClick() {
+    public void mapClick(double latitude, double longitude) {
         if (!rundeVorbei) {
+            this.support.firePropertyChange("correctLatitude", 0.0, latitude);
+            this.support.firePropertyChange("correctLongitude", 0.0, longitude);
             this.support.firePropertyChange("NewMarkCheck", false, true);
         }
     }
@@ -33,6 +32,7 @@ public class Game {
         } else {
             if (Formatierung.isValidLongitude(longitude) && Formatierung.isValidLatitude(latitude)) {
                 this.support.firePropertyChange("valid", false, true);
+                rundeVorbei = true;
             } else {
                 if (!zeitAbgelaufen) {
                     this.support.firePropertyChange("snackbar", "", "Die eingegebenen Werte sind nicht Valide! Der" +
@@ -41,21 +41,18 @@ public class Game {
             }
         }
     }
-    public void center() {
-
-    }
-    public void aufgeben() {
-
-    }
     public void linkClick(String link) {
         if (!link.equals(NOGUESS)) {
             this.support.firePropertyChange("linkClick", false, "#551A8B");
         }
     }
-    public void zeitVorbei() {
+    public void zeitAbgelaufen() {
+        this.support.firePropertyChange("zeitVorbeiTrue", zeitAbgelaufen, true);
         zeitAbgelaufen = true;
-        this.support.firePropertyChange("valid", false, true);
-        rundeVorbei(true);
+    }
+    public void rundeVorbei(boolean vorbei) {
+        this.support.firePropertyChange("rundeVorbei", rundeVorbei, vorbei);
+        rundeVorbei = vorbei;
     }
     public void checkBilder(boolean downloaded, String folder) {
         if (downloaded) {
@@ -98,9 +95,6 @@ public class Game {
             forAddBilderWithName(new String[0], folder, downloaded);
         }
 
-    }
-    public void rundeVorbei(boolean vorbei) {
-        rundeVorbei = vorbei;
     }
 
     public void addListener(PropertyChangeListener listener) {
