@@ -22,6 +22,7 @@ public class RoundTimer {
             timer.cancel();
             timer.purge();
             this.support.firePropertyChange("ZeitVorbei", 1, 0);
+
         }
     }
     //Basiert auf https://stackoverflow.com/questions/10029831/how-do-you-use-a-timertask-to-run-a-thread

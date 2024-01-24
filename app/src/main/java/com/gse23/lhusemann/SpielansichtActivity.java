@@ -17,6 +17,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -304,9 +305,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         if (changeName.equals("BildInc")) {
             beschreibung.setText(gameApplication.getAlbum().getBild((int) propertyChangeEvent.getNewValue())
                     .getDescription());
-            bild.setImageDrawable(gameApplication.getAlbum().getBild((int) propertyChangeEvent.getNewValue())
-                    .getDrawable(gameApplication.getAlbum().getName(), SpielansichtActivity.this, gameApplication
-                            .getAlbum().isDownloaded()));
+            gameApplication.getAlbum().getDrawable((int) propertyChangeEvent.getNewValue());
             gameApplication.getAlbum().logExifNoDec((int) propertyChangeEvent.getNewValue());
         }
         if (changeName.equals("RundenInc")) {
@@ -327,6 +326,9 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
             });
             //gameApplication.getTimer().startTimer();----------------------------------------------------------------------
             gameApplication.getGame().rundeVorbei(false);
+            runOnUiThread(()->{
+
+            });
         }
         if (changeName.equals("goEndScreen")) {
         Intent intent = new Intent(SpielansichtActivity.this, EndActivity.class);
@@ -432,6 +434,39 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
             Log.i("NoImagesInAlbumException", propertyChangeEvent.getNewValue() + " hat keine Bilddateien enthalten.");
             Toast.makeText(this, "Keine Bilder im ausgewaehltem Album vorhanden.", Toast.LENGTH_SHORT).show();
             finish();
+        }
+        if (changeName.equals("ErrorBackMenu")) {
+            Log.i("Error", (String) propertyChangeEvent.getNewValue());
+            Toast.makeText(this, (String) propertyChangeEvent.getNewValue(), Toast.LENGTH_SHORT).show();
+            finish();
+        }
+        if (changeName.equals("getDrawableD")) {
+            bild.setImageDrawable(Drawable.createFromPath(getFilesDir() + (String) propertyChangeEvent.getNewValue()));
+        }
+        if (changeName.equals("getDrawableI")) {
+            try (InputStream in = getAssets().open((String) propertyChangeEvent.getNewValue())) {
+                bild.setImageDrawable(Drawable.createFromStream(in, "src"));
+            } catch (IOException e) {
+                Log.i("test","joooo");
+                Log.i("Error", "Fehler beim Laden des Bildes");
+                Toast.makeText(this, "Fehler beim Laden des Bildes", Toast.LENGTH_SHORT).show();
+                finish();
+            }
+        }
+        if (changeName.equals("logName")) {
+            Log.i("Bildname", (String) propertyChangeEvent.getNewValue());
+        }
+        if (changeName.equals("logDescription")) {
+            Log.i("Beschreibung", (String) propertyChangeEvent.getNewValue());
+        }
+        if (changeName.equals("logNoDescription")) {
+            Log.i("Keine Beschreibung vorhanden", (String) propertyChangeEvent.getNewValue());
+        }
+        if (changeName.equals("logLongtitude")) {
+            Log.i("Laengengrad", (String) propertyChangeEvent.getNewValue());
+        }
+        if (changeName.equals("logLatitude")) {
+            Log.i("Breitengrad", (String) propertyChangeEvent.getNewValue());
         }
     }
 

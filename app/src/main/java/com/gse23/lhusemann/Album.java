@@ -1,7 +1,5 @@
 package com.gse23.lhusemann;
 
-import android.util.Log;
-
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.ArrayList;
@@ -64,17 +62,32 @@ public class Album {
     }
     public void logExif(int index) {
         if (album.size() >= index) {
-            album.get(index).logName();
-            album.get(index).logDescription();
-            album.get(index).logLongtitude();
-            album.get(index).logLatitude();
+            this.support.firePropertyChange("logName", "", album.get(index).getName());
+            if (album.get(index).getDescription() == null) {
+                this.support.firePropertyChange("logNoDescription", "", "-");
+            } else {
+                this.support.firePropertyChange("logDescription", "", album.get(index).getDescription());
+            }
+            this.support.firePropertyChange("logLongtitude", "", "" + album.get(index).getLongtitude());
+            this.support.firePropertyChange("logLatitude", "", "" + album.get(index).getLatitude());
         }
     }
     public void logExifNoDec(int index) {
         if (album.size() >= index) {
-            album.get(index).logName();
-            album.get(index).logLongtitude();
-            album.get(index).logLatitude();
+            this.support.firePropertyChange("logName", "", album.get(index).getName());
+            this.support.firePropertyChange("logLongtitude", "", "" + album.get(index).getLongtitude());
+            this.support.firePropertyChange("logLatitude", "", "" + album.get(index).getLatitude());
+        }
+    }
+    public void getDrawable(int index) {
+        if (album.size() >= index) {
+        if (downloaded) {
+            this.support.firePropertyChange("getDrawableD", "/Album/", "/Album/" + name + "/" + album.get(index).getName());
+        } else {
+            this.support.firePropertyChange("getDrawableI", "albums/", "albums/" + name + "/" + album.get(index).getName());
+        }
+        } else {
+            this.support.firePropertyChange("ErrorBackMenu", "", "Fehler beim Laden des Bildes");
         }
     }
     public void addListener(PropertyChangeListener listener) {
