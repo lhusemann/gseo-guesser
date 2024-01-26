@@ -3,7 +3,7 @@ package com.gse23.lhusemann;
 public class MarkerKoordinaten {
     private double longitude;
     private double latitude;
-    private boolean isSet = false;
+    private boolean isPlaced = false;
     public MarkerKoordinaten(double longitude, double latitude) {
         this.longitude = longitude;
         this.latitude = latitude;
@@ -20,14 +20,15 @@ public class MarkerKoordinaten {
     public double getLatitude() {
         return latitude;
     }
-    public boolean isSet() {
-        return isSet;
+    public boolean isPlaced() {
+        return isPlaced;
     }
-    public void setIsSet(boolean isSet) {
-        this.isSet = isSet;
+    public void setIsPlaced(boolean isPlaced) {
+        this.isPlaced = isPlaced;
     }
     public void setZero() {
         longitude = 0.0;
         latitude = 0.0;
+        isPlaced = false;
     }
 }

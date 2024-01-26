@@ -52,6 +52,7 @@ public class DownloadActivity extends AppCompatActivity implements PropertyChang
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_download);
         gameApplication = (GameApplication) getApplication();
+        gameApplication.getGame().addListener(this);
         spinner = findViewById(R.id.spinnerDownload);
         executerService = Executors.newFixedThreadPool(FIXEDTHREADPOOL);
         auswahlmoeglichkeitenListe.add(KEINEAUSWAHL);
@@ -151,6 +152,7 @@ public class DownloadActivity extends AppCompatActivity implements PropertyChang
                                 auswahlAdapter.clear();
                                 auswahlmoeglichkeitenListe.addAll(Arrays.asList(albenListe.getNames()));
                                 auswahlAdapter.notifyDataSetChanged();
+                                gameApplication.getGame().setAlbenListe(albenListe);
                             }
                         });
                     }
@@ -285,6 +287,7 @@ public class DownloadActivity extends AppCompatActivity implements PropertyChang
     }
     @Override
     protected void onDestroy() {
+        gameApplication.getGame().removeListener(this);
         super.onDestroy();
     }
 }

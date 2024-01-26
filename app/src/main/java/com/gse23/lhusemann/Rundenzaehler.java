@@ -33,4 +33,7 @@ public class Rundenzaehler {
         maxRunde = 0;
         rundenlaenge = 0;
     }
+    public void restart() {
+        runde = 1;
+    }
 }

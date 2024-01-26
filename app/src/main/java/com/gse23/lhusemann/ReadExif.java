@@ -9,16 +9,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 
-public final class ReadExif {
-    private static final String INTERNALB = "/Album/";
-    private static final String ALBUMASSETS = "albums";
+public class ReadExif {
     private static final int TAGLAENGE = 3;
     private static final String BINDESTRICH = "-";
-    static ArrayList<Bild> album = new ArrayList<>();
+    private final ArrayList<Bild> album = new ArrayList<>();
     public ReadExif() {
     }
     //erstellt das Album aus allen Bilder des Ordners
-    public void getImages(Activity activity, boolean downloaded, String name) throws CorruptedExifDataException {
+    public void getImages(Activity activity, boolean downloaded, String name) {
         String[] inhaltInOrdner;
         if (downloaded) {
             inhaltInOrdner = getBilderNamenDownloaded(activity.getFilesDir() + "/Album/" + name);
@@ -48,7 +46,7 @@ public final class ReadExif {
             return new String[0];
         }
     }
-    public static void addBild(String file, String album, boolean downloaded, Activity activity) {
+    public void addBild(String file, String album, boolean downloaded, Activity activity) {
         if (downloaded) {
             addBildDownloaded(album, file, activity);
         } else {
@@ -56,7 +54,7 @@ public final class ReadExif {
         }
     }
     //gibt Exifdaten zurück mit Hilfe der Klasse ReadExif
-    public static void addBildDownloaded(String album, String file, Activity activity) {
+    public void addBildDownloaded(String album, String file, Activity activity) {
         try {
             ExifInterface exifInterface = new ExifInterface(activity.getFilesDir() + "/Album/" + album + "/" + file);
             finalAddBild(exifInterface, file, activity);
@@ -65,7 +63,7 @@ public final class ReadExif {
             activity.finish();
         }
     }
-    public static void addBildAssets(String album, String file, Activity activity) {
+    public void addBildAssets(String album, String file, Activity activity) {
         try (InputStream in = activity.getAssets().open("albums/" + album + "/" + file)) {
             ExifInterface exifInterface = new ExifInterface(in);
             finalAddBild(exifInterface, file, activity);
@@ -74,7 +72,7 @@ public final class ReadExif {
             activity.finish();
         }
     }
-    public static void addAlbum(String[] names, String album, Activity activity, boolean downloaded) {
+    public void addAlbum(String[] names, String album, Activity activity, boolean downloaded) {
         boolean noImageException = true;
         for (String name : names) {
             if (Bild.isImage(name)) {
@@ -92,7 +90,7 @@ public final class ReadExif {
             }
         }
     }
-    public static void finalAddBild(ExifInterface exifInterface, String file, Activity activity) {
+    public void finalAddBild(ExifInterface exifInterface, String file, Activity activity) {
         String description = exifInterface.getAttribute(ExifInterface.TAG_IMAGE_DESCRIPTION);
         float[] koords = new float[2];
         try {
@@ -144,9 +142,9 @@ public final class ReadExif {
         int counter = 0;
         String[] images;
         if (downloaded) {
-            images = ReadExif.getBilderNamenDownloaded(activity.getFilesDir() + "/Album/" + folder);
+            images = getBilderNamenDownloaded(activity.getFilesDir() + "/Album/" + folder);
         } else {
-            images = ReadExif.getBilderNamenAssets(folder, activity);
+            images = getBilderNamenAssets(folder, activity);
         }
         for (String file : images) {
             if (Bild.isImage(file)) {

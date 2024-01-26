@@ -14,8 +14,9 @@ public class Game {
     private Punkte punkte;
     private Timer timer;
     private TimerTask timerTask;
+    private AlbenListe albenListe;
 
-
+    boolean skipMix = false;
     boolean rundeVorbei = false;
     private static final int SEKUNDE = 1000;
     int counter;
@@ -29,7 +30,10 @@ public class Game {
         punkte = new Punkte();
     }
     public void start() {
-        album.mix();
+        if (!skipMix) {
+            album.mix();
+            skipMix = false;
+        }
         support.firePropertyChange("Runde", "", rundenzaehler.getRunde()); //aktuellisiert Runde
         support.firePropertyChange("Bild", null, album.getBild(rundenzaehler.getRunde() - 1)); //aktuellisiert Drawable von Bild
         startTimer();
@@ -48,7 +52,7 @@ public class Game {
         if (rundenzaehler.incRoundIfAble()) {
             startTimer();
             rundeVorbei = false;
-            markerKoordinaten.setIsSet(false);
+            markerKoordinaten.setIsPlaced(false);
             support.firePropertyChange("Runde", rundenzaehler.getRunde() - 1, rundenzaehler.getRunde());
             support.firePropertyChange("Bild", album.getBild(rundenzaehler.getRunde() - 2), album.getBild(rundenzaehler.getRunde() - 1));
         } else  {
@@ -59,16 +63,20 @@ public class Game {
         stopTimer();
         rundenzaehler.reset();
         markerKoordinaten.setZero();
+        support.firePropertyChange("Gesamtscore", gesamtscore.getGesamtscoreNum(), 0);
         gesamtscore.reset();
+        support.firePropertyChange("Punkte", punkte.getCurrentPunkteNum(), 0);
         punkte.resetAll();
         album.reset();
+        album.getSize();
     }
     public void eingabeValidieren() {
         if (rundeVorbei) {
             this.support.firePropertyChange("Alert", "", "Runde vorbei!");
         } else {
-            if (markerKoordinaten.isSet()) {
+            if (markerKoordinaten.isPlaced()) {
                 stopTimer();
+                support.firePropertyChange("Beschreibung", "", album.getBild(rundenzaehler.getRunde() - 1).getDescription());
                 this.support.firePropertyChange("desiredLongitude", album.getBild(rundenzaehler.getRunde() - 1)
                         .getLongtitude() - 1, album.getBild(rundenzaehler.getRunde() - 1).getLongtitude());
                 this.support.firePropertyChange("desiredLatitude", album.getBild(rundenzaehler.getRunde() - 1)
@@ -88,10 +96,14 @@ public class Game {
     }
     public void restart() {
         stopTimer();
-        rundenzaehler.reset();
+        rundenzaehler.restart();
         markerKoordinaten.setZero();
+        support.firePropertyChange("Gesamtscore", gesamtscore.getGesamtscoreNum(), 0);
         gesamtscore.reset();
+        support.firePropertyChange("Punkte", punkte.getCurrentPunkteNum(), 0);
         punkte.resetAll();
+        rundeVorbei = false;
+        skipMix = true;
         start();
     }
     public void koordInput(double latitude, double longitude) {
@@ -101,13 +113,12 @@ public class Game {
                 this.support.firePropertyChange("Breitengrad", latitude-1, latitude);
                 markerKoordinaten.setLongitude(longitude);
                 this.support.firePropertyChange("Laengengrad", longitude-1, longitude);
-                markerKoordinaten.setIsSet(true);
+                markerKoordinaten.setIsPlaced(true);
             } else {
                 this.support.firePropertyChange("Alert", "", "Eingegebene Werte sind nicht korrekt!");
             }
         }
     }
-    //-------------------JOOO erm was ist wennn keine eingabe? dann link zu 0.0 gerade glaube -------------------------------------------
     public void link() {
         String link = "https://www.openstreetmap.org/directions?engine=fossgis_valhalla_foot&route="
                 + markerKoordinaten.getLatitude() + KOMMA + markerKoordinaten.getLongitude() + ";"
@@ -117,7 +128,7 @@ public class Game {
     }
 
     public boolean isRundeVorbeiWithMarker() {
-        return rundeVorbei && markerKoordinaten.isSet();
+        return rundeVorbei && markerKoordinaten.isPlaced();
     }
     public Rundenzaehler getRundenZaehler() {
         return rundenzaehler;
@@ -131,8 +142,8 @@ public class Game {
     public Punkte getPunkte() {
         return punkte;
     }
-    public boolean markerIsSet() {
-        return markerKoordinaten.isSet();
+    public boolean markerIsPlaced() {
+        return markerKoordinaten.isPlaced();
     }
     //Basiert auf https://stackoverflow.com/questions/10029831/how-do-you-use-a-timertask-to-run-a-thread
     public void stopTimer() {
@@ -140,7 +151,6 @@ public class Game {
             timer.cancel();
             timer.purge();
             rundeVorbei = true;
-            support.firePropertyChange("Beschreibung", "", album.getBild(rundenzaehler.getRunde() - 1).getDescription());//aktuellisiert Beschreibung
         }
     }
     //Basiert auf https://stackoverflow.com/questions/10029831/how-do-you-use-a-timertask-to-run-a-thread
@@ -153,7 +163,7 @@ public class Game {
                 support.firePropertyChange("Timer", counter +1 , counter);
                 if (counter < 1) {
                     support.firePropertyChange("Alert", "" , "Zeit Vorbei!");
-                    if (markerKoordinaten.isSet()) {
+                    if (markerKoordinaten.isPlaced()) {
                         eingabeValidieren();
                     } else {
                         stopTimer();
@@ -163,7 +173,9 @@ public class Game {
         };
         timer.schedule(timerTask, 1, SEKUNDE);
     }
-
+    public void setAlbenListe (AlbenListe albenListe) {
+        this.albenListe = albenListe;
+    }
     public void addListener(PropertyChangeListener listener) {
         support.addPropertyChangeListener(listener);
     }

@@ -152,7 +152,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         showButton.setOnClickListener(new View.OnClickListener()  {
             @Override
             public void onClick(View button) {
-                if (gameApplication.getGame().markerIsSet()) {
+                if (gameApplication.getGame().markerIsPlaced()) {
                     IMapController mapController = karte.getController();
                     mapController.setCenter(nutzerMarker.getPosition());
                 }
@@ -263,6 +263,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         if (changeName.equals("Runde")) {
             runde.setText("" + (int) propertyChangeEvent.getNewValue());
             distanzText.setText("keine Schaetzung abgegeben");
+            beschreibung.setText(null);
             linkText.setText(NOGUESS);
             linkText.setTextColor(Color.parseColor("#808080"));
             longitudeField.setText(null);
