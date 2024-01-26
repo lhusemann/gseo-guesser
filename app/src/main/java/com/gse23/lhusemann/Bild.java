@@ -19,7 +19,11 @@ public class Bild {
         return name;
     }
     public String getDescription() {
+        if (description == null) {
+            return "";
+        } else {
             return description;
+        }
     }
     public Double getLongtitude() {
         return longtitude;

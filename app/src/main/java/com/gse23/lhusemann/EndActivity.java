@@ -21,18 +21,16 @@ public class EndActivity extends AppCompatActivity implements PropertyChangeList
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_end);
         gameApplication = (GameApplication) getApplication();
-        gameApplication.getRundenZaehler().addListener(this);
-        gameApplication.getGesamtscore().addListener(this);
+        gameApplication.getGame().addListener(this);
         TextView gesamtpunkte = findViewById(R.id.gesPunkteID);
-        gesamtpunkte.setText(gameApplication.getGesamtscore().getStringGesamtscore());
+        gesamtpunkte.setText(gameApplication.getGame().getGesamtscoreString());
         erstelleRundenScores();
         Button restart = findViewById(R.id.restartButton);
         //Das soll passieren, wenn auf Neustarten gedrückt wird
         restart.setOnClickListener(new View.OnClickListener()  {
             @Override
             public void onClick(View button) {
-                gameApplication.getGesamtscore().setGesamtscore(0);
-                gameApplication.getRundenZaehler().setRunde(0);
+                gameApplication.getGame().restart();
                 Intent intent = new Intent(EndActivity.this, SpielansichtActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
                 startActivity(intent);
@@ -53,7 +51,7 @@ public class EndActivity extends AppCompatActivity implements PropertyChangeList
     }
     //Hilffunktion, die den Score in jeder Runde darstellt
     private void erstelleRundenScores() {
-        ArrayList<Integer> scores = gameApplication.getPunkte().giveScores();
+        ArrayList<Integer> scores = gameApplication.getGame().getPunkte().giveAllScores();
         TextView rundenTexte = findViewById(R.id.rundenText);
         TextView rundenScores = findViewById(R.id.rundenScores);
         StringBuilder scoreTexte = new StringBuilder();
@@ -64,9 +62,6 @@ public class EndActivity extends AppCompatActivity implements PropertyChangeList
         }
         rundenTexte.setText(rundenText);
         rundenScores.setText(scoreTexte);
-        Punkte halter = gameApplication.getPunkte();
-        halter.resetScores();
-        gameApplication.setPunkte(halter);
     }
     //Wenn in einem Model eine Sache verändert wird, wird hier gesagt, was passieren soll
     @Override
@@ -75,8 +70,7 @@ public class EndActivity extends AppCompatActivity implements PropertyChangeList
     //Wenn die Activity beeendet wird, müssen die Listener entfernt werden
     @Override
     protected void onDestroy() {
-        gameApplication.getRundenZaehler().removeListener(this);
-        gameApplication.getGesamtscore().removeListener(this);
+        gameApplication.getGame().removeListener(this);
         super.onDestroy();
     }
 }

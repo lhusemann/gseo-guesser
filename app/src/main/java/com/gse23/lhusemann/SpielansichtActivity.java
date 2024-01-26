@@ -2,7 +2,6 @@ package com.gse23.lhusemann;
 
 import android.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.exifinterface.media.ExifInterface;
 import androidx.preference.PreferenceManager;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -10,9 +9,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-import java.util.Timer;
-import java.util.TimerTask;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
@@ -20,15 +16,12 @@ import android.graphics.Paint;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-import com.google.android.material.snackbar.Snackbar;
 import org.osmdroid.api.IMapController;
 import org.osmdroid.config.Configuration;
 import org.osmdroid.config.IConfigurationProvider;
@@ -46,7 +39,6 @@ import org.osmdroid.views.overlay.Polyline;
  */
 public class SpielansichtActivity extends AppCompatActivity implements PropertyChangeListener {
     private static final String NOGUESS = "Kein Guess abgegeben.";
-    private static final String KOMMA = ",";
     private static final int LINEBREITE = 20;
     private static final double WELTBREITE = 85.0;
     private static final double WELTLAENGE = 180.0;
@@ -72,26 +64,14 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
     Polyline line;
     Context context;
     IConfigurationProvider provider;
+    boolean downloaded;
     //Diese Methode wird beim Start ausgeführt
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_spielansicht);
         gameApplication = (GameApplication) getApplication();
-        gameApplication.setMarkerKoordinaten(new MarkerKoordinaten(0, 0));
-        gameApplication.getMarkerKoordinaten().addListener(this);
-        gameApplication.getRundenZaehler().addListener(this);
-        gameApplication.getAlbum().addListener(this);
-        gameApplication.setGesamtscore(new Gesamtscore(0));
-        gameApplication.getGesamtscore().addListener(this);
-        gameApplication.setPunkte(new Punkte(0));
-        gameApplication.getPunkte().addListener(this);
-        gameApplication.setDistanz(new Distanz(0.0));
-        gameApplication.getDistanz().addListener(this);
-        gameApplication.setGame(new Game());
         gameApplication.getGame().addListener(this);
-        gameApplication.setTimer(new RoundTimer(gameApplication.getRundenZaehler().getRundenlaenge()));
-        gameApplication.getTimer().addListener(this);
         bild = findViewById(R.id.bild);
         nextButton = findViewById(R.id.nextButton);
         aufgebenButton = findViewById(R.id.ffButton);
@@ -105,6 +85,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         aktuellerScore = findViewById(R.id.aktuellerScore);
         gesScore = findViewById(R.id.gesScore);
         runde = findViewById(R.id.rundenID);
+        downloaded = getIntent().getBooleanExtra("downloaded", false);
         karte = findViewById(R.id.mapView);
         context = getApplicationContext();
         provider = Configuration.getInstance();
@@ -117,33 +98,38 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         paint.setColor(Color.RED);
         paint.setStrokeWidth(LINEBREITE);
         nutzerMarker = new Marker(karte);
+        nutzerMarker.setPosition(new GeoPoint(0.0,0.0));
         nutzerMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
         nutzerMarker.setTitle("Ihre Eingabe");
+        karte.getOverlays().remove(nutzerMarker);
         markerCorrect = new Marker(karte);
-        Log.i("Auswahl", "Das Album " + gameApplication.getAlbum().getName() + " wurde ausgewaehlt.");
+        markerCorrect.setPosition(new GeoPoint(0.0,0.0));
+        markerCorrect.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
+        markerCorrect.setTitle("gesuchter Ort");
+        karte.getOverlays().remove(markerCorrect);
+        Log.i("Auswahl", "Das Album " + gameApplication.getGame().getAlbum().getName() + " wurde ausgewaehlt.");
         try {
             this.addBilderInAlbum();
-            gameApplication.getAlbum().logAll();
+            gameApplication.getGame().start();
         } catch (CorruptedExifDataException e) {
             return;
-            //-------------------------------------------------------------------------------------------------------
+            //wird in ReadExif behandelt
         }
-        gameApplication.getAlbum().mix();
+
         //Dies soll passieren, wenn auf den Next-Button gedrückt wird
         nextButton.setOnClickListener(new View.OnClickListener()  {
             @Override
             public void onClick(View button) {
-                gameApplication.getRundenZaehler().incRunde(gameApplication.getAlbum().getSize());
-                gameApplication.getPunkte().safePunkte();
-                gameApplication.getPunkte().reset();
-                gameApplication.getDistanz().resetDistance();
+                    gameApplication.getGame().nextRound();
             }
         });
+
         // folgendes passiert bei clicken auf die Map
         karte.getOverlays().add(new MapEventsOverlay(new MapEventsReceiver() {
             @Override
             public boolean singleTapConfirmedHelper(GeoPoint clickedP) {
-                gameApplication.getGame().mapClick(clickedP.getLatitude(), clickedP.getLongitude());
+                gameApplication.getGame().koordInput(clickedP.getLatitude(), clickedP.getLongitude());
+                karte.invalidate();
                 return false;
             }
 
@@ -151,24 +137,28 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
             public boolean longPressHelper(GeoPoint clickedP) {
                 return false;
             }
+
         }));
         //Das soll passieren wenn wir auf Bestätigen drücken
         validButton.setOnClickListener(new View.OnClickListener()  {
             @Override
             public void onClick(View button) {
-                gameApplication.getGame().validClick(gameApplication.getMarkerKoordinaten().getLongitude(),
-                        gameApplication.getMarkerKoordinaten().getLatitude());
+                gameApplication.getGame().eingabeValidieren();
             }
         });
+
         Button showButton = findViewById(R.id.showButton);
         //Das soll passieren, wenn wir auf zentrieren drücken
         showButton.setOnClickListener(new View.OnClickListener()  {
             @Override
             public void onClick(View button) {
+                if (gameApplication.getGame().markerIsSet()) {
                     IMapController mapController = karte.getController();
                     mapController.setCenter(nutzerMarker.getPosition());
+                }
             }
         });
+
         //Das soll passieren, wenn wir auf Aufgeben drücken
         aufgebenButton.setOnClickListener(new View.OnClickListener()  {
             @Override
@@ -176,7 +166,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                 AlertDialog.Builder back = new AlertDialog.Builder(SpielansichtActivity.this);
                 back.setMessage("Möchtest du das aktuelle Spiel wirklich beeenden?")
                         .setPositiveButton("Ja", (dialog, id) -> {
-                            gameApplication.getTimer().stopTimer();
+                            gameApplication.getGame().aufgeben();
                             finish();
                         })
                         .setNegativeButton("Abbruch", (dialog, id) -> {})
@@ -185,34 +175,29 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                 alert.show();
             }
         });
-    //Das soll passieren, wenn wir auf Link drücken
+    //Das soll passieren, wenn man auf den Link drückt
         linkText.setOnClickListener(new View.OnClickListener()  {
             @Override
             public void onClick(View link) {
-                gameApplication.getGame().linkClick(linkText.getText().toString());
+                if (gameApplication.getGame().isRundeVorbeiWithMarker()) {
+                   openLink(linkText.getText().toString());
+                }
             }
         });
-        start();
     }
-    //Wenn die Activity neugeladen wird, soll die Karte noch funktionieren
+    //Wenn die Activity neugeladen wird
     @Override
     protected void onResume() {
         super.onResume();
         karte.onResume();
     }
-    //Wenn die Activity neu aufgerufen wird durch einen neustart, sollen die Models zurückgesetzt werden
+    //Wenn die Activity neu aufgerufen wird durch einen neustart, sollen die Rundenwerte im Model zurückgesetzt werden
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
-        gameApplication.getGesamtscore().setGesamtscore(0);
-        gameApplication.getPunkte().reset();
-        gameApplication.getPunkte().resetScores();
-        gameApplication.getMarkerKoordinaten().setLongitude(0);
-        gameApplication.getMarkerKoordinaten().setLatitude(0);
-        gameApplication.getDistanz().resetDistance();
-        start();
+        gameApplication.getGame().restart();
     }
-    //Wenn die Activity pausiert wird, soll die Karte pausiert werden
+    //Wenn die Activity pausiert wird
     @Override
     protected void onPause() {
         super.onPause();
@@ -223,265 +208,141 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
     public void onBackPressed() {
         aufgebenButton.performClick();
     }
-    //erstellt das Album aus allen Bilder des Ordners
-    private void addBilderInAlbum() throws CorruptedExifDataException {
-        gameApplication.getGame().checkBilder(gameApplication.getAlbum().isDownloaded(),
-                gameApplication.getAlbum().getName());
-    }
     //startet URL, ich habe dies Methode im Internet gefunden: https://www.youtube.com/watch?v=TU-yDCgpbZw
     private void openLink(String link) {
+        linkText.setTextColor(Color.parseColor(("#551A8B")));
         Uri uri = Uri.parse(link);
         startActivity(new Intent(Intent.ACTION_VIEW, uri));
     }
-    //gibt ein Array von Ordnern/Dateien an bestimmer Stelle aus
-    private String[] getAssetsInt(String folder) {
-        try {
-            return getAssets().list("albums/" + folder);
-        } catch (IOException e) {
-            return new String[0];
+    //fügt alle Bilder des ausgewähltem Albums in die Albumklasse im Model ein
+    private void addBilderInAlbum() throws CorruptedExifDataException {
+        ReadExif bilder = new ReadExif();
+        bilder.getImages(this, downloaded, gameApplication.getGame().getAlbum().getName());
+        for (Bild bild : bilder.getBilder()) {
+            gameApplication.getGame().getAlbum().addBild(bild);
         }
     }
-    //gibt Exifdaten zurück mit Hilfe der Klasse ReadExif
-    public void addBildD(String file) {
-        try {
-            ExifInterface exifInterface = new ExifInterface(getFilesDir() + "/Album/" + gameApplication.getAlbum().getName() + "/" + file);
-            addBild(exifInterface, file);
-        } catch (IOException e) {
-            Toast.makeText(getApplicationContext(), "Fehler beim Lesen eines Bildes!", Toast.LENGTH_SHORT).show();
-            finish();
-        }
-        }
-    public void addBildI(String file) {
-        try (InputStream in = getAssets().open("albums/" + gameApplication.getAlbum().getName() + "/" + file)) {
-            ExifInterface exifInterface = new ExifInterface(in);
-            addBild(exifInterface, file);
-        } catch (IOException e) {
-            Toast.makeText(this, "Fehler beim Lesen eines Bildes!", Toast.LENGTH_SHORT).show();
-            finish();
-        }
-    }
-    public void addBild(ExifInterface exifInterface, String file) {
-        String description = exifInterface.getAttribute(ExifInterface.TAG_IMAGE_DESCRIPTION);
-        float[] koords = new float[2];
-        try {
-            double latitude;
-            double longitude;
-            if (exifInterface.getLatLong(koords)) {
-                latitude = (double) koords[0];
-                longitude = (double) koords[1];
-            } else {
-                throw new CorruptedExifDataException();
+    public void refreshImage(String file) {
+        if (downloaded) {
+            bild.setImageDrawable(Drawable.createFromPath(getFilesDir() + "/Album/" + gameApplication.getGame().getAlbum().getName() + "/" + file));
+        } else {
+            try (InputStream in = getAssets().open("albums/" + gameApplication.getGame().getAlbum().getName() + "/" + file)) {
+                bild.setImageDrawable(Drawable.createFromStream(in, "src"));
+            } catch (IOException e) {
+                Log.i("Error", "Fehler beim Laden des Bildes");
+                Toast.makeText(this, "Fehler beim Laden des Bildes", Toast.LENGTH_SHORT).show();
+                gameApplication.getGame().stopTimer();
+                finish();
             }
-            gameApplication.getAlbum().addBild(new Bild(file, description, longitude, latitude));
-        } catch (CorruptedExifDataException e) {
-            Log.i("CorruptedExifDataException", "Koordinaten konnten in der Datei " + file + " nicht gefunden werden.");
-            Toast.makeText(this, "Koordinaten konnten in der Datei " + file + " nicht gefunden werden.", Toast.LENGTH_SHORT).show();
-            finish();
         }
     }
-    public void start() {
-        gameApplication.getRundenZaehler().incRunde(gameApplication.getAlbum().getSize());
-        gameApplication.getPunkte().reset();
-        gameApplication.getDistanz().resetDistance();
-    }
-
     @Override
     public void propertyChange(PropertyChangeEvent propertyChangeEvent) {
         String changeName = propertyChangeEvent.getPropertyName();
-        if (changeName.equals("Laengengrad")) {
-            nutzerMarker.setPosition(new GeoPoint(gameApplication.getMarkerKoordinaten().getLatitude(),
-                    (double) propertyChangeEvent.getNewValue()));
-            String wertAlsString = Double.toString((double) propertyChangeEvent.getNewValue());
-            longitudeField.setText(wertAlsString);
-            Log.i("Laengengrad des gesetzen Markers", wertAlsString);
+        if (changeName.equals("Beschreibung")) {
+            beschreibung.setText((String) propertyChangeEvent.getNewValue());
+            Log.i("Beschreibung", (String) propertyChangeEvent.getNewValue());
         }
-        if (changeName.equals("Breitengrad")) {
-            nutzerMarker.setPosition(new GeoPoint((double) propertyChangeEvent.getNewValue(),
-                    gameApplication.getMarkerKoordinaten().getLongitude()));
-            String wertAlsString = Double.toString((double) propertyChangeEvent.getNewValue());
-            latitudeField.setText(wertAlsString);
-            Log.i("Breitengrad des gesetzen Markers", wertAlsString);
+        if (changeName.equals("Bild")) {
+            refreshImage(((Bild) propertyChangeEvent.getNewValue()).getName());
+            Log.i("Bildname", ((Bild) propertyChangeEvent.getNewValue()).getName());
+            Log.i("Laengengrad", "" + ((Bild) propertyChangeEvent.getNewValue()).getLongtitude());
+            Log.i("Breitengrad", "" + ((Bild) propertyChangeEvent.getNewValue()).getLatitude());
         }
-        if (changeName.equals("BildInc")) {
-            beschreibung.setText(gameApplication.getAlbum().getBild((int) propertyChangeEvent.getNewValue())
-                    .getDescription());
-            gameApplication.getAlbum().getDrawable((int) propertyChangeEvent.getNewValue());
-            gameApplication.getAlbum().logExifNoDec((int) propertyChangeEvent.getNewValue());
+        if (changeName.equals("Punkte")) {
+            aktuellerScore.setText("" + ((int) propertyChangeEvent.getNewValue()));
         }
-        if (changeName.equals("RundenInc")) {
-            gameApplication.getTimer().stopTimer();
-            longitudeField.setText(null);
-            latitudeField.setText(null);
+        if (changeName.equals("Gesamtscore")) {
+            gesScore.setText("" + (int) propertyChangeEvent.getNewValue());
+        }
+        if (changeName.equals("Link")) {
+            Log.i("OpenStreetMaps-Link zur Schätzung", (String) propertyChangeEvent.getNewValue());
+            linkText.setText((String) propertyChangeEvent.getNewValue());
+            linkText.setTextColor(Color.parseColor("#0000EE"));
+        }
+        if (changeName.equals("Runde")) {
             runde.setText("" + (int) propertyChangeEvent.getNewValue());
+            distanzText.setText("keine Schaetzung abgegeben");
             linkText.setText(NOGUESS);
             linkText.setTextColor(Color.parseColor("#808080"));
+            longitudeField.setText(null);
+            latitudeField.setText(null);
             karte.getOverlays().remove(markerCorrect);
             karte.getOverlays().remove(nutzerMarker);
             karte.getOverlays().remove(line);
+            markerCorrect.closeInfoWindow();
+            nutzerMarker.closeInfoWindow();
             List<GeoPoint> weltKarte = new ArrayList<>();
             weltKarte.add(new GeoPoint(WELTBREITE, WELTLAENGE));
             weltKarte.add(new GeoPoint(-WELTBREITE, -WELTLAENGE));
             karte.post(() -> {
                 karte.zoomToBoundingBox(BoundingBox.fromGeoPointsSafe(weltKarte), false);
             });
-            //gameApplication.getTimer().startTimer();----------------------------------------------------------------------
-            gameApplication.getGame().rundeVorbei(false);
+        }
+        if (changeName.equals("Timer")) {
             runOnUiThread(()->{
-
+                timerText.setText("" + (int) propertyChangeEvent.getNewValue());
             });
         }
-        if (changeName.equals("goEndScreen")) {
-        Intent intent = new Intent(SpielansichtActivity.this, EndActivity.class);
-        startActivity(intent);
+        if (changeName.equals("EndGame")) {
+            Intent intent = new Intent(SpielansichtActivity.this, EndActivity.class);
+            startActivity(intent);
         }
-        if (changeName.equals("Punkte")) {
-            aktuellerScore.setText("" + ((int) propertyChangeEvent.getNewValue()));
-        }
-        if (changeName.equals("IncGesamtscore")) {
-            gesScore.setText("" + (int) propertyChangeEvent.getNewValue());
-        }
-        if (changeName.equals("Berechnung")) {
-            aktuellerScore.setText("" + (int) propertyChangeEvent.getNewValue());
-        }
-        if (changeName.equals("DistanzCalc")) {
-            Log.i("Distanz der Schaetzung", (String) propertyChangeEvent.getNewValue());
-            String link = "https://www.openstreetmap.org/directions?engine=fossgis_valhalla_foot&route="
-                    + gameApplication.getMarkerKoordinaten().getLatitude() + KOMMA + gameApplication
-                    .getMarkerKoordinaten().getLongitude() + ";" + gameApplication.getAlbum().getBild(gameApplication
-                    .getRundenZaehler().getRunde() - 1).getLatitude() + KOMMA + gameApplication.getAlbum()
-                    .getBild(gameApplication.getRundenZaehler().getRunde() - 1).getLongtitude();
-            Log.i("OpenStreetMaps-Link zur Schätzung", link);
-            linkText.setText(link);
-            linkText.setTextColor(Color.parseColor("#0000EE"));
-            distanzText.setText((String) propertyChangeEvent.getNewValue());
-
-            List<GeoPoint> geoPoints = new ArrayList<>();
-            geoPoints.add(new GeoPoint(gameApplication.getMarkerKoordinaten().getLatitude(), gameApplication
-                    .getMarkerKoordinaten().getLongitude()));
-            geoPoints.add(new GeoPoint(gameApplication.getAlbum().getBild(gameApplication.getRundenZaehler()
-                    .getRunde() - 1).getLatitude(), gameApplication.getAlbum().getBild(gameApplication
-                            .getRundenZaehler().getRunde() - 1).getLongtitude()));
-            nutzerMarker.setPosition(geoPoints.get(0));
+        if (changeName.equals("Laengengrad")) {
             karte.getOverlays().remove(nutzerMarker);
+            nutzerMarker.setPosition(new GeoPoint(nutzerMarker.getPosition().getLatitude(),
+                    (double) propertyChangeEvent.getNewValue()));
             karte.getOverlays().add(nutzerMarker);
-            markerCorrect.setPosition(geoPoints.get(1));
-            markerCorrect.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
-            markerCorrect.setTitle("gesuchter Ort");
+            String wertAlsString = Double.toString((double) propertyChangeEvent.getNewValue());
+            longitudeField.setText(wertAlsString);
+            Log.i("Laengengrad des gesetzen Markers", wertAlsString);
+        }
+        if (changeName.equals("Breitengrad")) {
+            karte.getOverlays().remove(nutzerMarker);
+            nutzerMarker.setPosition(new GeoPoint((double) propertyChangeEvent.getNewValue(),
+                    nutzerMarker.getPosition().getLongitude()));
+            karte.getOverlays().add(nutzerMarker);
+            String wertAlsString = Double.toString((double) propertyChangeEvent.getNewValue());
+            latitudeField.setText(wertAlsString);
+            Log.i("Breitengrad des gesetzen Markers", wertAlsString);
+        }
+        if (changeName.equals("desiredLongitude")) {
+            karte.getOverlays().remove(markerCorrect);
+            markerCorrect.setPosition(new GeoPoint(markerCorrect.getPosition().getLatitude(),
+                    (double) propertyChangeEvent.getNewValue()));
             karte.getOverlays().add(markerCorrect);
+        }
+        if (changeName.equals("desiredLatitude")) {
+            karte.getOverlays().remove(markerCorrect);
+            markerCorrect.setPosition(new GeoPoint((double) propertyChangeEvent.getNewValue(),
+                    markerCorrect.getPosition().getLongitude()));
+            karte.getOverlays().add(markerCorrect);
+        }
+        if (changeName.equals("Alert")) {
+            runOnUiThread(()->{
+                Toast.makeText(getApplicationContext(), (String) propertyChangeEvent.getNewValue(), Toast.LENGTH_SHORT).show();
+            });
+        }
+        if (changeName.equals("Distanz")) {
+            Log.i("Distanz der Schaetzung", (String) propertyChangeEvent.getNewValue());
+            distanzText.setText((String) propertyChangeEvent.getNewValue());
+        }
+        if (changeName.equals("Valid")) {
+            List<GeoPoint> geoPoints = new ArrayList<>();
+            geoPoints.add(new GeoPoint(nutzerMarker.getPosition()));
+            geoPoints.add(new GeoPoint(markerCorrect.getPosition()));
             line.setPoints(geoPoints);
             karte.getOverlays().add(line);
             karte.post(() -> {
                 karte.zoomToBoundingBox(BoundingBox.fromGeoPointsSafe(geoPoints).increaseByScale(ZOOMWELT), true);
             });
         }
-        if (changeName.equals("resetDistanz")) {
-            distanzText.setText("keine Schaetzung abgegeben");
-        }
-        if (changeName.equals("correctLatitude")) {
-            gameApplication.getMarkerKoordinaten().setLatitude((double) propertyChangeEvent.getNewValue());
-        }
-        if (changeName.equals("correctLongitude")) {
-            gameApplication.getMarkerKoordinaten().setLongitude((double) propertyChangeEvent.getNewValue());
-        }
-        if (changeName.equals("NewMarkCheck")) {
-            karte.getOverlays().remove(nutzerMarker);
-            karte.getOverlays().add(nutzerMarker);
-            karte.invalidate();
-        }
-        if (changeName.equals("log")) {
-            Log.i("Hinweis",(String) propertyChangeEvent.getNewValue());
-        }
-        if (changeName.equals("snackbar")) {
-            View currentView = getCurrentFocus();
-            if (currentView != null) {
-                Snackbar.make(currentView, (String) propertyChangeEvent.getNewValue(), Snackbar.LENGTH_SHORT).show();
-            }
-        }
-        if (changeName.equals("ChangeTimer")) {
-            timerText.setText("" +  (int) propertyChangeEvent.getNewValue());
-        }
-        if (changeName.equals("ZeitVorbei")) {
-            gameApplication.getGame().zeitAbgelaufen();
-            validButton.performClick();
-        }
-        if (changeName.equals("valid")) {
-            gameApplication.getTimer().stopTimer();
-            gameApplication.getDistanz().calcDistance(gameApplication.getMarkerKoordinaten()
-                    .getLatitude(), gameApplication.getAlbum().getBild(gameApplication.getRundenZaehler()
-                    .getRunde() - 1).getLatitude(), gameApplication.getMarkerKoordinaten()
-                    .getLongitude(), gameApplication.getAlbum().getBild(gameApplication
-                    .getRundenZaehler().getRunde() - 1).getLongtitude());
-            gameApplication.getPunkte().berechne(gameApplication.getDistanz().getDistance());
-            gameApplication.getGesamtscore().incGesamtscore(gameApplication.getPunkte().getPunkte());
-        }
-        if (changeName.equals("linkClick")) {
-            linkText.setTextColor(Color.parseColor((String) propertyChangeEvent.getNewValue()));
-            openLink(linkText.getText().toString());
-        }
-        if (changeName.equals("isDownloaded")) {
-            gameApplication.getGame().forAddBilderLocation(getFilesDir() + "/Album/" + propertyChangeEvent.getNewValue(), (String) propertyChangeEvent.getNewValue(), gameApplication.getAlbum().isDownloaded());
-        }
-        if (changeName.equals("isInternal")) {
-            gameApplication.getGame().forAddBilderWithName(getAssetsInt((String) propertyChangeEvent.getNewValue()), (String) propertyChangeEvent.getNewValue(), gameApplication.getAlbum().isDownloaded());
-        }
-        if (changeName.equals("addBild")) {
-            addBildI((String) propertyChangeEvent.getNewValue());
-        }
-        if (changeName.equals("addBildD")) {
-            addBildD((String) propertyChangeEvent.getNewValue());
-        }
-        if (changeName.equals("noImagesException")) {
-            Log.i("NoImagesInAlbumException", propertyChangeEvent.getNewValue() + " hat keine Bilddateien enthalten.");
-            Toast.makeText(this, "Keine Bilder im ausgewaehltem Album vorhanden.", Toast.LENGTH_SHORT).show();
-            finish();
-        }
-        if (changeName.equals("ErrorBackMenu")) {
-            Log.i("Error", (String) propertyChangeEvent.getNewValue());
-            Toast.makeText(this, (String) propertyChangeEvent.getNewValue(), Toast.LENGTH_SHORT).show();
-            finish();
-        }
-        if (changeName.equals("getDrawableD")) {
-            bild.setImageDrawable(Drawable.createFromPath(getFilesDir() + (String) propertyChangeEvent.getNewValue()));
-        }
-        if (changeName.equals("getDrawableI")) {
-            try (InputStream in = getAssets().open((String) propertyChangeEvent.getNewValue())) {
-                bild.setImageDrawable(Drawable.createFromStream(in, "src"));
-            } catch (IOException e) {
-                Log.i("test","joooo");
-                Log.i("Error", "Fehler beim Laden des Bildes");
-                Toast.makeText(this, "Fehler beim Laden des Bildes", Toast.LENGTH_SHORT).show();
-                finish();
-            }
-        }
-        if (changeName.equals("logName")) {
-            Log.i("Bildname", (String) propertyChangeEvent.getNewValue());
-        }
-        if (changeName.equals("logDescription")) {
-            Log.i("Beschreibung", (String) propertyChangeEvent.getNewValue());
-        }
-        if (changeName.equals("logNoDescription")) {
-            Log.i("Keine Beschreibung vorhanden", (String) propertyChangeEvent.getNewValue());
-        }
-        if (changeName.equals("logLongtitude")) {
-            Log.i("Laengengrad", (String) propertyChangeEvent.getNewValue());
-        }
-        if (changeName.equals("logLatitude")) {
-            Log.i("Breitengrad", (String) propertyChangeEvent.getNewValue());
-        }
     }
 
-    //Wenn die Activity beeendet wird, müssen die Listener entfernt werden
+    //Wenn die Activity beeendet wird, muss der Listener entfernt werden
     @Override
     protected void onDestroy() {
-        gameApplication.getMarkerKoordinaten().removeListener(this);
-        gameApplication.getRundenZaehler().removeListener(this);
-        gameApplication.getGesamtscore().removeListener(this);
-        gameApplication.getPunkte().removeListener(this);
-        gameApplication.getAlbum().removeListener(this);
-        gameApplication.getDistanz().removeListener(this);
         gameApplication.getGame().removeListener(this);
-        gameApplication.getTimer().removeListener(this);
-        gameApplication.getTimer().stopTimer();
         super.onDestroy();
     }
 }

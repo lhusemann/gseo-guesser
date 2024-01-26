@@ -1,22 +1,16 @@
 package com.gse23.lhusemann;
 
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeSupport;
 import java.util.ArrayList;
 
 public class Punkte {
     final double minDistance = 10.0;
     final double maxDistance = 10000.0;
     final int maxPoints = 5000;
-    int punkte;
+    int punkte = 0;
     ArrayList<Integer> punkteListe = new ArrayList<>();
-    private PropertyChangeSupport support;
-    Punkte(int punkte) {
-        this.punkte = punkte;
-        this.support = new PropertyChangeSupport(this);
+    Punkte() {
     }
-    public double berechne(double distanz) {
-        int punkteDavor = this.punkte;
+    public void berechne(double distanz) {
         if (distanz < minDistance) {
             punkte = maxPoints;
         } else if (distanz > maxDistance) {
@@ -24,37 +18,24 @@ public class Punkte {
         } else {
             punkte = (int) ((int) (maxPoints / Math.log(maxDistance / minDistance)) * Math.log(maxDistance / distanz));
         }
-        this.support.firePropertyChange("NewMarkCheck", punkteDavor, punkte);
+    }
+    public int getCurrentPunkteNum() {
         return punkte;
     }
-    public int getPunkte() {
-        return punkte;
-    }
-    public String getStringPunkte() {
+    public String getCurrentPunkteString() {
         return "" + punkte;
     }
-    public void reset() {
-        this.support.firePropertyChange("Punkte", punkte, 0);
-        this.punkte = 0;
+    public void resetCurrent() {
+        punkte = 0;
     }
-    public void safePunkte() {
-        ArrayList<Integer> halter = punkteListe;
+    public void safeCurrentPunkte() {
         punkteListe.add(punkte);
-        this.support.firePropertyChange("PunkteListe", halter, punkteListe);
     }
-    public ArrayList<Integer> giveScores() {
+    public ArrayList<Integer> giveAllScores() {
         return punkteListe;
     }
-    public void resetScores() {
-        ArrayList<Integer> oldListe = punkteListe;
+    public void resetAll() {
         punkteListe.clear();
-        this.support.firePropertyChange("PunkteListeReset", oldListe, punkteListe);
-    }
-    public void addListener(PropertyChangeListener listener) {
-        support.addPropertyChangeListener(listener);
-    }
-
-    public void removeListener(PropertyChangeListener listener) {
-        support.removePropertyChangeListener(listener);
+        punkte = 0;
     }
 }
