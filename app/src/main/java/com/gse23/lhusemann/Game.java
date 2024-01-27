@@ -1,7 +1,5 @@
 package com.gse23.lhusemann;
 
-import android.util.Log;
-
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.Timer;
@@ -15,15 +13,11 @@ public class Game {
     private Gesamtscore gesamtscore;
     private Punkte punkte;
     private Timer timer;
-    private TimerTask timerTask;
     private AlbenListe albenListe;
     private Link link;
-
     boolean skipMix = false;
     boolean rundeVorbei = false;
-    private static final int SEKUNDE = 1000;
     int counter;
-    private static final String KOMMA = ",";
     Game() {
         support = new PropertyChangeSupport(this);
         album = new Album();
@@ -52,7 +46,6 @@ public class Game {
         support.firePropertyChange("Gesamtscore", gesamtscore.getGesamtscoreNum() - punkte.getCurrentPunkteNum(), gesamtscore.getGesamtscoreNum());
 
         punkte.safeCurrentPunkte();
-
         support.firePropertyChange("Punkte", punkte.getCurrentPunkteNum(), 0);
         punkte.resetCurrent();
 
@@ -65,6 +58,7 @@ public class Game {
             rundeVorbei = false;
             markerKoordinaten.setIsPlaced(false);
             support.firePropertyChange("markerDisappear", true, false);
+            support.firePropertyChange("Distanz", "", "keine Schaetzung abgegeben");
             support.firePropertyChange("Beschreibung", album.getBild(rundenzaehler.getRunde() - 2).getDescription(), "");
             support.firePropertyChange("Runde", rundenzaehler.getRunde() - 1, rundenzaehler.getRunde());
             support.firePropertyChange("Bild", album.getBild(rundenzaehler.getRunde() - 2), album.getBild(rundenzaehler.getRunde() - 1));
@@ -132,12 +126,17 @@ public class Game {
         }
     }
     public void link() {
+        final String KOMMA = ",";
         String link = "https://www.openstreetmap.org/directions?engine=fossgis_valhalla_foot&route="
                 + markerKoordinaten.getLatitude() + KOMMA + markerKoordinaten.getLongitude() + ";"
                 + album.getBild(rundenzaehler.getRunde() - 1).getLatitude() + KOMMA
                 + album.getBild(rundenzaehler.getRunde() - 1).getLongtitude();
         this.link.create(link);
         this.support.firePropertyChange("Link", null, this.link);
+    }
+    public void startResult() {
+        this.support.firePropertyChange("GesamtscoreOverlay", null, gesamtscore.getStringGesamtscore());
+        this.support.firePropertyChange("ScoreOverlay", null, punkte.giveAllScores());
     }
 
     public boolean isRundeVorbeiWithMarker() {
@@ -148,12 +147,6 @@ public class Game {
     }
     public Album getAlbum() {
         return album;
-    }
-    public String getGesamtscoreString() {
-        return gesamtscore.getStringGesamtscore();
-    }
-    public Punkte getPunkte() {
-        return punkte;
     }
     public boolean markerIsPlaced() {
         return markerKoordinaten.isPlaced();
@@ -168,9 +161,10 @@ public class Game {
     }
     //Basiert auf https://stackoverflow.com/questions/10029831/how-do-you-use-a-timertask-to-run-a-thread
     public void startTimer() {
+        final int SEKUNDE = 1000;
         timer = new Timer();
         counter = rundenzaehler.getRundenlaenge();
-        timerTask = new TimerTask() {
+        TimerTask timerTask = new TimerTask() {
             public void run() {
                 counter--;
                 support.firePropertyChange("Timer", counter +1 , counter);

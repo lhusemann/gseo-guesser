@@ -22,19 +22,18 @@ public class EndActivity extends AppCompatActivity implements PropertyChangeList
         setContentView(R.layout.activity_end);
         gameApplication = (GameApplication) getApplication();
         gameApplication.getGame().addListener(this);
-        TextView gesamtpunkte = findViewById(R.id.gesPunkteID);
-        gesamtpunkte.setText(gameApplication.getGame().getGesamtscoreString());
-        erstelleRundenScores();
+        gameApplication.getGame().startResult();
+
         Button restart = findViewById(R.id.restartButton);
         //Das soll passieren, wenn auf Neustarten gedrückt wird
         restart.setOnClickListener(new View.OnClickListener()  {
             @Override
             public void onClick(View button) {
                 gameApplication.getGame().restart();
+                finish();
                 Intent intent = new Intent(EndActivity.this, SpielansichtActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
                 startActivity(intent);
-                finish();
             }
         });
         Button mainMenu = findViewById(R.id.mainmenuButton);
@@ -43,30 +42,34 @@ public class EndActivity extends AppCompatActivity implements PropertyChangeList
             @Override
             public void onClick(View button) {
                 gameApplication.getGame().aufgeben();
+                finish();
                 Intent intent = new Intent(EndActivity.this, MainActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                 startActivity(intent);
-                finish();
             }
         });
-    }
-    //Hilffunktion, die den Score in jeder Runde darstellt
-    private void erstelleRundenScores() {
-        ArrayList<Integer> scores = gameApplication.getGame().getPunkte().giveAllScores();
-        TextView rundenTexte = findViewById(R.id.rundenText);
-        TextView rundenScores = findViewById(R.id.rundenScores);
-        StringBuilder scoreTexte = new StringBuilder();
-        StringBuilder rundenText = new StringBuilder();
-        for (int i = 0; i < scores.size(); i++) {
-            scoreTexte.append(scores.get(i)).append("\n");
-            rundenText.append("Runde " + (i + 1) + ": \n");
-        }
-        rundenTexte.setText(rundenText);
-        rundenScores.setText(scoreTexte);
     }
     //Wenn in einem Model eine Sache verändert wird, wird hier gesagt, was passieren soll
     @Override
     public void propertyChange(PropertyChangeEvent propertyChangeEvent) {
+        String changeName = propertyChangeEvent.getPropertyName();
+        if (changeName.equals("GesamtscoreOverlay")) {
+            TextView gesamtpunkte = findViewById(R.id.gesPunkteID);
+            gesamtpunkte.setText((String) propertyChangeEvent.getNewValue());
+        }
+        if (changeName.equals("ScoreOverlay")) {
+            ArrayList<?> scores = (ArrayList<?>) propertyChangeEvent.getNewValue();
+            TextView rundenTexte = findViewById(R.id.rundenText);
+            TextView rundenScores = findViewById(R.id.rundenScores);
+            StringBuilder scoreTexte = new StringBuilder();
+            StringBuilder rundenText = new StringBuilder();
+            for (int i = 0; i < scores.size(); i++) {
+                scoreTexte.append(scores.get(i)).append("\n");
+                rundenText.append("Runde ").append(i + 1).append(": \n");
+            }
+            rundenTexte.setText(rundenText);
+            rundenScores.setText(scoreTexte);
+        }
     }
     //Wenn die Activity beeendet wird, müssen die Listener entfernt werden
     @Override

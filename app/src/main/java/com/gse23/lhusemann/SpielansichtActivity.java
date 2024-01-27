@@ -272,7 +272,6 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         }
         if (changeName.equals("Runde")) {
             runde.setText("" + (int) propertyChangeEvent.getNewValue());
-            distanzText.setText("keine Schaetzung abgegeben");
             List<GeoPoint> weltKarte = new ArrayList<>();
             weltKarte.add(new GeoPoint(WELTBREITE, WELTLAENGE));
             weltKarte.add(new GeoPoint(-WELTBREITE, -WELTLAENGE));
