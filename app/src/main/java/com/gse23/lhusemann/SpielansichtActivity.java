@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.preference.PreferenceManager;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -113,15 +114,15 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         } catch (CorruptedExifDataException e) {
             Log.i("CorruptedExifDataException", "Exifdaten in einer oder mehrerer Dateien nicht enthalten!");
             Toast.makeText(this, "Exifdaten in einer oder mehrerer Dateien nicht enthalten!", Toast.LENGTH_SHORT).show();
-            finish();
+            leaveActivity();
         } catch (NoImagesInAlbumException e) {
             Log.i("NoImagesInAlbumException", "Das Album hat keine Bilddateien enthalten.");
             Toast.makeText(this, "Keine Bilder im ausgewaehltem Album vorhanden.", Toast.LENGTH_SHORT).show();
-            finish();
+            leaveActivity();
         } catch (IOException e) {
             Log.i("Fehler", "Fehler beim Lesen eines Bildes!");
             Toast.makeText(this, "Fehler beim Lesen eines Bildes!", Toast.LENGTH_SHORT).show();
-            finish();
+            leaveActivity();
         }
         //Dies soll passieren, wenn auf den Next-Button gedrückt wird
         nextButton.setOnClickListener(new View.OnClickListener()  {
@@ -173,8 +174,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
                 AlertDialog.Builder back = new AlertDialog.Builder(SpielansichtActivity.this);
                 back.setMessage("Möchtest du das aktuelle Spiel wirklich beeenden?")
                         .setPositiveButton("Ja", (dialog, id) -> {
-                            gameApplication.getGame().aufgeben();
-                            finish();
+                            leaveActivity();
                         })
                         .setNegativeButton("Abbruch", (dialog, id) -> {})
                         .setTitle("Aufgeben");
@@ -233,6 +233,14 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
     }
     public void refreshImage(String file) {
         if (downloaded) {
+            final File image = new File(getFilesDir() + "/Album/" + gameApplication.getGame().getAlbum().getName(), file);
+            if (image.exists()){
+                bild.setImageDrawable(Drawable.createFromPath(image.getAbsolutePath()));
+            } else {
+                Log.i("Error", "Fehler beim Laden des Bildes");
+                Toast.makeText(this, "Fehler beim Laden des Bildes", Toast.LENGTH_SHORT).show();
+                leaveActivity();
+            }
             bild.setImageDrawable(Drawable.createFromPath(getFilesDir() + "/Album/" + gameApplication.getGame().getAlbum().getName() + "/" + file));
         } else {
             try (InputStream in = getAssets().open("albums/" + gameApplication.getGame().getAlbum().getName() + "/" + file)) {
@@ -240,10 +248,13 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
             } catch (IOException e) {
                 Log.i("Error", "Fehler beim Laden des Bildes");
                 Toast.makeText(this, "Fehler beim Laden des Bildes", Toast.LENGTH_SHORT).show();
-                gameApplication.getGame().stopTimer();
-                finish();
+                leaveActivity();
             }
         }
+    }
+    public void leaveActivity() {
+        gameApplication.getGame().aufgeben();
+        finish();
     }
     @Override
     public void propertyChange(PropertyChangeEvent propertyChangeEvent) {
