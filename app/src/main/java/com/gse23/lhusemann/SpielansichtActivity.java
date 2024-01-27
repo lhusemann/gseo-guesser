@@ -38,7 +38,6 @@ import org.osmdroid.views.overlay.Polyline;
  * Dies ist die Spielansicht, in der das Spiel gespielt wird
  */
 public class SpielansichtActivity extends AppCompatActivity implements PropertyChangeListener {
-    private static final String NOGUESS = "Kein Guess abgegeben.";
     private static final int LINEBREITE = 20;
     private static final double WELTBREITE = 85.0;
     private static final double WELTLAENGE = 180.0;
@@ -112,10 +111,18 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
             this.addBilderInAlbum();
             gameApplication.getGame().start();
         } catch (CorruptedExifDataException e) {
-            return;
-            //wird in ReadExif behandelt
+            Log.i("CorruptedExifDataException", "Exifdaten in einer oder mehrerer Dateien nicht enthalten!");
+            Toast.makeText(this, "Exifdaten in einer oder mehrerer Dateien nicht enthalten!", Toast.LENGTH_SHORT).show();
+            finish();
+        } catch (NoImagesInAlbumException e) {
+            Log.i("NoImagesInAlbumException", "Das Album hat keine Bilddateien enthalten.");
+            Toast.makeText(this, "Keine Bilder im ausgewaehltem Album vorhanden.", Toast.LENGTH_SHORT).show();
+            finish();
+        } catch (IOException e) {
+            Log.i("Fehler", "Fehler beim Lesen eines Bildes!");
+            Toast.makeText(this, "Fehler beim Lesen eines Bildes!", Toast.LENGTH_SHORT).show();
+            finish();
         }
-
         //Dies soll passieren, wenn auf den Next-Button gedrückt wird
         nextButton.setOnClickListener(new View.OnClickListener()  {
             @Override
@@ -215,11 +222,13 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         startActivity(new Intent(Intent.ACTION_VIEW, uri));
     }
     //fügt alle Bilder des ausgewähltem Albums in die Albumklasse im Model ein
-    private void addBilderInAlbum() throws CorruptedExifDataException {
-        ReadExif bilder = new ReadExif();
-        bilder.getImages(this, downloaded, gameApplication.getGame().getAlbum().getName());
-        for (Bild bild : bilder.getBilder()) {
-            gameApplication.getGame().getAlbum().addBild(bild);
+    private void addBilderInAlbum() throws CorruptedExifDataException, NoImagesInAlbumException, IOException {
+        ReadExif bilderReader = new ReadExif(context, downloaded, gameApplication.getGame().getAlbum().getName());
+        bilderReader.startGetInhaltInOrdner();
+        if (!bilderReader.anyException()) {
+            for (Bild bild : bilderReader.getBilder()) {
+                gameApplication.getGame().getAlbum().addBild(bild);
+            }
         }
     }
     public void refreshImage(String file) {
@@ -256,16 +265,22 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
             gesScore.setText("" + (int) propertyChangeEvent.getNewValue());
         }
         if (changeName.equals("Link")) {
-            Log.i("OpenStreetMaps-Link zur Schätzung", (String) propertyChangeEvent.getNewValue());
-            linkText.setText((String) propertyChangeEvent.getNewValue());
-            linkText.setTextColor(Color.parseColor("#0000EE"));
+            Link link = (Link) propertyChangeEvent.getNewValue();
+            linkText.setText(link.getLink());
+            linkText.setTextColor(Color.parseColor(link.getColor()));
+            Log.i("OpenStreetMaps-Link zur Schätzung", link.getLink());
         }
         if (changeName.equals("Runde")) {
             runde.setText("" + (int) propertyChangeEvent.getNewValue());
             distanzText.setText("keine Schaetzung abgegeben");
-            beschreibung.setText(null);
-            linkText.setText(NOGUESS);
-            linkText.setTextColor(Color.parseColor("#808080"));
+            List<GeoPoint> weltKarte = new ArrayList<>();
+            weltKarte.add(new GeoPoint(WELTBREITE, WELTLAENGE));
+            weltKarte.add(new GeoPoint(-WELTBREITE, -WELTLAENGE));
+            karte.post(() -> {
+                karte.zoomToBoundingBox(BoundingBox.fromGeoPointsSafe(weltKarte), false);
+            });
+        }
+        if (changeName.equals("markerDisappear")) {
             longitudeField.setText(null);
             latitudeField.setText(null);
             karte.getOverlays().remove(markerCorrect);
@@ -273,12 +288,6 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
             karte.getOverlays().remove(line);
             markerCorrect.closeInfoWindow();
             nutzerMarker.closeInfoWindow();
-            List<GeoPoint> weltKarte = new ArrayList<>();
-            weltKarte.add(new GeoPoint(WELTBREITE, WELTLAENGE));
-            weltKarte.add(new GeoPoint(-WELTBREITE, -WELTLAENGE));
-            karte.post(() -> {
-                karte.zoomToBoundingBox(BoundingBox.fromGeoPointsSafe(weltKarte), false);
-            });
         }
         if (changeName.equals("Timer")) {
             runOnUiThread(()->{
@@ -289,34 +298,22 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
             Intent intent = new Intent(SpielansichtActivity.this, EndActivity.class);
             startActivity(intent);
         }
-        if (changeName.equals("Laengengrad")) {
+        if (changeName.equals("UserMarker")) {
             karte.getOverlays().remove(nutzerMarker);
-            nutzerMarker.setPosition(new GeoPoint(nutzerMarker.getPosition().getLatitude(),
-                    (double) propertyChangeEvent.getNewValue()));
+            MarkerKoordinaten userMarker = (MarkerKoordinaten) propertyChangeEvent.getNewValue();
+            nutzerMarker.setPosition(new GeoPoint(userMarker.getLatitude(), userMarker.getLongitude()));
             karte.getOverlays().add(nutzerMarker);
-            String wertAlsString = Double.toString((double) propertyChangeEvent.getNewValue());
-            longitudeField.setText(wertAlsString);
-            Log.i("Laengengrad des gesetzen Markers", wertAlsString);
+            String latitudeText = Double.toString(userMarker.getLatitude());
+            latitudeField.setText(latitudeText);
+            Log.i("Breitengrad des gesetzen Markers", latitudeText);
+            String longitudeText = Double.toString(userMarker.getLongitude());
+            longitudeField.setText(longitudeText);
+            Log.i("Laengengrad des gesetzen Markers", longitudeText);
         }
-        if (changeName.equals("Breitengrad")) {
-            karte.getOverlays().remove(nutzerMarker);
-            nutzerMarker.setPosition(new GeoPoint((double) propertyChangeEvent.getNewValue(),
-                    nutzerMarker.getPosition().getLongitude()));
-            karte.getOverlays().add(nutzerMarker);
-            String wertAlsString = Double.toString((double) propertyChangeEvent.getNewValue());
-            latitudeField.setText(wertAlsString);
-            Log.i("Breitengrad des gesetzen Markers", wertAlsString);
-        }
-        if (changeName.equals("desiredLongitude")) {
+        if (changeName.equals("desiredMarker")) {
             karte.getOverlays().remove(markerCorrect);
-            markerCorrect.setPosition(new GeoPoint(markerCorrect.getPosition().getLatitude(),
-                    (double) propertyChangeEvent.getNewValue()));
-            karte.getOverlays().add(markerCorrect);
-        }
-        if (changeName.equals("desiredLatitude")) {
-            karte.getOverlays().remove(markerCorrect);
-            markerCorrect.setPosition(new GeoPoint((double) propertyChangeEvent.getNewValue(),
-                    markerCorrect.getPosition().getLongitude()));
+            MarkerKoordinaten desiredMarker = (MarkerKoordinaten) propertyChangeEvent.getNewValue();
+            markerCorrect.setPosition(new GeoPoint(desiredMarker.getLatitude(), desiredMarker.getLongitude()));
             karte.getOverlays().add(markerCorrect);
         }
         if (changeName.equals("Alert")) {

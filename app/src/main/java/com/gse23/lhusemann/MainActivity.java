@@ -153,10 +153,10 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
                 auswahlAdapter.clear();
                 auswahlmoeglichkeitenListe.add("Kein Ordner ausgewaehlt");
                 try {
-                    if (getAssets().list("albums") != null && ReadExif.getBilderNamenAssets("", MainActivity.this)
+                    if (getAssets().list("albums") != null && ReadExif.getNamenAssets("", MainActivity.this)
                             .length > 0) {
-                        auswahlmoeglichkeitenListe.addAll(Arrays.asList(ReadExif.getBilderNamenAssets("", MainActivity.this)));
-                        indexDownloaded = ReadExif.getBilderNamenAssets("", MainActivity.this).length;
+                        auswahlmoeglichkeitenListe.addAll(Arrays.asList(ReadExif.getNamenAssets("", MainActivity.this)));
+                        indexDownloaded = ReadExif.getNamenAssets("", MainActivity.this).length;
                     }
                 } catch (IOException e) {
                     Snackbar.make(button, "Das lesen der vorinstalliereten Bilder hat nicht funktioniert!", Snackbar.LENGTH_SHORT).show();
@@ -186,8 +186,8 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
 
     //gibt alle Bilder mit Exif-Daten der Alben in Assets-Ordner im Log aus
     private void showAllImagesInAlbums() {
-        for (String folder : ReadExif.getBilderNamenAssets("", this)) {
-            for (String file : ReadExif.getBilderNamenAssets(folder, this)) {
+        for (String folder : ReadExif.getNamenAssets("", this)) {
+            for (String file : ReadExif.getNamenAssets(folder, this)) {
                 if (Bild.isImage(file)) {
                     String path = folder + "/" + file;
                     Log.i("Foto-Pfad", "Im Ordner " + folder + " liegt das Foto: " + file);

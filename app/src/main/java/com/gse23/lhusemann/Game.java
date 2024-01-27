@@ -1,5 +1,7 @@
 package com.gse23.lhusemann;
 
+import android.util.Log;
+
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.Timer;
@@ -15,6 +17,7 @@ public class Game {
     private Timer timer;
     private TimerTask timerTask;
     private AlbenListe albenListe;
+    private Link link;
 
     boolean skipMix = false;
     boolean rundeVorbei = false;
@@ -24,18 +27,23 @@ public class Game {
     Game() {
         support = new PropertyChangeSupport(this);
         album = new Album();
-        markerKoordinaten = new MarkerKoordinaten(0.0,0.0);
+        markerKoordinaten = new MarkerKoordinaten(0.0,0.0, false);
         rundenzaehler = new Rundenzaehler();
         gesamtscore = new Gesamtscore();
         punkte = new Punkte();
+        link = new Link();
     }
     public void start() {
         if (!skipMix) {
             album.mix();
             skipMix = false;
         }
-        support.firePropertyChange("Runde", "", rundenzaehler.getRunde()); //aktuellisiert Runde
-        support.firePropertyChange("Bild", null, album.getBild(rundenzaehler.getRunde() - 1)); //aktuellisiert Drawable von Bild
+        support.firePropertyChange("Runde", "", rundenzaehler.getRunde());
+        support.firePropertyChange("Bild", null, album.getBild(rundenzaehler.getRunde() - 1));
+        support.firePropertyChange("Gesamtscore", null, 0);
+        support.firePropertyChange("Punkte", null, 0);
+        link.reset();
+        support.firePropertyChange("Link", null, link);
         startTimer();
     }
     public void nextRound() {
@@ -48,11 +56,16 @@ public class Game {
         support.firePropertyChange("Punkte", punkte.getCurrentPunkteNum(), 0);
         punkte.resetCurrent();
 
+        link.reset();
+        support.firePropertyChange("Link", null, link);
+
         // prüft ob Runde noch nicht vorbei
         if (rundenzaehler.incRoundIfAble()) {
             startTimer();
             rundeVorbei = false;
             markerKoordinaten.setIsPlaced(false);
+            support.firePropertyChange("markerDisappear", true, false);
+            support.firePropertyChange("Beschreibung", album.getBild(rundenzaehler.getRunde() - 2).getDescription(), "");
             support.firePropertyChange("Runde", rundenzaehler.getRunde() - 1, rundenzaehler.getRunde());
             support.firePropertyChange("Bild", album.getBild(rundenzaehler.getRunde() - 2), album.getBild(rundenzaehler.getRunde() - 1));
         } else  {
@@ -77,10 +90,10 @@ public class Game {
             if (markerKoordinaten.isPlaced()) {
                 stopTimer();
                 support.firePropertyChange("Beschreibung", "", album.getBild(rundenzaehler.getRunde() - 1).getDescription());
-                this.support.firePropertyChange("desiredLongitude", album.getBild(rundenzaehler.getRunde() - 1)
-                        .getLongtitude() - 1, album.getBild(rundenzaehler.getRunde() - 1).getLongtitude());
-                this.support.firePropertyChange("desiredLatitude", album.getBild(rundenzaehler.getRunde() - 1)
-                        .getLatitude() - 1, album.getBild(rundenzaehler.getRunde() - 1).getLatitude());
+
+                this.support.firePropertyChange("desiredMarker", null, new MarkerKoordinaten(album
+                        .getBild(rundenzaehler.getRunde() - 1).getLongtitude(), album.getBild(rundenzaehler
+                        .getRunde() - 1).getLatitude(), true));
                 double distance = Distanz.calcDistanceNum(markerKoordinaten.getLatitude(), album.getBild(rundenzaehler.getRunde() - 1)
                         .getLatitude(),markerKoordinaten.getLongitude(), album.getBild(rundenzaehler.getRunde() - 1)
                         .getLongtitude());
@@ -110,10 +123,9 @@ public class Game {
         if (!rundeVorbei) {
             if (Formatierung.isValidLongitude(longitude) && Formatierung.isValidLatitude(latitude)) {
                 markerKoordinaten.setLatitude(latitude);
-                this.support.firePropertyChange("Breitengrad", latitude-1, latitude);
                 markerKoordinaten.setLongitude(longitude);
-                this.support.firePropertyChange("Laengengrad", longitude-1, longitude);
                 markerKoordinaten.setIsPlaced(true);
+                this.support.firePropertyChange("UserMarker", null, markerKoordinaten);
             } else {
                 this.support.firePropertyChange("Alert", "", "Eingegebene Werte sind nicht korrekt!");
             }
@@ -124,7 +136,8 @@ public class Game {
                 + markerKoordinaten.getLatitude() + KOMMA + markerKoordinaten.getLongitude() + ";"
                 + album.getBild(rundenzaehler.getRunde() - 1).getLatitude() + KOMMA
                 + album.getBild(rundenzaehler.getRunde() - 1).getLongtitude();
-        this.support.firePropertyChange("Link", "", link);
+        this.link.create(link);
+        this.support.firePropertyChange("Link", null, this.link);
     }
 
     public boolean isRundeVorbeiWithMarker() {

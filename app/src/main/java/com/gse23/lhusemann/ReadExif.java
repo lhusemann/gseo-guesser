@@ -1,8 +1,7 @@
 package com.gse23.lhusemann;
 
-import android.app.Activity;
+import android.content.Context;
 import android.util.Log;
-import android.widget.Toast;
 import androidx.exifinterface.media.ExifInterface;
 import java.io.File;
 import java.io.IOException;
@@ -13,95 +12,76 @@ public class ReadExif {
     private static final int TAGLAENGE = 3;
     private static final String BINDESTRICH = "-";
     private final ArrayList<Bild> album = new ArrayList<>();
-    public ReadExif() {
+    private boolean corruptedExifException = false;
+    private boolean noImageException = true;
+    private boolean ioException = false;
+    private boolean downloaded;
+    private Context activity;
+    private String albumName;
+    public ReadExif(Context activity, boolean downloaded, String albumName) {
+        this.activity = activity;
+        this.downloaded = downloaded;
+        this.albumName = albumName;
     }
-    //erstellt das Album aus allen Bilder des Ordners
-    public void getImages(Activity activity, boolean downloaded, String name) {
+    public void startGetInhaltInOrdner() throws CorruptedExifDataException, NoImagesInAlbumException, IOException {
         String[] inhaltInOrdner;
         if (downloaded) {
-            inhaltInOrdner = getBilderNamenDownloaded(activity.getFilesDir() + "/Album/" + name);
+            inhaltInOrdner = getNamenDownloaded(activity.getFilesDir() + "/Album/" + albumName);
         } else {
-            inhaltInOrdner = getBilderNamenAssets(name, activity);
+            inhaltInOrdner = getNamenAssets(albumName, activity);
         }
-        addAlbum(inhaltInOrdner, name, activity, downloaded);
-    }
-    //gibt ein Array von Ordnern/Dateien an bestimmer Stelle aus
-    public static String[] getBilderNamenAssets(String folder, Activity activity) {
-        try {
-            return activity.getAssets().list("albums/" + folder);
-        } catch (IOException e) {
-            return new String[0];
+        addAlbum(inhaltInOrdner);
+        if (corruptedExifException) {
+            throw new CorruptedExifDataException();
         }
-    }
-    public static String[] getBilderNamenDownloaded(String folderLocation) {
-        File albumOrdner = new File(folderLocation);
-        File[] albumArray = albumOrdner.listFiles();
-        if (albumArray != null) {
-            String[] names = new String[albumArray.length];
-            for (int i = 0; i < albumArray.length; i++) {
-                names[i] = albumArray[i].getName();
-            }
-            return names;
-        } else {
-            return new String[0];
+        if (noImageException) {
+            throw new NoImagesInAlbumException();
+        }
+        if (ioException) {
+            throw new IOException("Fehler beim Lesen eines Bildes!");
         }
     }
-    public void addBild(String file, String album, boolean downloaded, Activity activity) {
-        if (downloaded) {
-            addBildDownloaded(album, file, activity);
-        } else {
-            addBildAssets(album, file, activity);
-        }
-    }
-    //gibt Exifdaten zurück mit Hilfe der Klasse ReadExif
-    public void addBildDownloaded(String album, String file, Activity activity) {
-        try {
-            ExifInterface exifInterface = new ExifInterface(activity.getFilesDir() + "/Album/" + album + "/" + file);
-            finalAddBild(exifInterface, file, activity);
-        } catch (IOException e) {
-            Toast.makeText(activity.getApplicationContext(), "Fehler beim Lesen eines Bildes!", Toast.LENGTH_SHORT).show();
-            activity.finish();
-        }
-    }
-    public void addBildAssets(String album, String file, Activity activity) {
-        try (InputStream in = activity.getAssets().open("albums/" + album + "/" + file)) {
-            ExifInterface exifInterface = new ExifInterface(in);
-            finalAddBild(exifInterface, file, activity);
-        } catch (IOException e) {
-            Toast.makeText(activity, "Fehler beim Lesen eines Bildes!", Toast.LENGTH_SHORT).show();
-            activity.finish();
-        }
-    }
-    public void addAlbum(String[] names, String album, Activity activity, boolean downloaded) {
-        boolean noImageException = true;
+
+    public void addAlbum(String[] names) {
         for (String name : names) {
             if (Bild.isImage(name)) {
                 noImageException = false;
-                addBild(name, album, downloaded, activity);
-            }
-        }
-        if (noImageException) {
-            try {
-                throw new NoImagesInAlbumException();
-            } catch (NoImagesInAlbumException e) {
-                Log.i("NoImagesInAlbumException", "Das Album hat keine Bilddateien enthalten.");
-                Toast.makeText(activity, "Keine Bilder im ausgewaehltem Album vorhanden.", Toast.LENGTH_SHORT).show();
-                activity.finish();
+                addBild(name);
             }
         }
     }
-    public void finalAddBild(ExifInterface exifInterface, String file, Activity activity) {
+    public void addBild(String file) {
+        if (downloaded) {
+            addBildDownloaded(file);
+        } else {
+            addBildAssets(file);
+        }
+    }
+    //gibt Exifdaten zurück mit Hilfe der Klasse ReadExif
+    public void addBildDownloaded(String file) {
+        try {
+            ExifInterface exifInterface = new ExifInterface(activity.getFilesDir() + "/Album/" + albumName + "/" + file);
+            finalAddBild(exifInterface, file);
+        } catch (IOException e) {
+            ioException = true;
+        }
+    }
+    public void addBildAssets(String file) {
+        try (InputStream in = activity.getAssets().open("albums/" + albumName + "/" + file)) {
+            ExifInterface exifInterface = new ExifInterface(in);
+            finalAddBild(exifInterface, file);
+        } catch (IOException e) {
+            ioException = true;
+        }
+    }
+    public void finalAddBild(ExifInterface exifInterface, String file) {
         String description = exifInterface.getAttribute(ExifInterface.TAG_IMAGE_DESCRIPTION);
         float[] koords = new float[2];
-        try {
-            double latitude;
-            double longitude;
-            if (exifInterface.getLatLong(koords)) {
-                latitude = (double) koords[0];
-                longitude = (double) koords[1];
-            } else {
-                throw new CorruptedExifDataException();
-            }
+        double latitude;
+        double longitude;
+        if (exifInterface.getLatLong(koords)) {
+            latitude = (double) koords[0];
+            longitude = (double) koords[1];
             Log.i("Name", file);
             if (description == null) {
                 Log.i("Keine Beschreibung vorhanden", "-");
@@ -111,18 +91,18 @@ public class ReadExif {
             Log.i("Breitengrad",Double.toString(latitude));
             Log.i("Laengengrad",Double.toString(longitude));
             album.add(new Bild(file, description, longitude, latitude));
-        } catch (CorruptedExifDataException e) {
-            Log.i("CorruptedExifDataException", "Koordinaten konnten in der Datei " + file + " nicht gefunden werden.");
-            Toast.makeText(activity, "Koordinaten in " + file + " nicht gefunden werden.", Toast.LENGTH_SHORT).show();
-            activity.finish();
+        } else {
+            corruptedExifException = true;
         }
     }
     public ArrayList<Bild> getBilder() {
         return album;
     }
-
+    public boolean anyException() {
+        return corruptedExifException || ioException || noImageException;
+    }
     //Da in MS0 gefordert war, die Exifdaten im Assetsordner auszugeben ohne exceptions zuwerfen, mache ich das hier
-    public static void logExifAssets(String folderpath, String exifTag, Activity activity) {
+    public static void logExifAssets(String folderpath, String exifTag, Context activity) {
         String filepath = "albums/" + folderpath;
         try (InputStream in = activity.getAssets().open(filepath)) {
             ExifInterface exifInterface = new ExifInterface(in);
@@ -132,19 +112,18 @@ public class ReadExif {
             } else {
                 Log.i(exifTag.substring(TAGLAENGE) + " vorhanden", exifData);
             }
-        } catch (IOException ignored) {
+        } catch (IOException e) {
             Log.i("Exifdaten-Fehler", "pfad: " + filepath);
-            Toast.makeText(activity, "Fehler beim Laden von Exifdaten", Toast.LENGTH_SHORT).show();
         }
     }
     //gibt anzahl der Bilder in einem Ordner wieder
-    public static int getImagesCount(String folder, boolean downloaded, Activity activity) {
+    public static int getImagesCount(String folder, boolean downloaded, Context activity) {
         int counter = 0;
         String[] images;
         if (downloaded) {
-            images = getBilderNamenDownloaded(activity.getFilesDir() + "/Album/" + folder);
+            images = getNamenDownloaded(activity.getFilesDir() + "/Album/" + folder);
         } else {
-            images = getBilderNamenAssets(folder, activity);
+            images = getNamenAssets(folder, activity);
         }
         for (String file : images) {
             if (Bild.isImage(file)) {
@@ -152,5 +131,30 @@ public class ReadExif {
             }
         }
         return counter;
+    }
+
+    //gibt ein Array von Ordnern/Dateien an bestimmer Stelle aus Album wieder
+    public static String[] getNamenAssets(String folder, Context activity) {
+        try {
+            return activity.getAssets().list("albums/" + folder);
+        } catch (IOException e) {
+            Log.i("Fehler","keine Namen in albums/" + folder + "gefunden");
+            return new String[0];
+        }
+    }
+    //gibt ein Array von Ordnern/Dateien an bestimmer Stelle aus dem internen Speicher aus
+    public static String[] getNamenDownloaded(String folderLocation) {
+        File albumOrdner = new File(folderLocation);
+        File[] albumArray = albumOrdner.listFiles();
+        if (albumArray != null) {
+            String[] names = new String[albumArray.length];
+            for (int i = 0; i < albumArray.length; i++) {
+                names[i] = albumArray[i].getName();
+            }
+            return names;
+        } else {
+            Log.i("Fehler","keine Namen in " + folderLocation + "gefunden");
+            return new String[0];
+        }
     }
 }

@@ -3,10 +3,11 @@ package com.gse23.lhusemann;
 public class MarkerKoordinaten {
     private double longitude;
     private double latitude;
-    private boolean isPlaced = false;
-    public MarkerKoordinaten(double longitude, double latitude) {
+    private boolean isPlaced;
+    public MarkerKoordinaten(double longitude, double latitude, boolean isPlaced) {
         this.longitude = longitude;
         this.latitude = latitude;
+        this.isPlaced = isPlaced;
     }
     public void setLongitude(double longitude) {
         this.longitude = longitude;
