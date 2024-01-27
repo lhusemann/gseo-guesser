@@ -40,27 +40,27 @@ public class DownloadActivity extends AppCompatActivity implements PropertyChang
     private static final String INTERNERALBUMNAME = "/Album";
     private static final String KEINEAUSWAHL = "Keine Auswahl";
     GameApplication gameApplication;
-    ExecutorService executerService;
     AlbenListe albenListe;
     Spinner spinner;
     boolean keineAuswahl = true;
     List<String> auswahlmoeglichkeitenListe = new ArrayList<>();
     ArrayAdapter<String> auswahlAdapter;
     int positionSpinner = 0;
+    RequestQueue queue;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_download);
         gameApplication = (GameApplication) getApplication();
         gameApplication.getGame().addListener(this);
+        queue = Volley.newRequestQueue(this);
         spinner = findViewById(R.id.spinnerDownload);
-        executerService = Executors.newFixedThreadPool(FIXEDTHREADPOOL);
         auswahlmoeglichkeitenListe.add(KEINEAUSWAHL);
         auswahlAdapter = new ArrayAdapter<>(this, androidx.appcompat.R.layout
                 .support_simple_spinner_dropdown_item, auswahlmoeglichkeitenListe);
         spinner.setAdapter(auswahlAdapter);
-        Button anfrageButton = findViewById(R.id.anfrageButton);
 
+        Button anfrageButton = findViewById(R.id.anfrageButton);
         //Das passiert wenn man auf den Anfragen Button drückt
         anfrageButton.setOnClickListener(new View.OnClickListener()  {
             @Override
@@ -70,8 +70,8 @@ public class DownloadActivity extends AppCompatActivity implements PropertyChang
                     resetSpinner();
                     Toast.makeText(getApplicationContext(), "Keine Eingabe vorhanden!", Toast.LENGTH_SHORT).show();
                 } else {
-                    final String url = urlText.getText().toString();
-                    buildRequestAlbenListe(url);
+                    resetSpinner();
+                    anfrageAlbenListe(urlText.getText().toString());
                 }
             }
         });
@@ -84,6 +84,8 @@ public class DownloadActivity extends AppCompatActivity implements PropertyChang
                 AlertDialog.Builder back = new AlertDialog.Builder(DownloadActivity.this);
                 back.setMessage("Zum Hauptmenü zurückkehren?")
                         .setPositiveButton("Ja", (dialog, id) -> {
+                            queue.cancelAll("albenListenReq");
+                            queue.cancelAll("ImagesReq");
                             finish();
                         })
                         .setNegativeButton("Abbruch", (dialog, id) -> {})
@@ -101,7 +103,7 @@ public class DownloadActivity extends AppCompatActivity implements PropertyChang
                 if (keineAuswahl) {
                     Toast.makeText(getApplicationContext(), "Kein Album ausgewaehlt!", Toast.LENGTH_SHORT).show();
                 } else {
-                    download();
+                    download(albenListe.getAlbums()[positionSpinner - 1].getLink());
                 }
             }
         });
@@ -126,95 +128,85 @@ public class DownloadActivity extends AppCompatActivity implements PropertyChang
             }
         });
     }
-
-    //Hilffunktion, die die Alben Liste in listeAnAlben schreibt
-    public void buildRequestAlbenListe(final String url) {
-        executerService.execute(new Runnable() {
-            @Override
-            public void run() {
-                final Response.Listener<String> onResponse = response -> {
-                    albenListe = AlbenListe.fromJson(response);
-                    if (albenListe == null) {
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                Toast.makeText(DownloadActivity.this, "Unter dieser Adresse befindet sich keine "
-                                        + "Albenliste", Toast.LENGTH_SHORT).show();
-                                resetSpinner();
-                            }
-                        });
-                    } else {
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                Toast.makeText(DownloadActivity.this, albenListe.getMessage(),
-                                        Toast.LENGTH_SHORT).show();
-                                auswahlAdapter.clear();
-                                auswahlmoeglichkeitenListe.addAll(Arrays.asList(albenListe.getNames()));
-                                auswahlAdapter.notifyDataSetChanged();
-                                gameApplication.getGame().setAlbenListe(albenListe);
-                            }
-                        });
-                    }
-                };
-                final Response.ErrorListener onError = error -> {
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            resetSpinner();
-                            Toast.makeText(DownloadActivity.this, "Es konnte keine Verbindung zum Server "
-                                    + "aufgebaut werden!", Toast.LENGTH_SHORT).show();
-                        }
-                    });
-                };
-                final StringRequest request = new StringRequest(Request.Method.GET, url, onResponse, onError);
-                final RequestQueue queue = Volley.newRequestQueue(DownloadActivity.this);
-                queue.add(request);
-            }
-        });
+    private void anfrageAlbenListe (String url) {
+        StringRequest request = getRequestForAlbenListe(url);
+        request.setTag("albenListenReq");
+        queue.add(request);
     }
-    //Hilffunktion, die die Anfrage zu den einzelnen Server-Alben macht
-    public StringRequest buildRequestImages(final String url) {
+    public StringRequest getRequestForAlbenListe(final String url) {
+        final Response.Listener<String> onResponse = response -> {
+            albenListe = AlbenListe.fromJson(response);
+            if (albenListe == null) {
+                Toast.makeText(DownloadActivity.this, "Unter dieser Adresse befindet sich keine "
+                        + "Albenliste", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(DownloadActivity.this, albenListe.getMessage(),
+                        Toast.LENGTH_SHORT).show();
+                auswahlAdapter.clear();
+                auswahlmoeglichkeitenListe.addAll(Arrays.asList(albenListe.getNames()));
+                auswahlAdapter.notifyDataSetChanged();
+                gameApplication.getGame().setAlbenListe(albenListe);
+            }
+        };
+        final Response.ErrorListener onError = error -> {
+            Toast.makeText(DownloadActivity.this, "Es konnte keine Verbindung zum Server "
+                    + "aufgebaut werden!", Toast.LENGTH_SHORT).show();
+        };
+        return new StringRequest(Request.Method.GET, url, onResponse, onError);
+    }
+    //Hilffunktion, um den download zu starten
+    private void download(String url) {
+        StringRequest request = getRequestForImages(url);
+        request.setTag("ImagesReq");
+        queue.add(request);
+    }
+    public StringRequest getRequestForImages(final String url) {
         final Response.Listener<String> onResponse = response -> {
             ServerAlbum serverAlbum = ServerAlbum.fromJson(response);
             if (serverAlbum == null) {
                 Toast.makeText(this, "Das Album konnte nicht geladen werden", Toast.LENGTH_SHORT).show();
             } else {
-                Toast.makeText(this, serverAlbum.getMessage(), Toast.LENGTH_SHORT).show();
                 erstelleOrdner(serverAlbum);
+                Toast.makeText(this, serverAlbum.getMessage(), Toast.LENGTH_SHORT).show();
             }
         };
         final Response.ErrorListener onError = error -> {
-            Toast.makeText(this, "Es konnte keine Verbindung zu den Bildern, im Album hergestellt werden",
-                    Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Das ausgewählte Album konnte nicht geladen werden!", Toast.LENGTH_SHORT).show();
         };
         return new StringRequest(Request.Method.GET, url, onResponse, onError);
     }
+
+
+
     //Hilffunktion, die den Alben-Download-Ordner erstellt und nach ueberschreibung fragt, wenn nötig
-    public void erstelleOrdner(final ServerAlbum serverAlbum) {
+    public void erstelleOrdner(ServerAlbum serverAlbum) {
         final File albumFolder = new File(getFilesDir(), "Album");
         if (!albumFolder.exists()) {
             albumFolder.mkdirs();
         }
         final File folder = new File(getFilesDir() + INTERNERALBUMNAME, serverAlbum.getName());
         if (folder.exists()) {
-            AlertDialog.Builder uberschreib = new AlertDialog.Builder(this);
-            uberschreib.setMessage("Ein Ordner mit diesem Namen existiert bereits. Soll dieser ueberschrieben werden?")
+            AlertDialog.Builder ueberschreib = new AlertDialog.Builder(this);
+            ueberschreib.setMessage("Ein Ordner mit diesem Namen existiert bereits. Soll dieser ueberschrieben werden?")
                     .setPositiveButton("Ok", (dialog, id) -> {
                         erstelleOrdnerUndBilder(serverAlbum, folder);
                     })
                     .setNegativeButton("Nein", (dialog, id) -> {})
                     .setTitle("Überschreiben?");
-            AlertDialog alert = uberschreib.create();
+            AlertDialog alert = ueberschreib.create();
             alert.show();
         } else {
+            folder.mkdirs();
             erstelleOrdnerUndBilder(serverAlbum, folder);
         }
     }
+
     //Hilffunktion, die die Bilder erstellt
     public void erstelleOrdnerUndBilder(ServerAlbum serverAlbum, File folder) {
         folder.mkdirs();
+        ExecutorService executerService = Executors.newFixedThreadPool(FIXEDTHREADPOOL);
         for (int i = 0; i < serverAlbum.getImages().length; i++) {
+
             final String url = serverAlbum.getImages()[i].getLink();
             final String mimeType = serverAlbum.getImages()[i].getContentType();
             String location = getFilesDir() + INTERNERALBUMNAME + "/" + serverAlbum.getName() + "/" + serverAlbum
@@ -225,23 +217,20 @@ public class DownloadActivity extends AppCompatActivity implements PropertyChang
                     try {
                         saveImage(url, location);
                     } catch (IOException e) {
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                Toast.makeText(getApplicationContext(), "Bild konnte nicht geladen werden",
-                                        Toast.LENGTH_SHORT).show();
-                            }
-                        });
+                        Toast.makeText(getApplicationContext(), "Ein Bild konnte nicht geladen werden",
+                                Toast.LENGTH_SHORT).show();
                     }
                 }
             });
         }
+        executerService.shutdown();
     }
     //Hilffunktion, die die ein einzelnes Bild erstellt
     // https://www.avajava.com/tutorials/lessons/how-do-i-save-an-image-from-a-url-to-a-file.html
     public void saveImage(String imageUrl, String destinationFile) throws IOException {
+
         final int byteGroesse = 2048;
-        URL url = new URL(imageUrl);
+        final URL url = new URL(imageUrl);
         InputStream inputStream = url.openStream();
         OutputStream outputStream = Files.newOutputStream(Paths.get(destinationFile));
 
@@ -264,17 +253,6 @@ public class DownloadActivity extends AppCompatActivity implements PropertyChang
         } else {
             return ".jpg";
         }
-    }
-    //Hilffunktion, um den download zu starten
-    private void download() {
-        executerService.execute(new Runnable() {
-            @Override
-            public void run() {
-                final StringRequest request = buildRequestImages(albenListe.getAlbums()[positionSpinner - 1].getLink());
-                final RequestQueue queue = Volley.newRequestQueue(DownloadActivity.this);
-                queue.add(request);
-            }
-        });
     }
     public void resetSpinner() {
         auswahlAdapter.clear();
