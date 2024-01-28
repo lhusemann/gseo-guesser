@@ -135,7 +135,7 @@ public class DownloadActivity extends AppCompatActivity implements PropertyChang
     }
     public StringRequest getRequestForAlbenListe(final String url) {
         final Response.Listener<String> onResponse = response -> {
-            albenListe = AlbenListe.fromJson(response);
+            albenListe = DownloadAlben.jsonToAlbenListe(response);
             if (albenListe == null) {
                 Toast.makeText(DownloadActivity.this, "Unter dieser Adresse befindet sich keine "
                         + "Albenliste", Toast.LENGTH_SHORT).show();
@@ -162,7 +162,7 @@ public class DownloadActivity extends AppCompatActivity implements PropertyChang
     }
     public StringRequest getRequestForImages(final String url) {
         final Response.Listener<String> onResponse = response -> {
-            ServerAlbum serverAlbum = ServerAlbum.fromJson(response);
+            ServerAlbum serverAlbum = DownloadAlben.jsonToServerAlbum(response);
             if (serverAlbum == null) {
                 Toast.makeText(this, "Das Album konnte nicht geladen werden", Toast.LENGTH_SHORT).show();
             } else {
@@ -203,7 +203,6 @@ public class DownloadActivity extends AppCompatActivity implements PropertyChang
 
     //Hilffunktion, die die Bilder erstellt
     public void erstelleOrdnerUndBilder(ServerAlbum serverAlbum, File folder) {
-        folder.mkdirs();
         ExecutorService executerService = Executors.newFixedThreadPool(FIXEDTHREADPOOL);
         for (int i = 0; i < serverAlbum.getImages().length; i++) {
 

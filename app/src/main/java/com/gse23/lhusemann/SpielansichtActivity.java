@@ -40,24 +40,13 @@ import org.osmdroid.views.overlay.Polyline;
  */
 public class SpielansichtActivity extends AppCompatActivity implements PropertyChangeListener {
     private static final int LINEBREITE = 20;
-    private static final double WELTBREITE = 85.0;
-    private static final double WELTLAENGE = 180.0;
-    private static final float ZOOMWELT = 1.5f;
 
     GameApplication gameApplication;
     Button nextButton;
-    Button validButton;
     Button aufgebenButton;
-    ImageView bild;
     TextView longitudeField;
     TextView latitudeField;
     TextView linkText;
-    TextView distanzText;
-    TextView aktuellerScore;
-    TextView gesScore;
-    TextView runde;
-    TextView beschreibung;
-    TextView timerText;
     MapView karte;
     Marker nutzerMarker;
     Marker markerCorrect;
@@ -72,19 +61,11 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         setContentView(R.layout.activity_spielansicht);
         gameApplication = (GameApplication) getApplication();
         gameApplication.getGame().addListener(this);
-        bild = findViewById(R.id.bild);
         nextButton = findViewById(R.id.nextButton);
         aufgebenButton = findViewById(R.id.ffButton);
         longitudeField = findViewById(R.id.longitudeField);
         latitudeField = findViewById(R.id.latitudeField);
-        validButton = findViewById(R.id.validButton);
         linkText = findViewById(R.id.link);
-        distanzText = findViewById(R.id.textSchaetzung);
-        beschreibung = findViewById(R.id.beschreibungID);
-        timerText = findViewById(R.id.timerID);
-        aktuellerScore = findViewById(R.id.aktuellerScore);
-        gesScore = findViewById(R.id.gesScore);
-        runde = findViewById(R.id.rundenID);
         downloaded = getIntent().getBooleanExtra("downloaded", false);
         karte = findViewById(R.id.mapView);
         context = getApplicationContext();
@@ -124,7 +105,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
             Toast.makeText(this, "Fehler beim Lesen eines Bildes!", Toast.LENGTH_SHORT).show();
             leaveActivity();
         }
-        //Dies soll passieren, wenn auf den Next-Button gedrückt wird
+
         nextButton.setOnClickListener(new View.OnClickListener()  {
             @Override
             public void onClick(View button) {
@@ -147,7 +128,8 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
             }
 
         }));
-        //Das soll passieren wenn wir auf Bestätigen drücken
+
+        Button validButton = findViewById(R.id.validButton);
         validButton.setOnClickListener(new View.OnClickListener()  {
             @Override
             public void onClick(View button) {
@@ -232,6 +214,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         }
     }
     public void refreshImage(String file) {
+        ImageView bild = findViewById(R.id.bild);
         if (downloaded) {
             final File image = new File(getFilesDir() + "/Album/" + gameApplication.getGame().getAlbum().getName(), file);
             if (image.exists()){
@@ -256,50 +239,101 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         gameApplication.getGame().aufgeben();
         finish();
     }
+    public void updateBeschreibung(String beschreibung) {
+        TextView beschreibungText = findViewById(R.id.beschreibungID);
+        beschreibungText.setText(beschreibung);
+        Log.i("Beschreibung", beschreibung);
+    }
+    public void updateBild(Bild bild) {
+        refreshImage(bild.getName());
+        Log.i("Bildname", bild.getName());
+        Log.i("Laengengrad", "" + bild.getLongtitude());
+        Log.i("Breitengrad", "" + bild.getLatitude());
+    }
+    public void updateLink(Link link) {
+        linkText.setText(link.getLink());
+        linkText.setTextColor(Color.parseColor(link.getColor()));
+        Log.i("OpenStreetMaps-Link zur Schätzung", link.getLink());
+    }
+    public void updateRunde(int neueRunde) {
+        if(neueRunde == gameApplication.getGame().getRundenZaehler().getMaxRunde()) {
+            nextButton.setText("Spiel beenden");
+        }
+        final double WELTBREITE = 85.0;
+        final double WELTLAENGE = 180.0;
+        TextView runde = findViewById(R.id.rundenID);
+        runde.setText("" + neueRunde);
+        List<GeoPoint> weltKarte = new ArrayList<>();
+        weltKarte.add(new GeoPoint(WELTBREITE, WELTLAENGE));
+        weltKarte.add(new GeoPoint(-WELTBREITE, -WELTLAENGE));
+        karte.post(() -> {
+            karte.zoomToBoundingBox(BoundingBox.fromGeoPointsSafe(weltKarte), false);
+        });
+    }
+    public void removeMarker() {
+        longitudeField.setText(null);
+        latitudeField.setText(null);
+        karte.getOverlays().remove(markerCorrect);
+        karte.getOverlays().remove(nutzerMarker);
+        karte.getOverlays().remove(line);
+        markerCorrect.closeInfoWindow();
+        nutzerMarker.closeInfoWindow();
+    }
+    public void setUserMarker(MarkerKoordinaten userMarker) {
+        karte.getOverlays().remove(nutzerMarker);
+        nutzerMarker.setPosition(new GeoPoint(userMarker.getLatitude(), userMarker.getLongitude()));
+        karte.getOverlays().add(nutzerMarker);
+        String latitudeText = Double.toString(userMarker.getLatitude());
+        latitudeField.setText(latitudeText);
+        Log.i("Breitengrad des gesetzen Markers", latitudeText);
+        String longitudeText = Double.toString(userMarker.getLongitude());
+        longitudeField.setText(longitudeText);
+        Log.i("Laengengrad des gesetzen Markers", longitudeText);
+    }
+    public void setDesiredMarker(MarkerKoordinaten desiredMarker) {
+        karte.getOverlays().remove(markerCorrect);
+        markerCorrect.setPosition(new GeoPoint(desiredMarker.getLatitude(), desiredMarker.getLongitude()));
+        karte.getOverlays().add(markerCorrect);
+    }
+    public void zoomForGuess() {
+        final float ZOOMWELT = 1.5f;
+        List<GeoPoint> geoPoints = new ArrayList<>();
+        geoPoints.add(new GeoPoint(nutzerMarker.getPosition()));
+        geoPoints.add(new GeoPoint(markerCorrect.getPosition()));
+        line.setPoints(geoPoints);
+        karte.getOverlays().add(line);
+        karte.post(() -> {
+            karte.zoomToBoundingBox(BoundingBox.fromGeoPointsSafe(geoPoints).increaseByScale(ZOOMWELT), true);
+        });
+    }
     @Override
     public void propertyChange(PropertyChangeEvent propertyChangeEvent) {
         String changeName = propertyChangeEvent.getPropertyName();
         if (changeName.equals("Beschreibung")) {
-            beschreibung.setText((String) propertyChangeEvent.getNewValue());
-            Log.i("Beschreibung", (String) propertyChangeEvent.getNewValue());
+            updateBeschreibung((String) propertyChangeEvent.getNewValue());
         }
         if (changeName.equals("Bild")) {
-            refreshImage(((Bild) propertyChangeEvent.getNewValue()).getName());
-            Log.i("Bildname", ((Bild) propertyChangeEvent.getNewValue()).getName());
-            Log.i("Laengengrad", "" + ((Bild) propertyChangeEvent.getNewValue()).getLongtitude());
-            Log.i("Breitengrad", "" + ((Bild) propertyChangeEvent.getNewValue()).getLatitude());
+            updateBild((Bild) propertyChangeEvent.getNewValue());
         }
         if (changeName.equals("Punkte")) {
+            TextView aktuellerScore = findViewById(R.id.aktuellerScore);
             aktuellerScore.setText("" + ((int) propertyChangeEvent.getNewValue()));
         }
         if (changeName.equals("Gesamtscore")) {
+            TextView gesScore = findViewById(R.id.gesScore);
             gesScore.setText("" + (int) propertyChangeEvent.getNewValue());
         }
         if (changeName.equals("Link")) {
-            Link link = (Link) propertyChangeEvent.getNewValue();
-            linkText.setText(link.getLink());
-            linkText.setTextColor(Color.parseColor(link.getColor()));
-            Log.i("OpenStreetMaps-Link zur Schätzung", link.getLink());
+            updateLink((Link) propertyChangeEvent.getNewValue());
         }
         if (changeName.equals("Runde")) {
-            runde.setText("" + (int) propertyChangeEvent.getNewValue());
-            List<GeoPoint> weltKarte = new ArrayList<>();
-            weltKarte.add(new GeoPoint(WELTBREITE, WELTLAENGE));
-            weltKarte.add(new GeoPoint(-WELTBREITE, -WELTLAENGE));
-            karte.post(() -> {
-                karte.zoomToBoundingBox(BoundingBox.fromGeoPointsSafe(weltKarte), false);
-            });
+            updateRunde((int) propertyChangeEvent.getNewValue());
         }
         if (changeName.equals("markerDisappear")) {
-            longitudeField.setText(null);
-            latitudeField.setText(null);
-            karte.getOverlays().remove(markerCorrect);
-            karte.getOverlays().remove(nutzerMarker);
-            karte.getOverlays().remove(line);
-            markerCorrect.closeInfoWindow();
-            nutzerMarker.closeInfoWindow();
+            removeMarker();
         }
         if (changeName.equals("Timer")) {
+            TextView timerText = findViewById(R.id.timerID);
             runOnUiThread(()->{
                 timerText.setText("" + (int) propertyChangeEvent.getNewValue());
             });
@@ -309,22 +343,10 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
             startActivity(intent);
         }
         if (changeName.equals("UserMarker")) {
-            karte.getOverlays().remove(nutzerMarker);
-            MarkerKoordinaten userMarker = (MarkerKoordinaten) propertyChangeEvent.getNewValue();
-            nutzerMarker.setPosition(new GeoPoint(userMarker.getLatitude(), userMarker.getLongitude()));
-            karte.getOverlays().add(nutzerMarker);
-            String latitudeText = Double.toString(userMarker.getLatitude());
-            latitudeField.setText(latitudeText);
-            Log.i("Breitengrad des gesetzen Markers", latitudeText);
-            String longitudeText = Double.toString(userMarker.getLongitude());
-            longitudeField.setText(longitudeText);
-            Log.i("Laengengrad des gesetzen Markers", longitudeText);
+            setUserMarker((MarkerKoordinaten) propertyChangeEvent.getNewValue());
         }
         if (changeName.equals("desiredMarker")) {
-            karte.getOverlays().remove(markerCorrect);
-            MarkerKoordinaten desiredMarker = (MarkerKoordinaten) propertyChangeEvent.getNewValue();
-            markerCorrect.setPosition(new GeoPoint(desiredMarker.getLatitude(), desiredMarker.getLongitude()));
-            karte.getOverlays().add(markerCorrect);
+            setDesiredMarker((MarkerKoordinaten) propertyChangeEvent.getNewValue());
         }
         if (changeName.equals("Alert")) {
             runOnUiThread(()->{
@@ -332,18 +354,12 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
             });
         }
         if (changeName.equals("Distanz")) {
+            TextView distanzText = findViewById(R.id.textSchaetzung);
             Log.i("Distanz der Schaetzung", (String) propertyChangeEvent.getNewValue());
             distanzText.setText((String) propertyChangeEvent.getNewValue());
         }
         if (changeName.equals("Valid")) {
-            List<GeoPoint> geoPoints = new ArrayList<>();
-            geoPoints.add(new GeoPoint(nutzerMarker.getPosition()));
-            geoPoints.add(new GeoPoint(markerCorrect.getPosition()));
-            line.setPoints(geoPoints);
-            karte.getOverlays().add(line);
-            karte.post(() -> {
-                karte.zoomToBoundingBox(BoundingBox.fromGeoPointsSafe(geoPoints).increaseByScale(ZOOMWELT), true);
-            });
+            zoomForGuess();
         }
     }
 

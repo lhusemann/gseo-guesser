@@ -1,8 +1,5 @@
 package com.gse23.lhusemann;
 
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeSupport;
-
 public class Rundenzaehler {
     private int runde = 1;
     private int maxRunde = 0;
