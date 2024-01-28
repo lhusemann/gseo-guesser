@@ -11,6 +11,10 @@ import java.util.ArrayList;
 public class ReadExif {
     private static final int TAGLAENGE = 3;
     private static final String BINDESTRICH = "-";
+    private static final String INTERNALBUM = "/Album/";
+    private static final String ASSETSALBUM = "albums/";
+    private static final String ERROR = "Fehler";
+    private static final String GEFUNDEN = "gefunden";
     private final ArrayList<Bild> album = new ArrayList<>();
     private boolean corruptedExifException = false;
     private boolean noImageException = true;
@@ -26,7 +30,7 @@ public class ReadExif {
     public void startGetInhaltInOrdner() throws CorruptedExifDataException, NoImagesInAlbumException, IOException {
         String[] inhaltInOrdner;
         if (downloaded) {
-            inhaltInOrdner = getNamenDownloaded(activity.getFilesDir() + "/Album/" + albumName);
+            inhaltInOrdner = getNamenDownloaded(activity.getFilesDir() + INTERNALBUM + albumName);
         } else {
             inhaltInOrdner = getNamenAssets(albumName, activity);
         }
@@ -60,14 +64,15 @@ public class ReadExif {
     //gibt Exifdaten zurück mit Hilfe der Klasse ReadExif
     public void addBildDownloaded(String file) {
         try {
-            ExifInterface exifInterface = new ExifInterface(activity.getFilesDir() + "/Album/" + albumName + "/" + file);
+            ExifInterface exifInterface = new ExifInterface(activity.getFilesDir() + INTERNALBUM
+                    + albumName + "/" + file);
             finalAddBild(exifInterface, file);
         } catch (IOException e) {
             ioException = true;
         }
     }
     public void addBildAssets(String file) {
-        try (InputStream in = activity.getAssets().open("albums/" + albumName + "/" + file)) {
+        try (InputStream in = activity.getAssets().open(ASSETSALBUM + albumName + "/" + file)) {
             ExifInterface exifInterface = new ExifInterface(in);
             finalAddBild(exifInterface, file);
         } catch (IOException e) {
@@ -84,12 +89,12 @@ public class ReadExif {
             longitude = (double) koords[1];
             Log.i("Name", file);
             if (description == null) {
-                Log.i("Keine Beschreibung vorhanden", "-");
+                Log.i("Keine Beschreibung vorhanden", BINDESTRICH);
             } else {
-                Log.i("Beschreibung",description);
+                Log.i("Beschreibung", description);
             }
-            Log.i("Breitengrad",Double.toString(latitude));
-            Log.i("Laengengrad",Double.toString(longitude));
+            Log.i("Breitengrad", Double.toString(latitude));
+            Log.i("Laengengrad", Double.toString(longitude));
             album.add(new Bild(file, description, longitude, latitude));
         } else {
             corruptedExifException = true;
@@ -103,7 +108,7 @@ public class ReadExif {
     }
     //Da in MS0 gefordert war, die Exifdaten im Assetsordner auszugeben ohne exceptions zuwerfen, mache ich das hier
     public static void logExifAssets(String folderpath, String exifTag, Context activity) {
-        String filepath = "albums/" + folderpath;
+        String filepath = ASSETSALBUM + folderpath;
         try (InputStream in = activity.getAssets().open(filepath)) {
             ExifInterface exifInterface = new ExifInterface(in);
             String exifData = exifInterface.getAttribute(exifTag);
@@ -121,7 +126,7 @@ public class ReadExif {
         int counter = 0;
         String[] images;
         if (downloaded) {
-            images = getNamenDownloaded(activity.getFilesDir() + "/Album/" + folder);
+            images = getNamenDownloaded(activity.getFilesDir() + INTERNALBUM + folder);
         } else {
             images = getNamenAssets(folder, activity);
         }
@@ -136,9 +141,9 @@ public class ReadExif {
     //gibt ein Array von Ordnern/Dateien an bestimmer Stelle aus Album wieder
     public static String[] getNamenAssets(String folder, Context activity) {
         try {
-            return activity.getAssets().list("albums/" + folder);
+            return activity.getAssets().list(ASSETSALBUM + folder);
         } catch (IOException e) {
-            Log.i("Fehler","keine Namen in albums/" + folder + "gefunden");
+            Log.i(ERROR, "keine Namen in albums/" + folder + GEFUNDEN);
             return new String[0];
         }
     }
@@ -153,7 +158,7 @@ public class ReadExif {
             }
             return names;
         } else {
-            Log.i("Fehler","keine Namen in " + folderLocation + "gefunden");
+            Log.i(ERROR, "keine Namen in " + folderLocation + GEFUNDEN);
             return new String[0];
         }
     }

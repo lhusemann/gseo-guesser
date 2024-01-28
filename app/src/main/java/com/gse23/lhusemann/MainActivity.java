@@ -30,7 +30,7 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
     private static final int SDTLAENGE = 30;
     private static final int SDTRUNDEN = 5;
     private static final int DOWNLOADTAG = 18;
-    GameApplication gameApplication ;
+    GameApplication gameApplication;
     Spinner spinner;
     EditText rundenAnzahl;
     EditText rundenLaenge;
@@ -89,22 +89,27 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
             @Override
             public void onClick(View button) {
                 if (keineAuswahl) {
-                    Toast.makeText(getApplicationContext(), "Du hast keinen Ordner ausgewählt!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), "Du hast keinen Ordner ausgewählt!",
+                            Toast.LENGTH_SHORT).show();
                 } else {
                     boolean validL = false;
                     boolean validR = false;
                     if (getImagesCount(gameApplication.getGame().getAlbum().getName()) == 0) {
-                        Toast.makeText(getApplicationContext(), "Das Album besitzt keine Bilder", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplicationContext(), "Das Album besitzt keine Bilder", Toast
+                                .LENGTH_SHORT).show();
                     } else {
                     if (rundenAnzahl.getText().toString().equals("")) {
-                        gameApplication.getGame().getRundenZaehler().setMaxRunde(Math.min(getImagesCount(gameApplication.getGame().getAlbum().getName()), SDTRUNDEN));
+                        gameApplication.getGame().getRundenZaehler().setMaxRunde(Math.min(getImagesCount
+                                (gameApplication.getGame().getAlbum().getName()), SDTRUNDEN));
                         validR = true;
                         } else {
                         int wantedRound = Integer.parseInt(rundenAnzahl.getText().toString());
                         if (wantedRound < 1) {
-                            Toast.makeText(getApplicationContext(), "Du musst min. eine Runde spielen!", Toast.LENGTH_SHORT).show();
-                        } else if (wantedRound > getImagesCount(gameApplication.getGame().getAlbum().getName())){
-                            Toast.makeText(getApplicationContext(), "Rundenanzahl uebertrifft Bilder in Album!", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getApplicationContext(), "Du musst min. eine Runde spielen!", Toast
+                                    .LENGTH_SHORT).show();
+                        } else if (wantedRound > getImagesCount(gameApplication.getGame().getAlbum().getName())) {
+                            Toast.makeText(getApplicationContext(), "Rundenanzahl uebertrifft Bilder in Album!", Toast
+                                    .LENGTH_SHORT).show();
                         } else {
                             gameApplication.getGame().getRundenZaehler().setMaxRunde(wantedRound);
                             validR = true;
@@ -118,9 +123,11 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
                     } else {
                         int wantedLength = Integer.parseInt(rundenLaenge.getText().toString());
                         if (wantedLength > MAXSEKUNDEN) {
-                            Toast.makeText(getApplicationContext(), "Eine Runde kann maximal 60 Sekunden lang sein", Toast.LENGTH_SHORT).show();
-                        }else if (wantedLength < MINSEKUNDEN) {
-                            Toast.makeText(getApplicationContext(), "Eine Runde muss mindestens 10 Sekunden lang sein", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getApplicationContext(), "Eine Runde kann maximal 60 Sekunden lang sein",
+                                    Toast.LENGTH_SHORT).show();
+                        } else if (wantedLength < MINSEKUNDEN) {
+                            Toast.makeText(getApplicationContext(), "Eine Runde muss mindestens 10 Sekunden lang sein",
+                                    Toast.LENGTH_SHORT).show();
                         } else {
                             gameApplication.getGame().getRundenZaehler().setRundenlaenge(wantedLength);
                             validL = true;
@@ -155,11 +162,13 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
                 try {
                     if (getAssets().list("albums") != null && ReadExif.getNamenAssets("", MainActivity.this)
                             .length > 0) {
-                        auswahlmoeglichkeitenListe.addAll(Arrays.asList(ReadExif.getNamenAssets("", MainActivity.this)));
+                        auswahlmoeglichkeitenListe.addAll(Arrays.asList(ReadExif.getNamenAssets("",
+                                MainActivity.this)));
                         indexDownloaded = ReadExif.getNamenAssets("", MainActivity.this).length;
                     }
                 } catch (IOException e) {
-                    Snackbar.make(button, "Das lesen der vorinstalliereten Bilder hat nicht funktioniert!", Snackbar.LENGTH_SHORT).show();
+                    Snackbar.make(button, "Das lesen der vorinstalliereten Bilder hat nicht funktioniert!",
+                            Snackbar.LENGTH_SHORT).show();
                 }
                 addDownloads();
                 auswahlAdapter.notifyDataSetChanged();

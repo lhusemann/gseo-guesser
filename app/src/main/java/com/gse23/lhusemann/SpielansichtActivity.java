@@ -79,12 +79,12 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         paint.setColor(Color.RED);
         paint.setStrokeWidth(LINEBREITE);
         nutzerMarker = new Marker(karte);
-        nutzerMarker.setPosition(new GeoPoint(0.0,0.0));
+        nutzerMarker.setPosition(new GeoPoint(0.0, 0.0));
         nutzerMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
         nutzerMarker.setTitle("Ihre Eingabe");
         karte.getOverlays().remove(nutzerMarker);
         markerCorrect = new Marker(karte);
-        markerCorrect.setPosition(new GeoPoint(0.0,0.0));
+        markerCorrect.setPosition(new GeoPoint(0.0, 0.0));
         markerCorrect.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
         markerCorrect.setTitle("gesuchter Ort");
         karte.getOverlays().remove(markerCorrect);
@@ -93,16 +93,19 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
             this.addBilderInAlbum();
             gameApplication.getGame().start();
         } catch (CorruptedExifDataException e) {
-            Log.i("CorruptedExifDataException", "Exifdaten in einer oder mehrerer Dateien nicht enthalten!");
-            Toast.makeText(this, "Exifdaten in einer oder mehrerer Dateien nicht enthalten!", Toast.LENGTH_SHORT).show();
+            final String message = "Exifdaten in einer oder mehrerer Dateien nicht enthalten!";
+            Log.i("CorruptedExifDataException", message);
+            Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
             leaveActivity();
         } catch (NoImagesInAlbumException e) {
-            Log.i("NoImagesInAlbumException", "Das Album hat keine Bilddateien enthalten.");
-            Toast.makeText(this, "Keine Bilder im ausgewaehltem Album vorhanden.", Toast.LENGTH_SHORT).show();
+            final String message = "Keine Bilder im ausgewaehltem Album vorhanden.";
+            Log.i("NoImagesInAlbumException", message);
+            Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
             leaveActivity();
         } catch (IOException e) {
-            Log.i("Fehler", "Fehler beim Lesen eines Bildes!");
-            Toast.makeText(this, "Fehler beim Lesen eines Bildes!", Toast.LENGTH_SHORT).show();
+            final String message ="Fehler beim Lesen eines Bildes!";
+            Log.i("Fehler", message);
+            Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
             leaveActivity();
         }
 
@@ -214,23 +217,29 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         }
     }
     public void refreshImage(String file) {
+        final String internAlbum = "/Album/";
+        final String message = "Fehler beim Laden des Bildes";
+        final String error = "Fehler";
         ImageView bild = findViewById(R.id.bild);
         if (downloaded) {
-            final File image = new File(getFilesDir() + "/Album/" + gameApplication.getGame().getAlbum().getName(), file);
-            if (image.exists()){
+            final File image = new File(getFilesDir() + internAlbum + gameApplication.getGame()
+                    .getAlbum().getName(), file);
+            if (image.exists()) {
                 bild.setImageDrawable(Drawable.createFromPath(image.getAbsolutePath()));
             } else {
-                Log.i("Error", "Fehler beim Laden des Bildes");
-                Toast.makeText(this, "Fehler beim Laden des Bildes", Toast.LENGTH_SHORT).show();
+                Log.i(error, message);
+                Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
                 leaveActivity();
             }
-            bild.setImageDrawable(Drawable.createFromPath(getFilesDir() + "/Album/" + gameApplication.getGame().getAlbum().getName() + "/" + file));
+            bild.setImageDrawable(Drawable.createFromPath(getFilesDir() + internAlbum + gameApplication
+                    .getGame().getAlbum().getName() + "/" + file));
         } else {
-            try (InputStream in = getAssets().open("albums/" + gameApplication.getGame().getAlbum().getName() + "/" + file)) {
+            try (InputStream in = getAssets().open("albums/" + gameApplication.getGame().getAlbum()
+                    .getName() + "/" + file)) {
                 bild.setImageDrawable(Drawable.createFromStream(in, "src"));
             } catch (IOException e) {
-                Log.i("Error", "Fehler beim Laden des Bildes");
-                Toast.makeText(this, "Fehler beim Laden des Bildes", Toast.LENGTH_SHORT).show();
+                Log.i(error, message);
+                Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
                 leaveActivity();
             }
         }
@@ -242,7 +251,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
     public void updateBeschreibung(String beschreibung) {
         TextView beschreibungText = findViewById(R.id.beschreibungID);
         beschreibungText.setText(beschreibung);
-        Log.i("Beschreibung", beschreibung);
+        Log.i("Beschreibung vom Bild", beschreibung);
     }
     public void updateBild(Bild bild) {
         refreshImage(bild.getName());
@@ -256,16 +265,16 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         Log.i("OpenStreetMaps-Link zur Schätzung", link.getLink());
     }
     public void updateRunde(int neueRunde) {
-        if(neueRunde == gameApplication.getGame().getRundenZaehler().getMaxRunde()) {
+        if (neueRunde == gameApplication.getGame().getRundenZaehler().getMaxRunde()) {
             nextButton.setText("Spiel beenden");
         }
-        final double WELTBREITE = 85.0;
-        final double WELTLAENGE = 180.0;
+        final double weltbreite = 85.0;
+        final double weltlaenge = 180.0;
         TextView runde = findViewById(R.id.rundenID);
         runde.setText("" + neueRunde);
         List<GeoPoint> weltKarte = new ArrayList<>();
-        weltKarte.add(new GeoPoint(WELTBREITE, WELTLAENGE));
-        weltKarte.add(new GeoPoint(-WELTBREITE, -WELTLAENGE));
+        weltKarte.add(new GeoPoint(weltbreite, weltlaenge));
+        weltKarte.add(new GeoPoint(-weltbreite, -weltlaenge));
         karte.post(() -> {
             karte.zoomToBoundingBox(BoundingBox.fromGeoPointsSafe(weltKarte), false);
         });
@@ -296,14 +305,14 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         karte.getOverlays().add(markerCorrect);
     }
     public void zoomForGuess() {
-        final float ZOOMWELT = 1.5f;
+        final float zoomwelt = 1.5f;
         List<GeoPoint> geoPoints = new ArrayList<>();
         geoPoints.add(new GeoPoint(nutzerMarker.getPosition()));
         geoPoints.add(new GeoPoint(markerCorrect.getPosition()));
         line.setPoints(geoPoints);
         karte.getOverlays().add(line);
         karte.post(() -> {
-            karte.zoomToBoundingBox(BoundingBox.fromGeoPointsSafe(geoPoints).increaseByScale(ZOOMWELT), true);
+            karte.zoomToBoundingBox(BoundingBox.fromGeoPointsSafe(geoPoints).increaseByScale(zoomwelt), true);
         });
     }
     @Override
@@ -334,7 +343,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         }
         if (changeName.equals("Timer")) {
             TextView timerText = findViewById(R.id.timerID);
-            runOnUiThread(()->{
+            runOnUiThread(() -> {
                 timerText.setText("" + (int) propertyChangeEvent.getNewValue());
             });
         }
@@ -349,8 +358,9 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
             setDesiredMarker((MarkerKoordinaten) propertyChangeEvent.getNewValue());
         }
         if (changeName.equals("Alert")) {
-            runOnUiThread(()->{
-                Toast.makeText(getApplicationContext(), (String) propertyChangeEvent.getNewValue(), Toast.LENGTH_SHORT).show();
+            runOnUiThread(() -> {
+                Toast.makeText(getApplicationContext(), (String) propertyChangeEvent.getNewValue(),
+                        Toast.LENGTH_SHORT).show();
             });
         }
         if (changeName.equals("Distanz")) {

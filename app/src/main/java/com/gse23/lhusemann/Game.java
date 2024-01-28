@@ -15,13 +15,21 @@ public class Game {
     private Timer timer;
     private AlbenListe albenListe;
     private Link link;
-    boolean skipMix = false;
-    boolean rundeVorbei = false;
-    int counter;
+    private boolean skipMix = false;
+    private boolean rundeVorbei = false;
+    private int counter;
+    private static final String RUNDE = "Runde";
+    private static final String BILD = "Bild";
+    private static final String GESAMTSCORE = "Gesamtscore";
+    private static final String PUNKTE = "Punkte";
+    private static final String LINK = "Link";
+    private static final String DISTANZ = "Distanz";
+    private static final String BESCHREIBUNG = "Beschreibung";
+    private static final String ALERT = "Alert";
     Game() {
         support = new PropertyChangeSupport(this);
         album = new Album();
-        markerKoordinaten = new MarkerKoordinaten(0.0,0.0, false);
+        markerKoordinaten = new MarkerKoordinaten(0.0, 0.0, false);
         rundenzaehler = new Rundenzaehler();
         gesamtscore = new Gesamtscore();
         punkte = new Punkte();
@@ -32,25 +40,26 @@ public class Game {
             album.mix();
             skipMix = false;
         }
-        support.firePropertyChange("Runde", "", rundenzaehler.getRunde());
-        support.firePropertyChange("Bild", null, album.getBild(rundenzaehler.getRunde() - 1));
-        support.firePropertyChange("Gesamtscore", null, 0);
-        support.firePropertyChange("Punkte", null, 0);
+        support.firePropertyChange(RUNDE, "", rundenzaehler.getRunde());
+        support.firePropertyChange(BILD, null, album.getBild(rundenzaehler.getRunde() - 1));
+        support.firePropertyChange(GESAMTSCORE, null, 0);
+        support.firePropertyChange(PUNKTE, null, 0);
         link.reset();
-        support.firePropertyChange("Link", null, link);
+        support.firePropertyChange(LINK, null, link);
         startTimer();
     }
     public void nextRound() {
         stopTimer();
         gesamtscore.incGesamtscore(punkte.getCurrentPunkteNum());
-        support.firePropertyChange("Gesamtscore", gesamtscore.getGesamtscoreNum() - punkte.getCurrentPunkteNum(), gesamtscore.getGesamtscoreNum());
+        support.firePropertyChange(GESAMTSCORE, gesamtscore.getGesamtscoreNum() - punkte.getCurrentPunkteNum(),
+                gesamtscore.getGesamtscoreNum());
 
         punkte.safeCurrentPunkte();
-        support.firePropertyChange("Punkte", punkte.getCurrentPunkteNum(), 0);
+        support.firePropertyChange(PUNKTE, punkte.getCurrentPunkteNum(), 0);
         punkte.resetCurrent();
 
         link.reset();
-        support.firePropertyChange("Link", null, link);
+        support.firePropertyChange(LINK, null, link);
 
         // prüft ob Runde noch nicht vorbei
         if (rundenzaehler.incRoundIfAble()) {
@@ -58,10 +67,12 @@ public class Game {
             rundeVorbei = false;
             markerKoordinaten.setIsPlaced(false);
             support.firePropertyChange("markerDisappear", true, false);
-            support.firePropertyChange("Distanz", "", "keine Schaetzung abgegeben");
-            support.firePropertyChange("Beschreibung", album.getBild(rundenzaehler.getRunde() - 2).getDescription(), "");
-            support.firePropertyChange("Runde", rundenzaehler.getRunde() - 1, rundenzaehler.getRunde());
-            support.firePropertyChange("Bild", album.getBild(rundenzaehler.getRunde() - 2), album.getBild(rundenzaehler.getRunde() - 1));
+            support.firePropertyChange(DISTANZ, "", "keine Schaetzung abgegeben");
+            support.firePropertyChange(BESCHREIBUNG, album.getBild(rundenzaehler.getRunde() - 2)
+                    .getDescription(), "");
+            support.firePropertyChange(RUNDE, rundenzaehler.getRunde() - 1, rundenzaehler.getRunde());
+            support.firePropertyChange(BILD, album.getBild(rundenzaehler.getRunde() - 2), album
+                    .getBild(rundenzaehler.getRunde() - 1));
         } else  {
             support.firePropertyChange("EndGame", true, false);
         }
@@ -70,34 +81,35 @@ public class Game {
         stopTimer();
         rundenzaehler.reset();
         markerKoordinaten.setZero();
-        support.firePropertyChange("Gesamtscore", gesamtscore.getGesamtscoreNum(), 0);
+        support.firePropertyChange(GESAMTSCORE, gesamtscore.getGesamtscoreNum(), 0);
         gesamtscore.reset();
-        support.firePropertyChange("Punkte", punkte.getCurrentPunkteNum(), 0);
+        support.firePropertyChange(PUNKTE, punkte.getCurrentPunkteNum(), 0);
         punkte.resetAll();
         album.reset();
         album.getSize();
     }
     public void eingabeValidieren() {
         if (rundeVorbei) {
-            this.support.firePropertyChange("Alert", "", "Runde vorbei!");
+            this.support.firePropertyChange(ALERT, "", "Runde vorbei!");
         } else {
             if (markerKoordinaten.isPlaced()) {
                 stopTimer();
-                support.firePropertyChange("Beschreibung", "", album.getBild(rundenzaehler.getRunde() - 1).getDescription());
+                support.firePropertyChange(BESCHREIBUNG, "", album.getBild(rundenzaehler.getRunde() - 1)
+                        .getDescription());
 
                 this.support.firePropertyChange("desiredMarker", null, new MarkerKoordinaten(album
                         .getBild(rundenzaehler.getRunde() - 1).getLongtitude(), album.getBild(rundenzaehler
                         .getRunde() - 1).getLatitude(), true));
-                double distance = Distanz.calcDistanceNum(markerKoordinaten.getLatitude(), album.getBild(rundenzaehler.getRunde() - 1)
-                        .getLatitude(),markerKoordinaten.getLongitude(), album.getBild(rundenzaehler.getRunde() - 1)
-                        .getLongtitude());
-                this.support.firePropertyChange("Distanz", "", Formatierung.getUnit(distance));
+                double distance = Distanz.calcDistanceNum(markerKoordinaten.getLatitude(), album
+                        .getBild(rundenzaehler.getRunde() - 1).getLatitude(),markerKoordinaten.getLongitude()
+                        , album.getBild(rundenzaehler.getRunde() - 1).getLongtitude());
+                this.support.firePropertyChange(DISTANZ, "", Formatierung.getUnit(distance));
                 link();
                 punkte.berechne(distance);
-                this.support.firePropertyChange("Punkte", 0, punkte.getCurrentPunkteNum());
+                this.support.firePropertyChange(PUNKTE, 0, punkte.getCurrentPunkteNum());
                 this.support.firePropertyChange("Valid", false, true);
             } else {
-                this.support.firePropertyChange("Alert", "", "Es wurde kein Marker gesetzt!");
+                this.support.firePropertyChange(ALERT, "", "Es wurde kein Marker gesetzt!");
             }
         }
     }
@@ -105,9 +117,9 @@ public class Game {
         stopTimer();
         rundenzaehler.restart();
         markerKoordinaten.setZero();
-        support.firePropertyChange("Gesamtscore", gesamtscore.getGesamtscoreNum(), 0);
+        support.firePropertyChange(GESAMTSCORE, gesamtscore.getGesamtscoreNum(), 0);
         gesamtscore.reset();
-        support.firePropertyChange("Punkte", punkte.getCurrentPunkteNum(), 0);
+        support.firePropertyChange(PUNKTE, punkte.getCurrentPunkteNum(), 0);
         punkte.resetAll();
         rundeVorbei = false;
         skipMix = true;
@@ -121,18 +133,18 @@ public class Game {
                 markerKoordinaten.setIsPlaced(true);
                 this.support.firePropertyChange("UserMarker", null, markerKoordinaten);
             } else {
-                this.support.firePropertyChange("Alert", "", "Eingegebene Werte sind nicht korrekt!");
+                this.support.firePropertyChange(ALERT, "", "Eingegebene Werte sind nicht korrekt!");
             }
         }
     }
     public void link() {
-        final String KOMMA = ",";
+        final String komma = ",";
         String link = "https://www.openstreetmap.org/directions?engine=fossgis_valhalla_foot&route="
-                + markerKoordinaten.getLatitude() + KOMMA + markerKoordinaten.getLongitude() + ";"
-                + album.getBild(rundenzaehler.getRunde() - 1).getLatitude() + KOMMA
+                + markerKoordinaten.getLatitude() + komma + markerKoordinaten.getLongitude() + ";"
+                + album.getBild(rundenzaehler.getRunde() - 1).getLatitude() + komma
                 + album.getBild(rundenzaehler.getRunde() - 1).getLongtitude();
         this.link.create(link);
-        this.support.firePropertyChange("Link", null, this.link);
+        this.support.firePropertyChange(LINK, null, this.link);
     }
     public void startResult() {
         this.support.firePropertyChange("GesamtscoreOverlay", null, gesamtscore.getStringGesamtscore());
@@ -161,15 +173,15 @@ public class Game {
     }
     //Basiert auf https://stackoverflow.com/questions/10029831/how-do-you-use-a-timertask-to-run-a-thread
     public void startTimer() {
-        final int SEKUNDE = 1000;
+        final int sekunde = 1000;
         timer = new Timer();
         counter = rundenzaehler.getRundenlaenge();
         TimerTask timerTask = new TimerTask() {
             public void run() {
                 counter--;
-                support.firePropertyChange("Timer", counter +1 , counter);
+                support.firePropertyChange("Timer", counter + 1, counter);
                 if (counter < 1) {
-                    support.firePropertyChange("Alert", "" , "Zeit Vorbei!");
+                    support.firePropertyChange(ALERT, "", "Zeit Vorbei!");
                     if (markerKoordinaten.isPlaced()) {
                         eingabeValidieren();
                     } else {
@@ -178,9 +190,9 @@ public class Game {
                 }
             }
         };
-        timer.schedule(timerTask, 1, SEKUNDE);
+        timer.schedule(timerTask, 1, sekunde);
     }
-    public void setAlbenListe (AlbenListe albenListe) {
+    public void setAlbenListe(AlbenListe albenListe) {
         this.albenListe = albenListe;
     }
     public void addListener(PropertyChangeListener listener) {
