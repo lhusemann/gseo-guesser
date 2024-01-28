@@ -6,6 +6,15 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class Game {
+    private static final String RUNDE = "Runde";
+    private static final String BILD = "Bild";
+    private static final String GESAMTSCORE = "Gesamtscore";
+    private static final String PUNKTE = "Punkte";
+    private static final String LINK = "Link";
+    private static final String DISTANZ = "Distanz";
+    private static final String BESCHREIBUNG = "Beschreibung";
+    private static final String ALERT = "Alert";
+
     private PropertyChangeSupport support;
     private Album album;
     private MarkerKoordinaten markerKoordinaten;
@@ -18,14 +27,7 @@ public class Game {
     private boolean skipMix = false;
     private boolean rundeVorbei = false;
     private int counter;
-    private static final String RUNDE = "Runde";
-    private static final String BILD = "Bild";
-    private static final String GESAMTSCORE = "Gesamtscore";
-    private static final String PUNKTE = "Punkte";
-    private static final String LINK = "Link";
-    private static final String DISTANZ = "Distanz";
-    private static final String BESCHREIBUNG = "Beschreibung";
-    private static final String ALERT = "Alert";
+
     Game() {
         support = new PropertyChangeSupport(this);
         album = new Album();
@@ -101,8 +103,8 @@ public class Game {
                         .getBild(rundenzaehler.getRunde() - 1).getLongtitude(), album.getBild(rundenzaehler
                         .getRunde() - 1).getLatitude(), true));
                 double distance = Distanz.calcDistanceNum(markerKoordinaten.getLatitude(), album
-                        .getBild(rundenzaehler.getRunde() - 1).getLatitude(),markerKoordinaten.getLongitude()
-                        , album.getBild(rundenzaehler.getRunde() - 1).getLongtitude());
+                        .getBild(rundenzaehler.getRunde() - 1).getLatitude(), markerKoordinaten.getLongitude(),
+                        album.getBild(rundenzaehler.getRunde() - 1).getLongtitude());
                 this.support.firePropertyChange(DISTANZ, "", Formatierung.getUnit(distance));
                 link();
                 punkte.berechne(distance);
@@ -159,6 +161,9 @@ public class Game {
     }
     public Album getAlbum() {
         return album;
+    }
+    public void setDifficulty(Punkte punkte) {
+        this.punkte = punkte;
     }
     public boolean markerIsPlaced() {
         return markerKoordinaten.isPlaced();

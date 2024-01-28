@@ -103,8 +103,8 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
             Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
             leaveActivity();
         } catch (IOException e) {
-            final String message ="Fehler beim Lesen eines Bildes!";
-            Log.i("Fehler", message);
+            final String message = "Fehler beim Lesen eines Bildes!";
+            Log.i("Error", message);
             Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
             leaveActivity();
         }

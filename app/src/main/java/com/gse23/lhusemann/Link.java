@@ -1,22 +1,23 @@
 package com.gse23.lhusemann;
 
 public class Link {
+    private static final String NOGUESS = "Kein Guess abgegeben.";
+    private static final String DEFAULTGRAY = "#808080";
+    private static final String DEFAULTBLUE = "#0000EE";
+
     String link;
     String color;
-    private static final String NOGUESS = "Kein Guess abgegeben.";
-    private static final String defaultGray = "#808080";
-    private static final String defaultBlue = "#0000EE";
     Link() {
         link = NOGUESS;
-        color = defaultGray;
+        color = DEFAULTGRAY;
     }
     public void create(String link) {
         this.link = link;
-        color = defaultBlue;
+        color = DEFAULTBLUE;
     }
     public void reset() {
         link = NOGUESS;
-        color = defaultGray;
+        color = DEFAULTGRAY;
     }
     public String getLink() {
         return link;

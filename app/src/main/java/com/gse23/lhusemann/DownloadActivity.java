@@ -39,8 +39,8 @@ public class DownloadActivity extends AppCompatActivity implements PropertyChang
     private static final int FIXEDTHREADPOOL = 10;
     private static final String INTERNERALBUMNAME = "/Album";
     private static final String KEINEAUSWAHL = "Keine Auswahl";
-    private static final String albenListeTag = "albenListenReq";
-    private static final String imagesTag = "ImagesReq";
+    private static final String ALBENLISTENTAG = "albenListenReq";
+    private static final String IMAGESTAG = "ImagesReq";
     GameApplication gameApplication;
     AlbenListe albenListe;
     Spinner spinner;
@@ -86,8 +86,8 @@ public class DownloadActivity extends AppCompatActivity implements PropertyChang
                 AlertDialog.Builder back = new AlertDialog.Builder(DownloadActivity.this);
                 back.setMessage("Zum Hauptmenü zurückkehren?")
                         .setPositiveButton("Ja", (dialog, id) -> {
-                            queue.cancelAll(albenListeTag);
-                            queue.cancelAll(imagesTag);
+                            queue.cancelAll(ALBENLISTENTAG);
+                            queue.cancelAll(IMAGESTAG);
                             finish();
                         })
                         .setNegativeButton("Abbruch", (dialog, id) -> {})
@@ -132,7 +132,7 @@ public class DownloadActivity extends AppCompatActivity implements PropertyChang
     }
     private void anfrageAlbenListe(String url) {
         StringRequest request = getRequestForAlbenListe(url);
-        request.setTag(albenListeTag);
+        request.setTag(ALBENLISTENTAG);
         queue.add(request);
     }
     public StringRequest getRequestForAlbenListe(final String url) {
@@ -159,7 +159,7 @@ public class DownloadActivity extends AppCompatActivity implements PropertyChang
     //Hilffunktion, um den download zu starten
     private void download(String url) {
         StringRequest request = getRequestForImages(url);
-        request.setTag(imagesTag);
+        request.setTag(IMAGESTAG);
         queue.add(request);
     }
     public StringRequest getRequestForImages(final String url) {

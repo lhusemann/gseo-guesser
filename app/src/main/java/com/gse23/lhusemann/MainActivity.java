@@ -32,10 +32,12 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
     private static final int DOWNLOADTAG = 18;
     GameApplication gameApplication;
     Spinner spinner;
+    Spinner difficultySpinner;
     EditText rundenAnzahl;
     EditText rundenLaenge;
     List<String> auswahlmoeglichkeitenListe;
     ArrayAdapter<String> auswahlAdapter;
+    ArrayAdapter<String> difficultyAuswahlAdapter;
     boolean keineAuswahl = true;
     int indexDownloaded = 0;
     boolean downloaded;
@@ -48,8 +50,10 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
         gameApplication.setGame(new Game());
         gameApplication.getGame().addListener(this);
         spinner = findViewById(R.id.spinner);
+        difficultySpinner = findViewById(R.id.spinnerDifficulty);
         rundenAnzahl = findViewById(R.id.rundenanzahlField);
         rundenLaenge = findViewById(R.id.rundenlaengeField);
+        createDiffucultySpinner();
         auswahlmoeglichkeitenListe = new ArrayList<>();
         auswahlAdapter = new ArrayAdapter<>(this, androidx.appcompat.R.layout
                 .support_simple_spinner_dropdown_item, auswahlmoeglichkeitenListe);
@@ -83,6 +87,26 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
             }
         });
 
+        difficultySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                switch (position) {
+                    case 1:
+                        gameApplication.getGame().setDifficulty(new Punkte(20, 20000));
+                        break;
+                    case 2:
+                        gameApplication.getGame().setDifficulty(new Punkte(5, 5000));
+                        break;
+                    default:
+                        gameApplication.getGame().setDifficulty(new Punkte());
+                }
+            }
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                gameApplication.getGame().setDifficulty(new Punkte());
+            }
+        });
+
         Button startButton = findViewById(R.id.startButton);
         //Wenn der Start-Button gedrückt wird wird entweder eine Fehlernachricht ausgegeben oder das Spiel gestartet
         startButton.setOnClickListener(new View.OnClickListener()  {
@@ -99,8 +123,8 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
                                 .LENGTH_SHORT).show();
                     } else {
                     if (rundenAnzahl.getText().toString().equals("")) {
-                        gameApplication.getGame().getRundenZaehler().setMaxRunde(Math.min(getImagesCount
-                                (gameApplication.getGame().getAlbum().getName()), SDTRUNDEN));
+                        gameApplication.getGame().getRundenZaehler().setMaxRunde(Math.min(getImagesCount(
+                                gameApplication.getGame().getAlbum().getName()), SDTRUNDEN));
                         validR = true;
                         } else {
                         int wantedRound = Integer.parseInt(rundenAnzahl.getText().toString());
@@ -177,6 +201,12 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
         updateAnsichtButton.performClick();
         showAllImagesInAlbums();
     }
+    private void createDiffucultySpinner() {
+        String[] difficultyListe = {"Normal","Einfach","Schwer"};
+        difficultyAuswahlAdapter = new ArrayAdapter<>(this, androidx.appcompat.R.layout
+                .support_simple_spinner_dropdown_item, difficultyListe);
+        difficultySpinner.setAdapter(difficultyAuswahlAdapter);
+    }
 
     //Eine HilfsMethode, die die Alben aus dem internen Speicher zum Spinner hinzufügt
     private void addDownloads() {
@@ -220,6 +250,7 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
     protected void onResume() {
         super.onResume();
         spinner.setSelection(0, false);
+        difficultySpinner.setSelection(0, false);
     }
     //Wenn die Activity beeendet wird, müssen die Listener entfernt werden
     @Override
