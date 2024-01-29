@@ -30,6 +30,10 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
     private static final int SDTLAENGE = 30;
     private static final int SDTRUNDEN = 5;
     private static final int DOWNLOADTAG = 18;
+    private static final int MINDISTANZSCHWER = 5;
+    private static final int MINDISTANZLEICHT = 20;
+    private static final int MAXDISTANZSCHWER = 5000;
+    private static final int MAXDISTANZLEICHT = 20000;
     GameApplication gameApplication;
     Spinner spinner;
     Spinner difficultySpinner;
@@ -92,10 +96,10 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 switch (position) {
                     case 1:
-                        gameApplication.getGame().setDifficulty(new Punkte(20, 20000));
+                        gameApplication.getGame().setDifficulty(new Punkte(MINDISTANZLEICHT, MAXDISTANZLEICHT));
                         break;
                     case 2:
-                        gameApplication.getGame().setDifficulty(new Punkte(5, 5000));
+                        gameApplication.getGame().setDifficulty(new Punkte(MINDISTANZSCHWER, MAXDISTANZSCHWER));
                         break;
                     default:
                         gameApplication.getGame().setDifficulty(new Punkte());
@@ -202,7 +206,7 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
         showAllImagesInAlbums();
     }
     private void createDiffucultySpinner() {
-        String[] difficultyListe = {"Normal","Einfach","Schwer"};
+        String[] difficultyListe = {"Normal", "Einfach", "Schwer"};
         difficultyAuswahlAdapter = new ArrayAdapter<>(this, androidx.appcompat.R.layout
                 .support_simple_spinner_dropdown_item, difficultyListe);
         difficultySpinner.setAdapter(difficultyAuswahlAdapter);

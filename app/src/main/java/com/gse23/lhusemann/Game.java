@@ -89,6 +89,7 @@ public class Game {
         punkte.resetAll();
         album.reset();
         album.getSize();
+        rundeVorbei = false;
     }
     public void eingabeValidieren() {
         if (rundeVorbei) {

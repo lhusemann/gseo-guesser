@@ -260,8 +260,10 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         Log.i("Breitengrad", "" + bild.getLatitude());
     }
     public void updateLink(Link link) {
-        linkText.setText(link.getLink());
-        linkText.setTextColor(Color.parseColor(link.getColor()));
+        runOnUiThread(() -> {
+            linkText.setText(link.getLink());
+            linkText.setTextColor(Color.parseColor(link.getColor()));
+        });
         Log.i("OpenStreetMaps-Link zur Schätzung", link.getLink());
     }
     public void updateRunde(int neueRunde) {

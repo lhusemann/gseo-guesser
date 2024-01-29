@@ -6,11 +6,13 @@ public class Punkte {
     double minDistance;
     double maxDistance;
     private final int maxPoints = 5000;
-    int punkte = 0;
-    ArrayList<Integer> punkteListe = new ArrayList<>();
+    private final double minDistanzStd = 10.0;
+    private final double maxDistanzStd = 10000.0;
+    private int punkte = 0;
+    private ArrayList<Integer> punkteListe = new ArrayList<>();
     Punkte() {
-        minDistance = 10.0;
-        maxDistance = 10000.0;
+        minDistance = minDistanzStd;
+        maxDistance = maxDistanzStd;
     }
     Punkte(double minDistance, double maxDistance) {
         this.minDistance = minDistance;

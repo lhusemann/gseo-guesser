@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 
 public final class DownloadAlben {
-    private DownloadAlben () {
+    private DownloadAlben() {
     }
     public static AlbenListe jsonToAlbenListe(final String json) {
         final ObjectMapper objectMapper = new ObjectMapper();
