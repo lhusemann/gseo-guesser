@@ -19,7 +19,7 @@ public class Punkte {
         this.maxDistance = maxDistance;
     }
     public void berechne(double distanz) throws NegativeDistanceException {
-        if (distanz<0) {
+        if (distanz < 0) {
             throw new NegativeDistanceException();
         } else {
             if (distanz < minDistance) {
