@@ -27,7 +27,7 @@ public class Punkte {
             } else if (distanz > maxDistance) {
                 punkte = 0;
             } else {
-                punkte = (int) ((int) (maxPoints / Math.log(maxDistance / minDistance)) * Math.log(maxDistance / distanz));
+                punkte = (int) ((maxPoints / Math.log(maxDistance / minDistance)) * Math.log(maxDistance / distanz));
             }
         }
     }
