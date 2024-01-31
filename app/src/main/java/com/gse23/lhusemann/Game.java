@@ -108,7 +108,12 @@ public class Game {
                         album.getBild(rundenzaehler.getRunde() - 1).getLongtitude());
                 this.support.firePropertyChange(DISTANZ, "", Formatierung.getUnit(distance));
                 link();
-                punkte.berechne(distance);
+                try {
+                    punkte.berechne(distance);
+                } catch (NegativeDistanceException e) {
+                    //0 Punkte in einem Fall von negativer Distanz
+                    punkte.resetCurrent();
+                }
                 this.support.firePropertyChange(PUNKTE, 0, punkte.getCurrentPunkteNum());
                 this.support.firePropertyChange("Valid", false, true);
             } else {

@@ -18,13 +18,17 @@ public class Punkte {
         this.minDistance = minDistance;
         this.maxDistance = maxDistance;
     }
-    public void berechne(double distanz) {
-        if (distanz < minDistance) {
-            punkte = maxPoints;
-        } else if (distanz > maxDistance) {
-            punkte = 0;
+    public void berechne(double distanz) throws NegativeDistanceException {
+        if (distanz<0) {
+            throw new NegativeDistanceException();
         } else {
-            punkte = (int) ((int) (maxPoints / Math.log(maxDistance / minDistance)) * Math.log(maxDistance / distanz));
+            if (distanz < minDistance) {
+                punkte = maxPoints;
+            } else if (distanz > maxDistance) {
+                punkte = 0;
+            } else {
+                punkte = (int) ((int) (maxPoints / Math.log(maxDistance / minDistance)) * Math.log(maxDistance / distanz));
+            }
         }
     }
     public int getCurrentPunkteNum() {
