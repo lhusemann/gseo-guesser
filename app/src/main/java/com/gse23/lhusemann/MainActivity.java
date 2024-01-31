@@ -45,7 +45,7 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
     boolean keineAuswahl = true;
     int indexDownloaded = 0;
     boolean downloaded;
-    //Diese Methode wird beim Start ausgeführt
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -90,7 +90,7 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
                 keineAuswahl = true;
             }
         });
-
+        //basierend auf der ausgewählten Schwierigkeit, wird diese ins Model eingetragen
         difficultySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -120,48 +120,7 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
                     Toast.makeText(getApplicationContext(), "Du hast keinen Ordner ausgewählt!",
                             Toast.LENGTH_SHORT).show();
                 } else {
-                    boolean validL = false;
-                    boolean validR = false;
-                    if (getImagesCount(gameApplication.getGame().getAlbum().getName()) == 0) {
-                        Toast.makeText(getApplicationContext(), "Das Album besitzt keine Bilder", Toast
-                                .LENGTH_SHORT).show();
-                    } else {
-                    if (rundenAnzahl.getText().toString().equals("")) {
-                        gameApplication.getGame().getRundenZaehler().setMaxRunde(Math.min(getImagesCount(
-                                gameApplication.getGame().getAlbum().getName()), SDTRUNDEN));
-                        validR = true;
-                        } else {
-                        int wantedRound = Integer.parseInt(rundenAnzahl.getText().toString());
-                        if (wantedRound < 1) {
-                            Toast.makeText(getApplicationContext(), "Du musst min. eine Runde spielen!", Toast
-                                    .LENGTH_SHORT).show();
-                        } else if (wantedRound > getImagesCount(gameApplication.getGame().getAlbum().getName())) {
-                            Toast.makeText(getApplicationContext(), "Rundenanzahl uebertrifft Bilder in Album!", Toast
-                                    .LENGTH_SHORT).show();
-                        } else {
-                            gameApplication.getGame().getRundenZaehler().setMaxRunde(wantedRound);
-                            validR = true;
-                        }
-                        }
-                    }
-
-                    if (rundenLaenge.getText().toString().equals("")) {
-                        gameApplication.getGame().getRundenZaehler().setRundenlaenge(SDTLAENGE);
-                        validL = true;
-                    } else {
-                        int wantedLength = Integer.parseInt(rundenLaenge.getText().toString());
-                        if (wantedLength > MAXSEKUNDEN) {
-                            Toast.makeText(getApplicationContext(), "Eine Runde kann maximal 60 Sekunden lang sein",
-                                    Toast.LENGTH_SHORT).show();
-                        } else if (wantedLength < MINSEKUNDEN) {
-                            Toast.makeText(getApplicationContext(), "Eine Runde muss mindestens 10 Sekunden lang sein",
-                                    Toast.LENGTH_SHORT).show();
-                        } else {
-                            gameApplication.getGame().getRundenZaehler().setRundenlaenge(wantedLength);
-                            validL = true;
-                        }
-                    }
-                    if (validL && validR) {
+                    if (analysiereRundenAnzahl() && analysiereRundenLaenge()) {
                         Intent intent = new Intent(MainActivity.this, SpielansichtActivity.class);
                         intent.putExtra("downloaded", downloaded);
                         startActivity(intent);
@@ -205,6 +164,56 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
         updateAnsichtButton.performClick();
         showAllImagesInAlbums();
     }
+    //prüft ob die eingegebene Rundenanzahl passt und gibt sie bei true ins Model weiter
+    private boolean analysiereRundenAnzahl() {
+        if (getImagesCount(gameApplication.getGame().getAlbum().getName()) == 0) {
+            Toast.makeText(getApplicationContext(), "Das Album besitzt keine Bilder", Toast
+                    .LENGTH_SHORT).show();
+            return false;
+        } else {
+            if (rundenAnzahl.getText().toString().equals("")) {
+                gameApplication.getGame().getRundenZaehler().setMaxRunde(Math.min(getImagesCount(
+                        gameApplication.getGame().getAlbum().getName()), SDTRUNDEN));
+                return true;
+            } else {
+                int wantedRound = Integer.parseInt(rundenAnzahl.getText().toString());
+                if (wantedRound < 1) {
+                    Toast.makeText(getApplicationContext(), "Du musst min. eine Runde spielen!", Toast
+                            .LENGTH_SHORT).show();
+                    return false;
+                } else if (wantedRound > getImagesCount(gameApplication.getGame().getAlbum().getName())) {
+                    Toast.makeText(getApplicationContext(), "Rundenanzahl uebertrifft Bilder in Album!", Toast
+                            .LENGTH_SHORT).show();
+                    return false;
+                } else {
+                    gameApplication.getGame().getRundenZaehler().setMaxRunde(wantedRound);
+                    return true;
+                }
+            }
+        }
+    }
+    //prüft ob die eingegebene Rundenlaenge passt und gibt sie bei true ins Model weiter
+    private boolean analysiereRundenLaenge() {
+        if (rundenLaenge.getText().toString().equals("")) {
+            gameApplication.getGame().getRundenZaehler().setRundenlaenge(SDTLAENGE);
+            return true;
+        } else {
+            int wantedLength = Integer.parseInt(rundenLaenge.getText().toString());
+            if (wantedLength > MAXSEKUNDEN) {
+                Toast.makeText(getApplicationContext(), "Eine Runde kann maximal 60 Sekunden lang sein",
+                        Toast.LENGTH_SHORT).show();
+                return false;
+            } else if (wantedLength < MINSEKUNDEN) {
+                Toast.makeText(getApplicationContext(), "Eine Runde muss mindestens 10 Sekunden lang sein",
+                        Toast.LENGTH_SHORT).show();
+                return false;
+            } else {
+                gameApplication.getGame().getRundenZaehler().setRundenlaenge(wantedLength);
+                return true;
+            }
+        }
+    }
+
     private void createDiffucultySpinner() {
         String[] difficultyListe = {"Normal", "Einfach", "Schwer"};
         difficultyAuswahlAdapter = new ArrayAdapter<>(this, androidx.appcompat.R.layout
@@ -241,22 +250,23 @@ public class MainActivity extends AppCompatActivity implements PropertyChangeLis
             }
         }
     }
+
     //gibt anzahl der Bilder in einem Ordner wieder
-    private int getImagesCount(String folder) {
+    public int getImagesCount(String folder) {
         return ReadExif.getImagesCount(folder, downloaded, this);
     }
-    // Wenn in einem Modell eine Sache verändert wird, wird hier gesagt, was passieren soll
+
     @Override
     public void propertyChange(PropertyChangeEvent propertyChangeEvent) {
     }
-    //Wenn die Activity neugeladen wird, sollen alle Werte in den Models zurückgesetzt werden
+    //Wenn die Activity neugeladen wird, sollen alle Werte im Model zurückgesetzt werden
     @Override
     protected void onResume() {
         super.onResume();
         spinner.setSelection(0, false);
         difficultySpinner.setSelection(0, false);
     }
-    //Wenn die Activity beeendet wird, müssen die Listener entfernt werden
+    //Wenn die Activity beeendet wird, muss der Listener entfernt werden
     @Override
     protected void onDestroy() {
         gameApplication.getGame().removeListener(this);

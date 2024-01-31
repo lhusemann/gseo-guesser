@@ -15,7 +15,7 @@ import java.util.ArrayList;
  */
 public class EndActivity extends AppCompatActivity implements PropertyChangeListener {
     GameApplication gameApplication;
-    //Diese Methode wird beim Start ausgeführt
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -49,7 +49,7 @@ public class EndActivity extends AppCompatActivity implements PropertyChangeList
             }
         });
     }
-    //Wenn in einem Model eine Sache verändert wird, wird hier gesagt, was passieren soll
+
     @Override
     public void propertyChange(PropertyChangeEvent propertyChangeEvent) {
         String changeName = propertyChangeEvent.getPropertyName();
@@ -71,7 +71,7 @@ public class EndActivity extends AppCompatActivity implements PropertyChangeList
             rundenScores.setText(scoreTexte);
         }
     }
-    //Wenn die Activity beeendet wird, müssen die Listener entfernt werden
+
     @Override
     protected void onDestroy() {
         gameApplication.getGame().removeListener(this);

@@ -63,7 +63,7 @@ public class DownloadActivity extends AppCompatActivity implements PropertyChang
         spinner.setAdapter(auswahlAdapter);
 
         Button anfrageButton = findViewById(R.id.anfrageButton);
-        //Das passiert wenn man auf den Anfragen Button drückt
+        //Das passiert wenn man auf den Anfragen Button drückt, um eine Albenliste anzufragen
         anfrageButton.setOnClickListener(new View.OnClickListener()  {
             @Override
             public void onClick(View button) {
@@ -79,7 +79,7 @@ public class DownloadActivity extends AppCompatActivity implements PropertyChang
         });
 
         Button zurueckButton = findViewById(R.id.backButton);
-        //Das passiert wenn man auf den Zurück Button drückt
+        //Das passiert wenn man auf den Zurück-Button drückt
         zurueckButton.setOnClickListener(new View.OnClickListener()  {
             @Override
             public void onClick(View button) {
@@ -98,7 +98,7 @@ public class DownloadActivity extends AppCompatActivity implements PropertyChang
         });
 
         Button downloadButton = findViewById(R.id.downloadButton);
-        //Das passiert wenn man auf den Download Button drückt
+        //Das passiert wenn man auf den Download Button drückt, um ein ausgewähltes Album zu downloaden
         downloadButton.setOnClickListener(new View.OnClickListener()  {
             @Override
             public void onClick(View button) {
@@ -130,11 +130,13 @@ public class DownloadActivity extends AppCompatActivity implements PropertyChang
             }
         });
     }
+    //Anfrage von Albenliste wird zur Queue hinzugefügt
     private void anfrageAlbenListe(String url) {
         StringRequest request = getRequestForAlbenListe(url);
         request.setTag(ALBENLISTENTAG);
         queue.add(request);
     }
+    //Anfrage für Albenliste wird hier erstellet
     public StringRequest getRequestForAlbenListe(final String url) {
         final Response.Listener<String> onResponse = response -> {
             albenListe = DownloadAlben.jsonToAlbenListe(response);
@@ -156,12 +158,13 @@ public class DownloadActivity extends AppCompatActivity implements PropertyChang
         };
         return new StringRequest(Request.Method.GET, url, onResponse, onError);
     }
-    //Hilffunktion, um den download zu starten
+    //Hilffunktion, um den download zu starten, aka eine Anfrage an die Queue stellen
     private void download(String url) {
         StringRequest request = getRequestForImages(url);
         request.setTag(IMAGESTAG);
         queue.add(request);
     }
+    //Anfrage für ein Album wird hier erstellt
     public StringRequest getRequestForImages(final String url) {
         final Response.Listener<String> onResponse = response -> {
             ServerAlbum serverAlbum = DownloadAlben.jsonToServerAlbum(response);
@@ -226,7 +229,7 @@ public class DownloadActivity extends AppCompatActivity implements PropertyChang
         }
         executerService.shutdown();
     }
-    //Hilffunktion, die die ein einzelnes Bild erstellt
+    //Hilffunktion, die ein einzelnes Bild erstellt und speichert
     // https://www.avajava.com/tutorials/lessons/how-do-i-save-an-image-from-a-url-to-a-file.html
     public void saveImage(String imageUrl, String destinationFile) throws IOException {
 

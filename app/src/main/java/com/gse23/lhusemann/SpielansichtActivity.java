@@ -54,7 +54,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
     Context context;
     IConfigurationProvider provider;
     boolean downloaded;
-    //Diese Methode wird beim Start ausgeführt
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -188,8 +188,9 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         gameApplication.getGame().restart();
+        nextButton.setText("Nächstes Bild");
     }
-    //Wenn die Activity pausiert wird
+
     @Override
     protected void onPause() {
         super.onPause();
@@ -206,7 +207,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
         Uri uri = Uri.parse(link);
         startActivity(new Intent(Intent.ACTION_VIEW, uri));
     }
-    //fügt alle Bilder des ausgewähltem Albums in die Albumklasse im Model ein
+    //fügt alle Bilder des ausgewähltem Albums zum Model hinzu
     private void addBilderInAlbum() throws CorruptedExifDataException, NoImagesInAlbumException, IOException {
         ReadExif bilderReader = new ReadExif(context, downloaded, gameApplication.getGame().getAlbum().getName());
         bilderReader.startGetInhaltInOrdner();
@@ -216,6 +217,7 @@ public class SpielansichtActivity extends AppCompatActivity implements PropertyC
             }
         }
     }
+    //aktualisiert das aktuelle Bild
     public void refreshImage(String file) {
         final String internAlbum = "/Album/";
         final String message = "Fehler beim Laden des Bildes";
